@@ -11,7 +11,8 @@
     "./month-budget": "./src/month-budget/index.ts",
     "./auth": "./src/auth/index.ts",
     "./family": "./src/family/index.ts",
-    "./plan": "./src/plan/index.ts"
+    "./plan": "./src/plan/index.ts",
+    "./expenses": "./src/expenses/index.ts"
   },
   "scripts": {
     "lint": "eslint .",
