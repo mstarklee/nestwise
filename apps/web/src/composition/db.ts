@@ -16,3 +16,13 @@ export function getDb(): Db {
   }
   return db;
 }
+
+/** For the health check after a deploy: true when the database answers. */
+export async function databaseAnswers(db: Db = getDb()): Promise<boolean> {
+  try {
+    await db.$client.query('select 1');
+    return true;
+  } catch {
+    return false;
+  }
+}
