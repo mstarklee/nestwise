@@ -1,4 +1,5 @@
-import type { Period } from '../shared';
+import type { Actor, Period } from '../shared';
+import type { YearLineStatus } from '../year-plan';
 
 export interface ForecastMonthInput {
   readonly period: Period;
@@ -74,4 +75,55 @@ export function projectPot(input: ForecastInput): Forecast {
     fixPerMonthMinor: fixPerMonth,
     topUpNowMinor: topUpNow,
   };
+}
+
+export interface ForecastCommand {
+  readonly actor: Actor;
+}
+
+/** A yearly bill in a forecast month. yearLineId is null when the month's year has no plan yet (a template estimate). */
+export interface ForecastBillLine {
+  readonly yearLineId: string | null;
+  readonly name: string;
+  readonly remainingMinor: number;
+  readonly status: YearLineStatus;
+}
+
+export interface ForecastBills {
+  readonly period: Period;
+  readonly lines: readonly ForecastBillLine[];
+}
+
+/** Lines with no month yet that still need money, for one plan year (TRD §5.5 undatedRemaining[Y]). */
+export interface UndatedSummary {
+  readonly year: number;
+  readonly totalMinor: number;
+  readonly count: number;
+  readonly lines: readonly { readonly yearLineId: string; readonly name: string; readonly remainingMinor: number }[];
+}
+
+export interface ForecastView extends Forecast {
+  /** B0: the confirmed pot balance now. */
+  readonly balanceMinor: number;
+  /** One entry per forecast month, in order; month 0 also lists overdue bills. */
+  readonly bills: readonly ForecastBills[];
+  readonly undated: readonly UndatedSummary[];
+  /** The monthly spending and savings plans (templates), so the screen can show the total cash the household needs. */
+  readonly monthlyPlanMinor: number;
+  readonly savingsPlanMinor: number;
+}
+
+export type HomeCard = 'checklist' | 'undated' | 'month_review';
+
+export interface HomeSummary {
+  readonly pot: {
+    readonly balanceMinor: number;
+    readonly safeToSpendNowMinor: number;
+    readonly firstRed: { readonly period: Period; readonly shortfallMinor: number } | null;
+    readonly fixPerMonthMinor: number | null;
+  };
+  readonly next3Months: readonly ForecastBills[];
+  readonly thisMonth: { readonly plannedMinor: number; readonly actualMinor: number; readonly groupsOver: readonly string[] };
+  readonly undated: readonly UndatedSummary[];
+  readonly cards: readonly HomeCard[];
 }
