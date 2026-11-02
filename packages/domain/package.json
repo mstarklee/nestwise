@@ -10,7 +10,8 @@
     "./forecast": "./src/forecast/index.ts",
     "./month-budget": "./src/month-budget/index.ts",
     "./auth": "./src/auth/index.ts",
-    "./family": "./src/family/index.ts"
+    "./family": "./src/family/index.ts",
+    "./plan": "./src/plan/index.ts"
   },
   "scripts": {
     "lint": "eslint .",

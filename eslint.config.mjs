@@ -25,6 +25,13 @@ export default tseslint.config(
   {
     files: ['**/*.{ts,tsx,mts,cts}'],
     extends: [tseslint.configs.recommended],
+    rules: {
+      // `_name` marks a deliberately unused value, e.g. a field dropped with rest destructuring.
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_', ignoreRestSiblings: true },
+      ],
+    },
   },
   {
     files: ['packages/domain/**/*.{ts,tsx}'],
