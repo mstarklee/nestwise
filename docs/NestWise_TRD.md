@@ -48,10 +48,11 @@ iPhone — NestWise installed on the home screen
             │  HTTPS — versioned JSON API /api/v1 (shapes in packages/api-contract)
             ▼
 Vercel — Next.js server
- ├─ Session check (Supabase SSR cookies) → requireMember(familyId, role)
- ├─ packages/domain (pure TS, fully unit-tested):
- │     money · setAside · forecast · budgets · yearStatus · duplicates · periods
- ├─ Data layer (Drizzle) — every function takes a FamilyScope
+ ├─ Inbound adapters: route handlers, Server Components, cron → requireActor(request) → Actor
+ ├─ composition/: make*UseCase() factories wire use cases to adapters
+ ├─ packages/domain (pure TS, fully unit-tested): per feature models · ports · errors · use cases
+ │     pure calculations: money · setAside · forecast · yearStatus · duplicates · periods
+ ├─ adapters/<feature>/: Drizzle, Claude, push and email implementations of the domain's ports
  ├─ Capture: /api/v1/capture/voice  → STT adapter → Claude parse → pending entries
  │           /api/v1/capture/receipt→ Claude vision            → pending entries
  ├─ /api/cron/daily (CRON_SECRET): months, reminders, alerts, closing
@@ -74,7 +75,11 @@ External: Anthropic API · STT provider · Apple/Google push services · Gmail S
   - Every capability is a JSON endpoint under `/api/v1`. Request and response shapes are Zod schemas in `packages/api-contract`.
   - The web app calls these endpoints through a small typed client.
   - Server components may read through the same service functions on the server. No business operation exists only as a Next.js server action.
-  - The API accepts the web's session cookie **or** an `Authorization: Bearer <Supabase access token>` header. The header is what a future React Native app would send, and `requireMember` works with both.
+  - The API accepts the web's session cookie **or** an `Authorization: Bearer <Supabase access token>` header. The header is what a future React Native app would send, and `requireActor` works with both.
+- **Code structure follows the project skills** `.claude/skills/hexagonal-architecture` and
+  `.claude/skills/clean-architecture`. They cover the use cases, `*Gateway` ports, adapters, `make*` wiring,
+  domain errors with categories, unit-of-work ports for atomic writes, and in-memory fakes. Where this document
+  and those skills differ on code structure, the skills win.
   - `packages/domain` must not import Next.js, React, Drizzle or browser APIs. A lint rule enforces this, so the package runs unchanged inside a React Native app.
 
 ---
@@ -91,13 +96,19 @@ External: Anthropic API · STT provider · Apple/Google push services · Gmail S
                           years, pot, checklist, transactions, duplicates, forecast,
                           capture/voice, capture/receipt, push/subscribe
   /app/api/cron/daily     the daily job
-  /src/server             services/* (business operations), data/* (Drizzle queries
-                          taking FamilyScope), auth.ts (requireMember), notify/*, capture/*
+  /src/adapters/<feature> Drizzle / Claude / STT / web-push / email implementations of domain ports
+  /src/composition        make*UseCase() factories, one file per feature
+  /src/http               requireActor (session → Actor via MembershipGateway), withApiErrors
+  /src/orchestration      cross-feature jobs: run-daily-job.ts, notification fan-out
+  /src/repositories/postgres  shared single-store Drizzle helpers (only if needed)
   /src/client             api-client.ts (typed, from api-contract), outbox.ts (Dexie),
                           push.ts, install.ts, format.ts
   /messages/en.json       all UI text
-/packages/domain          pure logic: money, setAside, forecast, budgets, yearStatus,
-                          duplicates, periods (no framework, DB or browser imports)
+/packages/domain          the core, by feature: shared/ (money, period, actor, Clock, IdGenerator,
+                          DomainError), family/, plan/, month-budget/, year-plan/, pot/, expenses/,
+                          forecast/, reminders/, capture/ — each with models.ts, ports.ts, errors.ts,
+                          use-cases/, index.ts. No framework, DB or browser imports.
+  /test/fakes            in-memory gateways, FixedClock, SequentialIds (no vi.mock / vi.fn)
 /packages/api-contract    Zod schemas + types for every /api/v1 request and response
 /packages/db              Drizzle schema.ts, migrations/
 /fixtures                 sample-family.ts (from the sample data doc), dev/test only
@@ -333,10 +344,13 @@ Pairs already marked `different` are excluded.
   - RLS is enabled on every table with **no** policies for `anon` or `authenticated`. That way, even an accidental exposure returns nothing.
   - The app connects as a dedicated Postgres role over the Supabase pooler.
 - **One gate for all family data.**
-  - `requireMember(familyId, minRole)` reads the session, checks `members` (`removed_at is null`), and returns a branded `FamilyScope { familyId, userId, role }`.
-  - Every data-layer function **requires** a `FamilyScope` and adds `where family_id = scope.familyId`.
-  - A lint rule or code review checks that no query in `/src/server/data` skips the scope.
-  - IDs from the client are always re-checked to belong to `scope.familyId`.
+  - `requireActor(request)` reads the session (cookie or Bearer token). It loads the membership through
+    `MembershipGateway` (`removed_at is null`) and returns an `Actor { userId, familyId, role }`.
+  - Every command carries that `Actor`. The use case checks the role (`assertCan`) and passes `actor.familyId`
+    to every gateway method. A `familyId` from the request body is never trusted.
+  - Every gateway adapter filters by `family_id`, and its integration test proves it never returns another
+    family's rows.
+  - IDs from the client are always re-checked to belong to `actor.familyId`.
 - **Roles:**
   - Viewer: read only.
   - Member: expenses, the checklist and month budgets.
@@ -454,7 +468,7 @@ The daily job is Vercel Cron `/api/cron/daily`, authenticated with `CRON_SECRET`
 
 **Server, in order:**
 
-1. `requireMember` (member+), then check the cap and rate limit.
+1. `requireActor`, then the capture use case checks the role (member+), the cap and the rate limit.
 2. Transcribe: `SpeechToText.transcribe(audio, mime, { languages: ['ta-IN','en-IN'] }) → { text }`.
    - The adapter is chosen by `STT_PROVIDER`.
    - The audio buffer is discarded after this call.
@@ -490,7 +504,7 @@ Any entry with a null or low-confidence field gets that field highlighted, and n
   - Downscale on the phone to a 1600 px long edge, as JPEG at q ≈ 0.75 (~150–300 KB), with EXIF stripped.
   - Upload to private storage using a server-issued signed URL.
 - **On the server:**
-  1. `requireMember`, then check the cap.
+  1. `requireActor`, then the capture use case checks the role and the cap.
   2. Send the image to Claude as an image block, with the family's item list.
   3. Get a structured output: `{ readable: bool, handwritten: bool, total_minor|null, date|null, merchant|null, suggested_item_id|null, confidence: { total, date, merchant, item } }`.
   4. Create a `pending` transaction and an evidence row (photo path + extracted JSON).
@@ -550,7 +564,8 @@ At $4 / $20 per million input/output tokens for `claude-opus-5-5`:
 
 ## 12. Testing
 
-**Unit tests (Vitest, `/tests/unit`), against the pure domain modules:**
+**Unit tests (Vitest, `packages/domain/test`), against the pure calculations and the use cases with in-memory
+fakes (no mocking library):**
 
 - **money:** parsing `"204.50"` gives 20450; INR lakh formatting; JPY with 0 decimals; KWD with 3 decimals; the safe-integer guard.
 - **setAside:** the 4,43,000.00 split adds up exactly; override; estimate years.
@@ -688,7 +703,7 @@ At $4 / $20 per million input/output tokens for `claude-opus-5-5`:
 | Free-tier gaps (no backups, pausing, daily-only cron) | Weekly dump, daily cron keeps the DB awake, upgrade before Stage 4 |
 | AI cost when public | Per-family caps, usage table, model by env, refusals and failures fall back to manual |
 | No background sync on iPhone | Flush on open/online/visible; visible "waiting to send" count; idempotent IDs |
-| A family-isolation bug | Non-exposed schema + RLS deny-all + `FamilyScope` + an isolation test per action |
+| A family-isolation bug | Non-exposed schema + RLS deny-all + `Actor`-scoped gateways + an isolation test per adapter and per route |
 | Forecast mistakes erode trust | Pure, fixture-tested function reproducing the PRD's worked numbers to the paise |
 | A native app later needs rework | API-first + shared packages, so only the screens are rebuilt. Stage 0 decides whether the iPhone app should go native sooner |
 

@@ -1,0 +1,64 @@
+{
+  "skill_name": "clean-architecture",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Implement the NestWise 'record an expense' operation end to end: allocations sum to amountMinor, items belong to the caller's family and are not archived, admin/member only, client-supplied UUID made idempotent, period from txnDate, enteredBy = caller; POST /api/v1/transactions; unit tests.",
+      "expected_output": "A use case in packages/domain with gateways and fakes, a Drizzle adapter and composition factory in apps/web, and a thin route handler.",
+      "files": [],
+      "expectations": [
+        "Business rules are enforced inside packages/domain, not in the route handler or the Server Component",
+        "No file under packages/domain imports a framework or I/O package (next, react, server-only, drizzle-orm, postgres, @supabase/*, @anthropic-ai/*) or a workspace outside package (packages/db, packages/api-contract)",
+        "Each operation is a *UseCase class with a single public execute() method, and there is no *Service class",
+        "Outbound dependencies are *Gateway interfaces declared in packages/domain that return domain types, not Drizzle row types",
+        "Domain unit tests use in-memory fakes and contain no vi.mock, vi.fn or vi.spyOn",
+        "Gateway adapters live in apps/web/src/adapters/<feature>/",
+        "Use cases are wired through make* factory functions in apps/web/src/composition/",
+        "Domain errors carry no HTTP status; mapping errors to HTTP statuses happens in apps/web",
+        "The familyId used for the operation comes from the authenticated actor/session, never from the request body",
+        "A repeated request with the same client transaction id returns the existing expense without creating a second one, and a test covers it",
+        "The core takes the current time from an injected Clock port (no new Date() or Date.now() in packages/domain)"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Implement 'confirm this month's pot deposit': amount > 0, admin/member only, one deposit per family-month, deposit + activity entry saved atomically; POST /api/v1/pot/deposits; Home Server Component shows the pot balance; unit tests.",
+      "expected_output": "A use case using a unit-of-work port for the atomic write, a query use case for the balance used by the Server Component, and a conflict error for a second deposit.",
+      "files": [],
+      "expectations": [
+        "Business rules are enforced inside packages/domain, not in the route handler or the Server Component",
+        "No file under packages/domain imports a framework or I/O package (next, react, server-only, drizzle-orm, postgres, @supabase/*, @anthropic-ai/*) or a workspace outside package (packages/db, packages/api-contract)",
+        "Each operation is a *UseCase class with a single public execute() method, and there is no *Service class",
+        "Outbound dependencies are *Gateway interfaces declared in packages/domain that return domain types, not Drizzle row types",
+        "Domain unit tests use in-memory fakes and contain no vi.mock, vi.fn or vi.spyOn",
+        "Gateway adapters live in apps/web/src/adapters/<feature>/",
+        "Use cases are wired through make* factory functions in apps/web/src/composition/",
+        "Domain errors carry no HTTP status; mapping errors to HTTP statuses happens in apps/web",
+        "The familyId used for the operation comes from the authenticated actor/session, never from the request body",
+        "The deposit and the activity entry are written atomically through a unit-of-work/transaction port that the use case calls, not a transaction opened in the route handler",
+        "The Home Server Component gets the pot balance by calling a use case, not by querying Drizzle directly",
+        "A second deposit for the same family-month is refused with a conflict-category domain error, and a test covers it"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Add receipt-photo reading: admin/member only, monthly receipt cap from env with exempt families, Claude reads total/date/merchant/suggested item with confidences, pending transaction + evidence record, usage counter incremented, unreadable/refused photo gives an empty pending entry; POST /api/v1/capture/receipt; unit tests.",
+      "expected_output": "A capture use case with a receipt-reader port implemented by a Claude adapter in apps/web, the cap decided in the domain from injected settings, and graceful handling of unreadable photos.",
+      "files": [],
+      "expectations": [
+        "Business rules are enforced inside packages/domain, not in the route handler or the Server Component",
+        "No file under packages/domain imports a framework or I/O package (next, react, server-only, drizzle-orm, postgres, @supabase/*, @anthropic-ai/*) or a workspace outside package (packages/db, packages/api-contract)",
+        "Each operation is a *UseCase class with a single public execute() method, and there is no *Service class",
+        "Outbound dependencies are *Gateway interfaces declared in packages/domain that return domain types, not Drizzle row types",
+        "Domain unit tests use in-memory fakes and contain no vi.mock, vi.fn or vi.spyOn",
+        "Gateway adapters live in apps/web/src/adapters/<feature>/",
+        "Use cases are wired through make* factory functions in apps/web/src/composition/",
+        "Domain errors carry no HTTP status; mapping errors to HTTP statuses happens in apps/web",
+        "The familyId used for the operation comes from the authenticated actor/session, never from the request body",
+        "The Claude call sits behind a domain port (e.g. a ReceiptReaderGateway) with its Anthropic SDK adapter in apps/web",
+        "The monthly cap rule is decided in packages/domain, with the cap value and the exempt list passed in from outside (no process.env in the domain)",
+        "An unreadable photo or a Claude refusal yields a pending entry with empty fields rather than an error, and a test covers it"
+      ]
+    }
+  ]
+}
