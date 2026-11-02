@@ -14,9 +14,11 @@
     "@nestwise/api-contract": "workspace:*",
     "@nestwise/db": "workspace:*",
     "@nestwise/domain": "workspace:*",
+    "@vercel/functions": "3.10.5",
     "next": "16.4.3",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "server-only": "^0.0.1"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",

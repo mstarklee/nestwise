@@ -68,7 +68,7 @@ describe('database guards', () => {
         await insertAllocation(tx, familyId, { transactionId, itemId, amountMinor: 900 });
       }),
     ).rejects.toThrow();
-    const rows = await db.execute(sql`select 1 from app.transactions`);
+    const { rows } = await db.execute(sql`select 1 from app.transactions`);
     expect(rows).toHaveLength(0);
   });
 
@@ -92,7 +92,9 @@ describe('database guards', () => {
       await insertAllocation(tx, familyId, { transactionId: id, itemId, amountMinor: 100 });
       return id;
     });
-    const [row] = await db.execute<{ period_year: number; period_month: number }>(
+    const {
+      rows: [row],
+    } = await db.execute<{ period_year: number; period_month: number }>(
       sql`select period_year, period_month from app.transactions where id = ${transactionId}`,
     );
     expect(row).toEqual({ period_year: 2026, period_month: 11 });
@@ -112,7 +114,7 @@ describe('database guards', () => {
       await tx.execute(sql`set local role nestwise_app`);
       await tx.execute(sql`insert into app.activity (family_id, actor_id, action, entity_type, entity_id, at)
         values (${familyId}, ${USER}, 'create', 'family', ${familyId}, now())`);
-      const rows = await tx.execute(sql`select 1 from app.activity`);
+      const { rows } = await tx.execute(sql`select 1 from app.activity`);
       expect(rows).toHaveLength(1);
     });
     for (const statement of [sql`update app.activity set action = 'x'`, sql`delete from app.activity`]) {
@@ -129,16 +131,16 @@ describe('database guards', () => {
     await db.transaction(async (tx) => {
       await tx.execute(sql`set local role nestwise_app`);
       const familyId = await insertFamily(tx, { currencyCode: 'INR', minorUnit: 2 });
-      const rows = await tx.execute(sql`select id from app.families where id = ${familyId}`);
+      const { rows } = await tx.execute(sql`select id from app.families where id = ${familyId}`);
       expect(rows).toHaveLength(1);
     });
   });
 
   it('every app table has RLS enabled', async () => {
-    const rows = await db.execute(sql`select relname from pg_class c join pg_namespace n on n.oid = c.relnamespace
+    const { rows } = await db.execute(sql`select relname from pg_class c join pg_namespace n on n.oid = c.relnamespace
       where n.nspname = 'app' and c.relkind = 'r' and not c.relrowsecurity`);
     expect(rows).toHaveLength(0);
     const tables = await db.execute(sql`select 1 from pg_tables where schemaname = 'app'`);
-    expect(tables.length).toBeGreaterThanOrEqual(20);
+    expect(tables.rows.length).toBeGreaterThanOrEqual(20);
   });
 });
