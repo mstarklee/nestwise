@@ -1,9 +1,9 @@
 import type { FamilyGateway, MembershipGateway } from '../../family';
 import type { EnsureMonthBudgetUseCase } from '../../month-budget';
 import type { PlanGateway } from '../../plan';
-import { assertCan, type Clock, periodOf } from '../../shared';
+import { assertCan, type Clock, periodOf, todayIn } from '../../shared';
 import { ExpenseIdTakenError, InvalidExpenseCommandError } from '../errors';
-import type { RecordExpenseCommand, Transaction } from '../models';
+import type { RecordExpenseCommand, RecordExpenseResult, Transaction } from '../models';
 import type { ExpensesUnitOfWork, TransactionGateway } from '../ports';
 import { assertClientId, assertPayer, checkAmounts, checkDate, checkText, resolveAllocations } from './expense-rules';
 
@@ -19,25 +19,26 @@ export class RecordExpenseUseCase {
     private readonly clock: Clock,
   ) {}
 
-  async execute(command: RecordExpenseCommand): Promise<Transaction> {
+  async execute(command: RecordExpenseCommand): Promise<RecordExpenseResult> {
     assertCan(command.actor, 'record_expense');
     assertClientId(command.id);
     const kind = command.kind ?? 'expense';
     if (kind !== 'expense' && kind !== 'refund') throw new InvalidExpenseCommandError('Not an expense or refund');
     checkAmounts(command.amountMinor, command.allocations);
-    const txnDate = checkDate(command.txnDate);
+    if (command.txnDate !== undefined) checkDate(command.txnDate);
     const merchant = checkText(command.merchant, 'merchant');
     const note = checkText(command.note, 'note');
 
     const familyId = command.actor.familyId;
     const existing = await this.transactions.findById(familyId, command.id);
-    if (existing) return existing; // the same client id, resent by the offline outbox
+    if (existing) return { transaction: existing, created: false }; // the same client id, resent by the offline outbox
 
+    const family = await this.families.findById(familyId);
+    if (!family) throw new InvalidExpenseCommandError('Your family was not found');
+    const txnDate = command.txnDate ?? todayIn(family.timeZone, this.clock.now());
     const paidBy = command.paidBy ?? command.actor.userId;
     await assertPayer(this.memberships, familyId, paidBy);
     const allocations = await resolveAllocations(this.plan, familyId, command.allocations, txnDate);
-    const family = await this.families.findById(familyId);
-    if (!family) throw new InvalidExpenseCommandError('Your family was not found');
 
     const period = periodOf(txnDate);
     await this.ensureMonth.execute({ familyId, period }); // a back-dated month gets its budget from the template
@@ -66,7 +67,7 @@ export class RecordExpenseUseCase {
     return this.uow.run(async ({ transactions, activity }) => {
       if (!(await transactions.insert(transaction))) {
         const first = await transactions.findById(familyId, command.id);
-        if (first) return first; // two resends raced; the first one won
+        if (first) return { transaction: first, created: false }; // two resends raced; the first one won
         throw new ExpenseIdTakenError('That expense id is already used');
       }
       await activity.record({
@@ -79,7 +80,7 @@ export class RecordExpenseUseCase {
         after: transaction,
         at: now,
       });
-      return transaction;
+      return { transaction, created: true };
     });
   }
 }

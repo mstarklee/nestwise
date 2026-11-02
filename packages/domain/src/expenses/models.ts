@@ -46,12 +46,19 @@ export interface RecordExpenseCommand {
   readonly id: string;
   readonly kind?: TransactionKind;
   readonly amountMinor: number;
-  readonly txnDate: IsoDate;
+  /** Defaults to today in the family's time zone (not the phone's, not UTC). */
+  readonly txnDate?: IsoDate;
   readonly allocations: readonly AllocationInput[];
   readonly merchant?: string | null;
   readonly note?: string | null;
   /** Another active member of the family; defaults to the person entering it. */
   readonly paidBy?: string | null;
+}
+
+export interface RecordExpenseResult {
+  readonly transaction: Transaction;
+  /** False when the id was already saved (a resend), and the first save is returned. */
+  readonly created: boolean;
 }
 
 export interface ExpenseChanges {

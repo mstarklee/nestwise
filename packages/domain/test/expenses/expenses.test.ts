@@ -107,7 +107,7 @@ const yearLine = async (seedKey: string) => (await yearView.execute({ actor: adm
 
 describe('RecordExpenseUseCase', () => {
   it('records ₹945 split 800 groceries + 145 soaps; period 2026-10; enteredBy = actor', async () => {
-    const saved = await record.execute(groceries945({ paidBy: 'u2' }));
+    const { transaction: saved } = await record.execute(groceries945({ paidBy: 'u2' }));
     expect(saved).toMatchObject({
       id: uuid(1),
       familyId: 'f1',
@@ -136,7 +136,8 @@ describe('RecordExpenseUseCase', () => {
   it('returns the existing expense for a repeated client id; still one stored', async () => {
     const first = await record.execute(groceries945());
     const again = await record.execute(groceries945({ amountMinor: 1, allocations: [{ itemId: itemId('groceries'), amountMinor: 1 }] }));
-    expect(again).toEqual(first);
+    expect(first.created).toBe(true);
+    expect(again).toEqual({ transaction: first.transaction, created: false });
     expect(ledger.count()).toBe(1);
     expect(uow.activity.count()).toBe(1);
   });
@@ -167,9 +168,15 @@ describe('RecordExpenseUseCase', () => {
     expect(ledger.count()).toBe(0);
   });
 
+  it('with no date, an expense entered at 00:30 IST on 1 Nov belongs to November (Review Focus 1)', async () => {
+    clock.set('2026-10-31T19:00:00Z');
+    const { transaction } = await record.execute(groceries945({ txnDate: undefined }));
+    expect(transaction).toMatchObject({ txnDate: '2026-11-01', period: NOV });
+  });
+
   it('stores ₹204.50 as 20450 exactly', async () => {
     const amountMinor = parseMinor(' 204.50 ', 2);
-    const saved = await record.execute(groceries945({ amountMinor, allocations: [{ itemId: itemId('fruits'), amountMinor }] }));
+    const { transaction: saved } = await record.execute(groceries945({ amountMinor, allocations: [{ itemId: itemId('fruits'), amountMinor }] }));
     expect(saved.amountMinor).toBe(20_450);
     expect(await actual(OCT, 'fruits')).toBe(20_450);
   });
@@ -185,7 +192,7 @@ describe('RecordExpenseUseCase', () => {
   it('paying Deepavali clothing (yearly) reduces the pot and the line’s remaining; deleting it restores both (Review Focus 4)', async () => {
     const pay = (id: number, amountMinor: number) =>
       record.execute({ actor: admin, id: uuid(id), amountMinor, txnDate: date('2026-11-07'), allocations: [{ itemId: itemId('diwali_dress'), amountMinor }] });
-    const first = await pay(10, 400_000);
+    const { transaction: first } = await pay(10, 400_000);
     expect(first.allocations[0]!.planYear).toBe(2026);
     expect(await yearLine('diwali_dress')).toMatchObject({ paidMinor: 400_000, remainingMinor: 100_000, status: 'part_paid' });
     expect((await potBalance.execute({ actor: admin })).balanceMinor).toBe(-400_000);
