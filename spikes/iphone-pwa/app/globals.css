@@ -1,0 +1,111 @@
+:root {
+  --bg: #ffffff;
+  --fg: #171717;
+  --muted: #6b7280;
+  --line: #e5e7eb;
+  --accent: #14532d;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0a0a0a;
+    --fg: #ededed;
+    --muted: #9ca3af;
+    --line: #262626;
+    --accent: #4ade80;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 16px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  padding: calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 16px);
+}
+
+main {
+  max-width: 480px;
+  margin: 0 auto;
+  display: grid;
+  gap: 16px;
+}
+
+section {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+h1 {
+  font-size: 20px;
+  margin: 0;
+}
+
+h2 {
+  font-size: 16px;
+  margin: 0;
+}
+
+input,
+button {
+  font: inherit;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  width: 100%;
+}
+
+input {
+  background: var(--bg);
+  color: var(--fg);
+  font-size: 16px; /* stops iOS zooming into the field */
+}
+
+button {
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  font-weight: 600;
+}
+
+button.secondary {
+  background: transparent;
+  color: var(--fg);
+  border: 1px solid var(--line);
+}
+
+button:disabled {
+  opacity: 0.5;
+}
+
+dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 0;
+  font-size: 14px;
+}
+
+dt {
+  color: var(--muted);
+}
+
+dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  margin: 0;
+  font-size: 12px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+}

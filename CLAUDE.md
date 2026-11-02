@@ -24,10 +24,10 @@ skills differ on code structure, the skills win.
 - **Stack:**
   - The app is Next.js 16 + TypeScript in a pnpm monorepo, built API-first so a React Native (Expo) app can be added later.
   - Hosting is Vercel Hobby on a free `*.vercel.app` address.
-  - The backend is Supabase: Postgres, Auth and Storage.
+  - The backend is Supabase **as the Postgres host** (and Storage later). Supabase Auth is **not** used.
 - **Email:**
   - Gmail SMTP for now.
-  - Sign-in uses a 6-digit email code, because it works inside the installed iPhone app.
+  - Sign-up and sign-in are our own **email + password** (owner, 2026-11-02): users and sessions live in our own tables, passwords stored only as scrypt hashes, sessions as random tokens in an HttpOnly cookie (or a Bearer header for a future native app). No Supabase Auth, no Supabase keys, no email codes; Google maybe later. This replaces PRD §6.1 / TRD §7.
 - **Money:**
   - Amounts are integer minor units (paise); never floats.
   - A family's currency is locked once the family is created.

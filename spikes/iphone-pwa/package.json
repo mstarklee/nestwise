@@ -1,0 +1,32 @@
+{
+  "name": "iphone-pwa",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@serwist/turbopack": "9.5.13",
+    "@vercel/functions": "3.10.5",
+    "dexie": "4.4.7",
+    "esbuild": "^0.28.2",
+    "next": "16.4.3",
+    "pg": "^8.23.1",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "server-only": "^0.0.1",
+    "serwist": "9.5.13",
+    "web-push": "3.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/web-push": "^3.6.4",
+    "typescript": "^5"
+  },
+  "packageManager": "pnpm@10.28.2"
+}
