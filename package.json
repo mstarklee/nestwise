@@ -10,10 +10,13 @@
     "typecheck": "pnpm -r typecheck",
     "test": "vitest run --project unit",
     "test:integration": "vitest run --project integration",
-    "e2e": "pnpm --filter web e2e"
+    "e2e": "pnpm --filter web e2e",
+    "import-plan": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/import-plan.ts"
   },
   "devDependencies": {
+    "@nestwise/db": "workspace:*",
     "@types/node": "^22",
+    "drizzle-orm": "^0.45.4",
     "eslint": "^10.14.0",
     "tsx": "^4.23.15",
     "typescript": "~5.9.3",
