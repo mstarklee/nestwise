@@ -147,3 +147,34 @@ export function toTemplateLine(itemId: string, kind: ItemKind, fields: TemplateF
 export function totalOf(entries: readonly TemplateEntry[]): number {
   return sumMinor(entries.map((e) => e.amountMinor));
 }
+
+/** Live items of live groups, in group order then item order, split by kind, with totals. */
+export function assembleTemplates(groups: readonly Group[], items: readonly Item[], lines: readonly TemplateLine[]): Templates {
+  const groupById = new Map(groups.map((g) => [g.id, g]));
+  const lineByItem = new Map(lines.map((l) => [l.itemId, l]));
+  const rows: { entry: TemplateEntry; kind: ItemKind; groupSort: number; itemSort: number }[] = [];
+  for (const item of items) {
+    const group = groupById.get(item.groupId);
+    if (item.archived || !group || group.archived) continue;
+    const line = lineByItem.get(item.id) ?? {
+      itemId: item.id,
+      amountMinor: 0,
+      dueMonth: null,
+      dueDay: null,
+      hintMinMinor: null,
+      hintMaxMinor: null,
+    };
+    rows.push({
+      entry: { ...line, seedKey: item.seedKey, name: item.name, groupId: group.id, groupName: group.name },
+      kind: item.kind,
+      groupSort: group.sort,
+      itemSort: item.sort,
+    });
+  }
+  rows.sort((a, b) => a.groupSort - b.groupSort || a.itemSort - b.itemSort);
+  const ofKind = (kind: ItemKind) => rows.filter((r) => r.kind === kind).map((r) => r.entry);
+  const monthly = ofKind('monthly');
+  const savings = ofKind('savings');
+  const yearly = ofKind('yearly');
+  return { monthly, savings, yearly, totals: { monthly: totalOf(monthly), savings: totalOf(savings), yearly: totalOf(yearly) } };
+}
