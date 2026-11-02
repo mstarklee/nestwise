@@ -5,3 +5,4 @@ export * from './month-budget';
 export * from './year-plan';
 export * from './pot';
 export * from './expenses';
+export * from './forecast';
