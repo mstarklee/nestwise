@@ -246,12 +246,16 @@ describe('GetYearPlanUseCase', () => {
 });
 
 describe('GetSetupStatusUseCase', () => {
-  it('reports whether the first-year check is done, without creating a year plan', async () => {
+  it('reports whether setup’s first-year check was ever answered, without creating a year plan', async () => {
     const status = new GetSetupStatusUseCase(yearPlans);
-    expect(await status.execute({ actor: viewer, year: 2026 })).toEqual({ firstYearCheckDone: false });
+    expect(await status.execute({ actor: viewer })).toEqual({ firstYearCheckDone: false });
     expect(yearPlans.count()).toBe(0);
     const plan = await ensure.execute({ familyId: 'f1', year: 2026 });
     await firstYearCheck.execute({ actor: admin, year: 2026, stillToComeLineIds: [plan.lines[0]!.id], setupPeriod: NOV_2026 });
-    expect(await status.execute({ actor: viewer, year: 2026 })).toEqual({ firstYearCheckDone: true });
+    expect(await status.execute({ actor: viewer })).toEqual({ firstYearCheckDone: true });
+    // Next year's plan never gets a first-year check; setup stays done.
+    await ensure.execute({ familyId: 'f1', year: 2027 });
+    expect(await status.execute({ actor: viewer })).toEqual({ firstYearCheckDone: true });
+    expect(await status.execute({ actor: { ...viewer, familyId: 'f2' } })).toEqual({ firstYearCheckDone: false });
   });
 });

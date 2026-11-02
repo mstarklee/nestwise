@@ -4,7 +4,7 @@ import { Suspense } from 'react';
 import { systemClock } from '@/adapters/shared/system-clock';
 import { makeGetFamilyUseCase } from '@/composition/family';
 import { makeGetTemplatesUseCase } from '@/composition/plan';
-import { makeGetYearPlanUseCase } from '@/composition/year-plan';
+import { makeGetSetupStatusUseCase, makeGetYearPlanUseCase } from '@/composition/year-plan';
 import { PageLoading } from '@/components/page-loading';
 import { moneyOf, pageActorOrNone, pageUser } from '@/http/page-session';
 import { planImportAllowed } from '@/http/signup-gate';
@@ -34,12 +34,11 @@ async function Setup({ searchParams }: { searchParams: SearchParams }) {
   const templates = await makeGetTemplatesUseCase().execute({ actor });
   const hasPlan = templates.monthly.length + templates.savings.length + templates.yearly.length > 0;
   if (!hasPlan && (await searchParams).plan !== 'empty') return <PlanStep canImport={planImportAllowed(user.email)} />;
-  if (actor.role !== 'admin') redirect('/home');
+  if (actor.role !== 'admin' || (await makeGetSetupStatusUseCase().execute({ actor })).firstYearCheckDone) redirect('/home');
 
   const { family } = await makeGetFamilyUseCase().execute({ actor });
   const current = periodOf(todayIn(family.timeZone, systemClock.now()));
   const view = await makeGetYearPlanUseCase().execute({ actor, year: current.year });
-  if (view.firstYearCheckDone) redirect('/home');
 
   // Lines still possibly to come: undated ones, and dated ones due from this month on (PRD §6.1).
   const lines = view.lines

@@ -66,7 +66,7 @@ describe('PlanDailyNotificationsUseCase', () => {
   it('on 1 Nov 2026 plans the checklist reminder and bill_due_month for bike insurance', () => {
     const result = plan.execute(facts({ yearLines: [bike, schoolT1], checklistPending: true, forecast: { ...facts().forecast, balanceMinor: 3_691_666 } }));
     expect(kinds(result)).toEqual(['u1:checklist', 'u2:checklist', 'u1:bill_due_month', 'u2:bill_due_month']);
-    expect(result.notifications.find((n) => n.kind === 'checklist')).toMatchObject({ dedupeKey: 'checklist:2026-11', url: '/home' });
+    expect(result.notifications.find((n) => n.kind === 'checklist')).toMatchObject({ dedupeKey: 'checklist:2026-11', url: '/home', message: { values: { potMinor: 3_691_666 } } });
     expect(result.notifications.find((n) => n.kind === 'bill_due_month')).toMatchObject({
       dedupeKey: 'bill:bike:bill_due_month:2026-11',
       message: { values: { amountMinor: 150_000, potMinor: 3_691_666 } },

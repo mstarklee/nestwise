@@ -22,6 +22,9 @@ export class InMemoryFamilyGateway implements FamilyGateway {
   async findById(familyId: string) {
     return this.rows.get(familyId);
   }
+  async listAll() {
+    return [...this.rows.values()];
+  }
   all() {
     return [...this.rows.values()];
   }
@@ -36,6 +39,9 @@ export class InMemoryMembershipGateway implements MembershipGateway {
   async save(membership: Membership) {
     this.rows.push({ ...membership, removedAt: null });
     return membership;
+  }
+  async listActive(familyId: string) {
+    return this.rows.filter((m) => m.familyId === familyId && m.removedAt === null).map(({ userId, role }) => ({ userId, role }));
   }
   remove(userId: string, at: Date) {
     this.rows = this.rows.map((m) => (m.userId === userId ? { ...m, removedAt: at } : m));

@@ -26,4 +26,12 @@ export class DrizzleMembershipGateway implements MembershipGateway {
     });
     return membership;
   }
+
+  async listActive(familyId: string): Promise<readonly { userId: string; role: Role }[]> {
+    return this.db
+      .select({ userId: members.userId, role: members.role })
+      .from(members)
+      .where(and(eq(members.familyId, familyId), isNull(members.removedAt)))
+      .orderBy(members.joinedAt);
+  }
 }

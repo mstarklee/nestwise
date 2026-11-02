@@ -31,7 +31,7 @@ export class PlanDailyNotificationsUseCase {
     const add = (kind: ReminderKind, dedupeKey: string, message: ReminderMessage['values'], url: string, emailFallback: boolean) =>
       planned.push({ kind, dedupeKey, message: { key: kind, values: message }, url, emailFallback });
 
-    if (day === 1 && facts.checklistPending) add('checklist', `checklist:${ym(current)}`, {}, '/home', false);
+    if (day === 1 && facts.checklistPending) add('checklist', `checklist:${ym(current)}`, { potMinor: facts.forecast.balanceMinor }, '/home', false);
 
     const bills = facts.yearLines.filter(owed);
     if (day === 1) {

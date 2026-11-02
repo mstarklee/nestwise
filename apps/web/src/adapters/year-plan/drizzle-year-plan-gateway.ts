@@ -1,7 +1,7 @@
 import 'server-only';
 import { type DbOrTx, groups, items, yearLines, yearPlans } from '@nestwise/db';
 import type { YearLine, YearPlan, YearPlanGateway } from '@nestwise/domain/year-plan';
-import { and, asc, eq, isNull } from 'drizzle-orm';
+import { and, asc, eq, isNotNull, isNull } from 'drizzle-orm';
 import { isUniqueViolation } from '../shared/postgres-errors';
 
 type LineRow = typeof yearLines.$inferSelect;
@@ -102,6 +102,15 @@ export class DrizzleYearPlanGateway implements YearPlanGateway {
       .set({ firstYearCheckAt: at })
       .where(and(eq(yearPlans.id, yearPlanId), eq(yearPlans.familyId, familyId), isNull(yearPlans.firstYearCheckAt)))
       .returning({ id: yearPlans.id });
+    return rows.length === 1;
+  }
+
+  async hasFirstYearCheck(familyId: string): Promise<boolean> {
+    const rows = await this.db
+      .select({ id: yearPlans.id })
+      .from(yearPlans)
+      .where(and(eq(yearPlans.familyId, familyId), isNotNull(yearPlans.firstYearCheckAt)))
+      .limit(1);
     return rows.length === 1;
   }
 }

@@ -234,7 +234,11 @@
     "step4": "Open NestWise from the Home Screen and sign in.",
     "remindersTitle": "Reminders",
     "remindersIntro": "Reminders work in the installed app. Open it from the Home Screen, then tap the button.",
-    "turnOnReminders": "Turn on reminders"
+    "turnOnReminders": "Turn on reminders",
+    "remindersOn": "Reminders are on for this phone.",
+    "remindersNotInstalled": "Open NestWise from your Home Screen first, then tap this button.",
+    "remindersDenied": "Notifications are turned off for NestWise. Turn them on in iPhone Settings → Notifications.",
+    "remindersUnsupported": "This browser can’t show reminders."
   },
   "activity": {
     "title": "Activity",
@@ -247,5 +251,31 @@
     "join": "Join",
     "already": "You are already in a family.",
     "goHome": "Go to Home"
+  },
+  "notifications": {
+    "checklist": {
+      "title": "This month’s checklist",
+      "body": "Time to confirm the pot deposit and savings. The pot has {pot}."
+    },
+    "bill_prior_month": {
+      "title": "Next month: {name}",
+      "body": "Next month: {name} {amount}. Pot will hold {pot}."
+    },
+    "bill_due_month": {
+      "title": "Due this month: {name}",
+      "body": "Due this month: {name} {amount}. The pot has {pot}."
+    },
+    "bill_3_days": {
+      "title": "Due {weekday}: {name}",
+      "body": "Due {weekday}: {name} {amount}."
+    },
+    "red": {
+      "title": "The pot will run short",
+      "body": "Short by {shortfall} in {month}. Open the forecast to see the fix."
+    },
+    "undated": {
+      "title": "Items with no month yet",
+      "body": "{count, plural, one {# item} other {# items}} ({total}) have no month yet."
+    }
   }
 }

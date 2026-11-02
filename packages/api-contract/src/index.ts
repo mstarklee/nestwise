@@ -6,3 +6,4 @@ export * from './year-plan';
 export * from './pot';
 export * from './expenses';
 export * from './forecast';
+export * from './reminders';

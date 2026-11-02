@@ -11,6 +11,8 @@ export interface YearPlanGateway {
   saveLine(line: YearLine): Promise<void>;
   /** Marks the first-year check answered; false if it already was (the guard against two taps at once). */
   markFirstYearCheck(familyId: string, yearPlanId: string, at: Date): Promise<boolean>;
+  /** True once any of the family's year plans has its first-year check answered (that is, setup is finished). */
+  hasFirstYearCheck(familyId: string): Promise<boolean>;
 }
 
 export interface YearPaidGateway {

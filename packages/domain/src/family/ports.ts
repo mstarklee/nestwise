@@ -4,12 +4,16 @@ import type { Family, Invite, Membership, OpeningPotEntry } from './models';
 export interface FamilyGateway {
   save(family: Family): Promise<Family>;
   findById(familyId: string): Promise<Family | undefined>;
+  /** Every family, for the daily job. */
+  listAll(): Promise<readonly Family[]>;
 }
 
 export interface MembershipGateway {
   /** The user's live membership (not removed), if any. */
   findActive(userId: string): Promise<{ familyId: string; role: Role } | undefined>;
   save(membership: Membership): Promise<Membership>;
+  /** The family's live (not removed) members. */
+  listActive(familyId: string): Promise<readonly { userId: string; role: Role }[]>;
 }
 
 export interface InviteGateway {

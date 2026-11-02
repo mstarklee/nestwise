@@ -2,7 +2,7 @@ import 'server-only';
 import { type DbOrTx, families } from '@nestwise/db';
 import type { Family, FamilyGateway } from '@nestwise/domain/family';
 import type { MinorUnit } from '@nestwise/domain/shared';
-import { eq } from 'drizzle-orm';
+import { asc, eq } from 'drizzle-orm';
 
 type FamilyRow = typeof families.$inferSelect;
 
@@ -43,5 +43,9 @@ export class DrizzleFamilyGateway implements FamilyGateway {
   async findById(familyId: string): Promise<Family | undefined> {
     const [row] = await this.db.select().from(families).where(eq(families.id, familyId)).limit(1);
     return row ? toFamily(row) : undefined;
+  }
+
+  async listAll(): Promise<readonly Family[]> {
+    return (await this.db.select().from(families).orderBy(asc(families.createdAt))).map(toFamily);
   }
 }

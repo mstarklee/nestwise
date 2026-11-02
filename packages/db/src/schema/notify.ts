@@ -1,5 +1,5 @@
 import { integer, primaryKey, smallint, text, timestamp, uuid } from 'drizzle-orm/pg-core';
-import { app } from './app-schema';
+import { app, money } from './app-schema';
 import { families } from './families';
 
 export const pushSubscriptions = app.table('push_subscriptions', {
@@ -39,3 +39,14 @@ export const usage = app.table(
   },
   (t) => [primaryKey({ columns: [t.familyId, t.year, t.month] })],
 );
+
+/** The last shortfall warning sent to a family (TRD §8.4: warn again only if it grows by >10% or moves earlier). */
+export const redAlertState = app.table('red_alert_state', {
+  familyId: uuid()
+    .primaryKey()
+    .references(() => families.id),
+  firstRedYear: integer().notNull(),
+  firstRedMonth: smallint().notNull(),
+  shortfallMinor: money().notNull(),
+  updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+});

@@ -54,7 +54,7 @@ export async function pageContext(): Promise<PageContext> {
   const { family } = await makeGetFamilyUseCase().execute({ actor });
   const today = todayIn(family.timeZone, systemClock.now());
   const current = periodOf(today);
-  if (actor.role === 'admin' && !(await makeGetSetupStatusUseCase().execute({ actor, year: current.year })).firstYearCheckDone) redirect('/setup');
+  if (actor.role === 'admin' && !(await makeGetSetupStatusUseCase().execute({ actor })).firstYearCheckDone) redirect('/setup');
   return { user, actor, family, today, current };
 }
 

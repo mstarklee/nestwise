@@ -38,6 +38,9 @@ export class InMemoryYearPlanGateway implements YearPlanGateway {
     }
     return false;
   }
+  async hasFirstYearCheck(familyId: string) {
+    return [...this.rows.values()].some((p) => p.familyId === familyId && p.firstYearCheckAt !== null);
+  }
   count() {
     return this.rows.size;
   }
