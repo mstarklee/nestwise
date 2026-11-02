@@ -4,7 +4,10 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./shared": "./src/shared/index.ts"
+    "./shared": "./src/shared/index.ts",
+    "./year-plan": "./src/year-plan/index.ts",
+    "./pot": "./src/pot/index.ts",
+    "./forecast": "./src/forecast/index.ts"
   },
   "scripts": {
     "lint": "eslint .",
