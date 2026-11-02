@@ -19,8 +19,19 @@ export class UpdateItemUseCase {
     if (item.archived) throw new ItemArchivedError('An archived item cannot be edited');
 
     const updated: Item = command.name === undefined ? item : { ...item, name: checkName(command.name, 'item') };
-    const line = command.template ? toTemplateLine(item.id, item.kind, command.template) : undefined;
     const before = { item, line: await this.plan.findTemplateLine(familyId, item.id) };
+    // A field left out keeps its current value; null clears it. (Changing only the amount must not erase a hint range.)
+    const t = command.template;
+    const keep = <K extends 'dueMonth' | 'dueDay' | 'hintMinMinor' | 'hintMaxMinor'>(key: K) => (t?.[key] === undefined ? (before.line?.[key] ?? null) : t[key]);
+    const line = t
+      ? toTemplateLine(item.id, item.kind, {
+          amountMinor: t.amountMinor,
+          dueMonth: keep('dueMonth'),
+          dueDay: keep('dueDay'),
+          hintMinMinor: keep('hintMinMinor'),
+          hintMaxMinor: keep('hintMaxMinor'),
+        })
+      : undefined;
 
     return this.uow.run(async ({ plan, activity }) => {
       await plan.saveItem(updated);

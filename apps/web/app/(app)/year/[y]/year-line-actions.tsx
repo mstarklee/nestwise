@@ -11,7 +11,7 @@ import { useErrorText } from '@/components/use-error-text';
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 
 /** Admin actions on an open yearly line: give it a month (or none), mark it done, or drop it this year. */
-export function YearLineActions({ year, line }: { year: number; line: { id: string; dueMonth: number | null; paid: boolean } }) {
+export function YearLineActions({ year, line }: { year: number; line: { id: string; dueMonth: number | null; dueDay: number | null; paid: boolean } }) {
   const t = useTranslations('year');
   const errorText = useErrorText();
   const router = useRouter();
@@ -42,7 +42,8 @@ export function YearLineActions({ year, line }: { year: number; line: { id: stri
         disabled={busy}
         onChange={(e) => {
           const dueMonth = e.target.value === '' ? null : Number(e.target.value);
-          void run(() => api('PUT', `${base}/schedule`, { dueMonth, dueDay: null }));
+          // Keep the line's day when only the month changes; no month means no day.
+          void run(() => api('PUT', `${base}/schedule`, { dueMonth, dueDay: dueMonth === null ? null : line.dueDay }));
         }}
       >
         <option value="">{t('noMonth')}</option>

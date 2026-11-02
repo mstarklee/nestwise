@@ -43,7 +43,8 @@ export function TemplateItemEditor({ entry, yearly, canEdit, money }: { entry: E
     try {
       await api('PATCH', `/api/v1/templates/items/${entry.itemId}`, {
         name: String(form.get('name')),
-        template: { amountMinor, ...(yearly ? { dueMonth, dueDay: null } : {}) },
+        // Fields left out are kept (hint range, due day); clearing the month also clears the day.
+        template: { amountMinor, ...(yearly ? { dueMonth, ...(dueMonth === null ? { dueDay: null } : {}) } : {}) },
       });
       setEditing(false);
       setError(null);

@@ -123,9 +123,22 @@ describe('editing items', () => {
     await updateItem.execute({ actor: admin, itemId: tour.id, name: 'Family tour', template: { amountMinor: 6_000_000, dueMonth: 5, dueDay: 10 } });
     expect(await uow.plan.findTemplateLine('f1', tour.id)).toMatchObject({ amountMinor: 6_000_000, dueMonth: 5, dueDay: 10 });
     expect((await itemOf('tour')).name).toBe('Family tour');
-    for (const template of [{ amountMinor: 1, dueMonth: 13 }, { amountMinor: -1 }, { amountMinor: 1, dueDay: 4 }]) {
+    for (const template of [{ amountMinor: 1, dueMonth: 13 }, { amountMinor: -1 }, { amountMinor: 1, dueMonth: null, dueDay: 4 }]) {
       await expect(updateItem.execute({ actor: admin, itemId: tour.id, template })).rejects.toBeInstanceOf(InvalidPlanCommandError);
     }
+  });
+
+  it('changing only the amount keeps the rest of the template line (hint range, due month and day)', async () => {
+    const gold = await itemOf('gold');
+    await updateItem.execute({ actor: admin, itemId: gold.id, template: { amountMinor: 1_800_000 } });
+    expect(await uow.plan.findTemplateLine('f1', gold.id)).toMatchObject({ amountMinor: 1_800_000, hintMinMinor: 1_000_000, hintMaxMinor: 2_000_000 });
+    const tour = await itemOf('tour');
+    await updateItem.execute({ actor: admin, itemId: tour.id, template: { amountMinor: 5_000_000, dueMonth: 5, dueDay: 10 } });
+    await updateItem.execute({ actor: admin, itemId: tour.id, template: { amountMinor: 5_500_000 } });
+    expect(await uow.plan.findTemplateLine('f1', tour.id)).toMatchObject({ amountMinor: 5_500_000, dueMonth: 5, dueDay: 10 });
+    // null still clears a field on purpose.
+    await updateItem.execute({ actor: admin, itemId: tour.id, template: { amountMinor: 5_500_000, dueMonth: null, dueDay: null } });
+    expect(await uow.plan.findTemplateLine('f1', tour.id)).toMatchObject({ dueMonth: null, dueDay: null });
   });
 
   it('a member cannot edit the plan (NotAllowedError)', async () => {

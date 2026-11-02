@@ -76,7 +76,7 @@ async function Year({ params }: { params: Params }) {
                 <span className="tabular-nums">{t('left', { amount: exact(line.remainingMinor) })}</span>
               </div>
               {actor.role === 'admin' && line.state === 'open' && (
-                <YearLineActions year={year} line={{ id: line.id, dueMonth: line.dueMonth, paid: line.status === 'paid' }} />
+                <YearLineActions year={year} line={{ id: line.id, dueMonth: line.dueMonth, dueDay: line.dueDay, paid: line.status === 'paid' }} />
               )}
             </li>
           ))}
