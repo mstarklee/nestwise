@@ -1,4 +1,5 @@
 export * from './app-schema';
+export * from './auth';
 export * from './budgets';
 export * from './families';
 export * from './history';

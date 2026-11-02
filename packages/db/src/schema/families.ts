@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { char, check, index, primaryKey, smallint, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { app, money } from './app-schema';
+import { users } from './auth';
 
 export const families = app.table(
   'families',
@@ -23,9 +24,10 @@ export const families = app.table(
   ],
 );
 
-/** user_id is the Supabase auth user id (no FK: auth.users only exists on Supabase, not in test Postgres). */
 export const profiles = app.table('profiles', {
-  userId: uuid().primaryKey(),
+  userId: uuid()
+    .primaryKey()
+    .references(() => users.id),
   displayName: text(),
   createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
 });
@@ -36,7 +38,9 @@ export const members = app.table(
     familyId: uuid()
       .notNull()
       .references(() => families.id),
-    userId: uuid().notNull(),
+    userId: uuid()
+      .notNull()
+      .references(() => users.id),
     role: text({ enum: ['admin', 'member', 'viewer'] }).notNull(),
     joinedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     removedAt: timestamp({ withTimezone: true }),

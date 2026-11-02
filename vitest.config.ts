@@ -1,5 +1,11 @@
+import { fileURLToPath } from 'node:url';
 import { loadEnv } from 'vite';
 import { defineConfig } from 'vitest/config';
+
+const alias = {
+  'server-only': fileURLToPath(new URL('./test-support/server-only.ts', import.meta.url)),
+  '@': fileURLToPath(new URL('./apps/web/src', import.meta.url)),
+};
 
 const ignored = ['**/node_modules/**', '**/.next/**', 'spikes/**'];
 
@@ -7,6 +13,7 @@ export default defineConfig({
   test: {
     projects: [
       {
+        resolve: { alias },
         test: {
           name: 'unit',
           include: ['packages/*/test/**/*.test.ts', 'apps/web/test/unit/**/*.test.ts', 'scripts/**/*.test.ts'],
@@ -14,6 +21,7 @@ export default defineConfig({
         },
       },
       {
+        resolve: { alias },
         test: {
           name: 'integration',
           include: ['**/*.integration.test.ts'],

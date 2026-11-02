@@ -8,7 +8,8 @@
     "./year-plan": "./src/year-plan/index.ts",
     "./pot": "./src/pot/index.ts",
     "./forecast": "./src/forecast/index.ts",
-    "./month-budget": "./src/month-budget/index.ts"
+    "./month-budget": "./src/month-budget/index.ts",
+    "./auth": "./src/auth/index.ts"
   },
   "scripts": {
     "lint": "eslint .",
