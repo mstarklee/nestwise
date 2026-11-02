@@ -12,7 +12,8 @@
     "./auth": "./src/auth/index.ts",
     "./family": "./src/family/index.ts",
     "./plan": "./src/plan/index.ts",
-    "./expenses": "./src/expenses/index.ts"
+    "./expenses": "./src/expenses/index.ts",
+    "./reminders": "./src/reminders/index.ts"
   },
   "scripts": {
     "lint": "eslint .",
