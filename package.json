@@ -1,0 +1,22 @@
+{
+  "name": "nestwise",
+  "private": true,
+  "packageManager": "pnpm@10.28.2",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "vitest run --project unit",
+    "test:integration": "vitest run --project integration",
+    "e2e": "pnpm --filter web e2e"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "eslint": "^10.14.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.72.1",
+    "vitest": "^5.0.5"
+  }
+}
