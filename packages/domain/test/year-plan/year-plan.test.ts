@@ -7,6 +7,7 @@ import {
   CancelYearLineUseCase,
   EnsureYearPlanUseCase,
   FirstYearCheckDoneError,
+  GetSetupStatusUseCase,
   GetYearPlanUseCase,
   InvalidYearPlanCommandError,
   MarkYearLineDoneUseCase,
@@ -241,5 +242,16 @@ describe('GetYearPlanUseCase', () => {
     expect(yearPlans.count()).toBe(1);
     await ensure.execute({ familyId: 'f1', year: 2027 });
     expect((await getYearPlan.execute({ actor: admin, year: 2027 })).lines).toHaveLength(22);
+  });
+});
+
+describe('GetSetupStatusUseCase', () => {
+  it('reports whether the first-year check is done, without creating a year plan', async () => {
+    const status = new GetSetupStatusUseCase(yearPlans);
+    expect(await status.execute({ actor: viewer, year: 2026 })).toEqual({ firstYearCheckDone: false });
+    expect(yearPlans.count()).toBe(0);
+    const plan = await ensure.execute({ familyId: 'f1', year: 2026 });
+    await firstYearCheck.execute({ actor: admin, year: 2026, stillToComeLineIds: [plan.lines[0]!.id], setupPeriod: NOV_2026 });
+    expect(await status.execute({ actor: viewer, year: 2026 })).toEqual({ firstYearCheckDone: true });
   });
 });

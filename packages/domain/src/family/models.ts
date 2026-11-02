@@ -1,4 +1,4 @@
-import type { IsoDate, MinorUnit, Period, Role } from '../shared';
+import type { Actor, IsoDate, MinorUnit, Period, Role } from '../shared';
 
 export const INVITE_DAYS = 7;
 
@@ -73,6 +73,15 @@ export interface CreatedInvite {
 export interface AcceptInviteCommand {
   readonly userId: string;
   readonly token: string;
+}
+
+export interface GetFamilyCommand {
+  readonly actor: Actor;
+}
+
+export interface FamilyView {
+  readonly family: Family;
+  readonly role: Role;
 }
 
 export interface ResolveActorCommand {

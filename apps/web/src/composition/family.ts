@@ -1,6 +1,7 @@
 import 'server-only';
 import type { Db } from '@nestwise/db';
-import { AcceptInviteUseCase, CreateFamilyUseCase, CreateInviteUseCase, ResolveActorUseCase } from '@nestwise/domain/family';
+import { AcceptInviteUseCase, CreateFamilyUseCase, CreateInviteUseCase, GetFamilyUseCase, ResolveActorUseCase } from '@nestwise/domain/family';
+import { DrizzleFamilyGateway } from '../adapters/family/drizzle-family-gateway';
 import { DrizzleFamilyUnitOfWork } from '../adapters/family/drizzle-family-unit-of-work';
 import { DrizzleInviteGateway } from '../adapters/family/drizzle-invite-gateway';
 import { DrizzleMembershipGateway } from '../adapters/family/drizzle-membership-gateway';
@@ -18,3 +19,5 @@ export const makeAcceptInviteUseCase = (db: Db = getDb()) =>
   new AcceptInviteUseCase(new DrizzleFamilyUnitOfWork(db), new DrizzleInviteGateway(db), new DrizzleMembershipGateway(db), systemClock);
 
 export const makeResolveActorUseCase = (db: Db = getDb()) => new ResolveActorUseCase(new DrizzleMembershipGateway(db));
+
+export const makeGetFamilyUseCase = (db: Db = getDb()) => new GetFamilyUseCase(new DrizzleFamilyGateway(db));

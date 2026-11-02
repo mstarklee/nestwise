@@ -40,6 +40,19 @@ export default tseslint.config(
     },
   },
   {
+    // Pages and route handlers reach data only through make* factories (use cases), never the database.
+    files: ['apps/web/app/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [{ name: '@nestwise/db', message: 'Call a use case through its make* factory instead.' }],
+          patterns: [{ group: ['drizzle-orm', 'drizzle-orm/*', '@nestwise/db/*'], message: 'Call a use case through its make* factory instead.' }],
+        },
+      ],
+    },
+  },
+  {
     files: ['packages/domain/test/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-properties': [

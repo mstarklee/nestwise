@@ -8,6 +8,6 @@ export const POST = withApiErrors(async (request: Request) => {
   const signedIn = await makeSignUpUseCase().execute(body);
   return Response.json(AuthUserResponse.parse({ user: signedIn.user }), {
     status: 201,
-    headers: { 'set-cookie': sessionCookie(signedIn.token, signedIn.expiresAt) },
+    headers: { 'set-cookie': sessionCookie(request, signedIn.token, signedIn.expiresAt) },
   });
 });

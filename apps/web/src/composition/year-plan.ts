@@ -4,6 +4,7 @@ import {
   ApplyFirstYearCheckUseCase,
   CancelYearLineUseCase,
   EnsureYearPlanUseCase,
+  GetSetupStatusUseCase,
   GetYearPlanUseCase,
   MarkYearLineDoneUseCase,
   SetYearLineScheduleUseCase,
@@ -40,3 +41,5 @@ export const makeGetYearPlanUseCase = (db: Db = getDb()) =>
     new DrizzleFamilyGateway(db),
     systemClock,
   );
+
+export const makeGetSetupStatusUseCase = (db: Db = getDb()) => new GetSetupStatusUseCase(new DrizzleYearPlanGateway(db));

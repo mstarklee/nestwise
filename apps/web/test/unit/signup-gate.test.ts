@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { signupAllowed } from '@/http/signup-gate';
+import { planImportAllowed, signupAllowed } from '@/http/signup-gate';
 
 describe('signupAllowed', () => {
   it('in invite mode, allows only listed emails (any case, spaces ignored)', () => {
@@ -15,5 +15,14 @@ describe('signupAllowed', () => {
 
   it('in open mode, allows everyone', () => {
     expect(signupAllowed('stranger@example.com', { SIGNUP_MODE: 'open' })).toBe(true);
+  });
+});
+
+describe('planImportAllowed', () => {
+  it('allows only emails in PLAN_IMPORT_EMAILS, whatever the signup mode', () => {
+    const env = { SIGNUP_MODE: 'open', PLAN_IMPORT_EMAILS: 'Priya@example.com' };
+    expect(planImportAllowed(' priya@EXAMPLE.com', env)).toBe(true);
+    expect(planImportAllowed('stranger@example.com', env)).toBe(false);
+    expect(planImportAllowed('priya@example.com', {})).toBe(false);
   });
 });

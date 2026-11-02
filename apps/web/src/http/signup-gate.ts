@@ -12,3 +12,12 @@ export function signupAllowed(email: string, env: Env = process.env): boolean {
     .filter(Boolean);
   return allowed.includes(email.trim().toLowerCase());
 }
+
+/** Who may load the family's own plan from fixtures/sample-plan.ts at setup: only emails in PLAN_IMPORT_EMAILS. */
+export function planImportAllowed(email: string, env: Env = process.env): boolean {
+  return (env.PLAN_IMPORT_EMAILS ?? '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean)
+    .includes(email.trim().toLowerCase());
+}

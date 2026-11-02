@@ -5,6 +5,7 @@ import {
   type CreateFamilyCommand,
   CreateFamilyUseCase,
   CreateInviteUseCase,
+  GetFamilyUseCase,
   InvalidFamilyCommandError,
   type Invite,
   InviteNotFoundError,
@@ -205,5 +206,15 @@ describe('ResolveActorUseCase', () => {
     await expect(resolveActor.execute({ userId: 'stranger' })).rejects.toBeInstanceOf(NotAMemberError);
     uow.memberships.remove('u1', clock.now());
     await expect(resolveActor.execute({ userId: 'u1' })).rejects.toBeInstanceOf(NotAMemberError);
+  });
+});
+
+describe('GetFamilyUseCase', () => {
+  it('returns the family’s settings and the asker’s role, to any member', async () => {
+    const family = await createFamily.execute(command());
+    const get = new GetFamilyUseCase(uow.families);
+    const viewer: Actor = { userId: 'u9', familyId: family.id, role: 'viewer' };
+    expect(await get.execute({ actor: viewer })).toEqual({ family, role: 'viewer' });
+    await expect(get.execute({ actor: { ...viewer, familyId: 'nope' } })).rejects.toBeInstanceOf(NotAMemberError);
   });
 });
