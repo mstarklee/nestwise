@@ -10,8 +10,8 @@ import type {
   OpeningPotEntry,
   OpeningPotGateway,
 } from '../../src/family';
-import type { ActivityEvent, ActivityGateway, Role } from '../../src/shared';
-import { InMemoryActivityGateway } from './in-memory-activity-gateway';
+import type { Role } from '../../src/shared';
+import { FailingActivityGateway, InMemoryActivityGateway } from './in-memory-activity-gateway';
 
 export class InMemoryFamilyGateway implements FamilyGateway {
   rows = new Map<string, Family>();
@@ -79,17 +79,6 @@ export class InMemoryOpeningPotGateway implements OpeningPotGateway {
   }
   all() {
     return [...this.rows];
-  }
-}
-
-class FailingActivityGateway implements ActivityGateway {
-  constructor(
-    private readonly inner: InMemoryActivityGateway,
-    private readonly shouldFail: () => boolean,
-  ) {}
-  async record(event: ActivityEvent) {
-    if (this.shouldFail()) throw new Error('activity write failed');
-    await this.inner.record(event);
   }
 }
 

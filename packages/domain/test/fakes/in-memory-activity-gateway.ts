@@ -24,3 +24,15 @@ export class InMemoryActivityGateway implements ActivityGateway {
     this.events = [...events];
   }
 }
+
+/** Wraps the fake so a unit-of-work test can make the activity write fail and prove the rollback. */
+export class FailingActivityGateway implements ActivityGateway {
+  constructor(
+    private readonly inner: InMemoryActivityGateway,
+    private readonly shouldFail: () => boolean,
+  ) {}
+  async record(event: ActivityEvent) {
+    if (this.shouldFail()) throw new Error('activity write failed');
+    await this.inner.record(event);
+  }
+}
