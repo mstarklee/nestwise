@@ -9,7 +9,8 @@
     "./pot": "./src/pot/index.ts",
     "./forecast": "./src/forecast/index.ts",
     "./month-budget": "./src/month-budget/index.ts",
-    "./auth": "./src/auth/index.ts"
+    "./auth": "./src/auth/index.ts",
+    "./family": "./src/family/index.ts"
   },
   "scripts": {
     "lint": "eslint .",
