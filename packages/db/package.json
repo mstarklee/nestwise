@@ -11,7 +11,7 @@
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json",
     "generate": "drizzle-kit generate",
-    "migrate": "tsx src/migrate.ts",
+    "migrate": "node --env-file-if-exists=../../.env.local --import tsx src/migrate.ts",
     "migrate:prod": "node --env-file-if-exists=../../.env.local --import tsx src/migrate.ts --prod",
     "migrate:deploy": "tsx src/migrate.ts --deploy"
   },

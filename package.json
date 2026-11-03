@@ -10,6 +10,8 @@
     "typecheck": "pnpm -r typecheck",
     "test": "vitest run --project unit",
     "test:integration": "vitest run --project integration",
+    "dev": "pnpm --filter web dev",
+    "migrate": "pnpm --filter @nestwise/db migrate",
     "e2e": "pnpm --filter web e2e",
     "import-plan": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/import-plan.ts",
     "seed:dev": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/seed-dev.ts"

@@ -139,7 +139,11 @@ of schema `app` for 4 weeks.
 
 ## 7. Local development
 
-- `.env.local` (from `.env.example`) at the repository root holds your local settings.
+- `.env.local` (from `.env.example`) at the repository root holds your local settings. Point its `DATABASE_URL` at
+  your own computer's database, never at Supabase. The app reads its settings from `apps/web`, so keep a copy there as
+  `apps/web/.env.local` too, and change both when a setting changes.
+- `pnpm migrate` creates or updates the tables in that local database; `pnpm dev` starts the app at
+  `http://localhost:3000`.
 - `pnpm test` (unit), `pnpm test:integration` (needs the local Postgres in `DB_*`), `pnpm e2e` (WebKit, iPhone size;
   install the browser once with `pnpm --filter web exec playwright install webkit`).
 - `pnpm seed:dev` loads the fictional sample family into your local database; sign in as `dev@example.com`.
