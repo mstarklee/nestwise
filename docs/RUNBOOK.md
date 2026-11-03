@@ -101,19 +101,26 @@ Then walk through these on the iPhone, in the installed app, and tick each one:
 | --- | --- | --- |
 | 1 | Amounts show correctly for INR: ₹1,35,417 style grouping | [ ] |
 | 2 | Everything works without entering any income | [ ] |
-| 3 | Renaming the family changes nothing else (rename not built in 1a: skip until Stage 1b) | [ ] |
+| 3 | Renaming the family changes nothing else (Settings → Family → Name) | [ ] |
 | 4 | The currency cannot be changed (Settings → Family shows it locked) | [ ] |
 | 5 | Your spouse signs in with their own account and sees the same family | [ ] |
 | 6 | Editing December's budget leaves November and January alone; a template edit leaves existing months alone | [ ] |
 | 7 | Dated yearly bills sit in their month; "No month yet" items never get a month you did not choose | [ ] |
 | 8 | (Local, `pnpm seed:dev` data) October 2026 spending ₹84,450 vs ₹81,500 planned (+₹2,950); Groceries +₹2,000, Fruits −₹500 | [ ] |
 | 9 | (Local) October's car insurance and school fees are not in the ₹84,450; they come out of the pot | [ ] |
+| 10 | (Local) The same purchase entered twice is one expense after answering "Same purchase" | [ ] |
+| 11 | Two ₹1,250 vegetable purchases a week apart are never asked about | [ ] |
 | 12 | ₹204.50 is saved and shown exactly | [ ] |
 | 13 | The suggested pot deposit is ₹36,917 (₹4,43,000 ÷ 12) | [ ] |
 | 14 | The forecast shows 12 months; the November example ends October at ₹1,57,000 | [ ] |
 | 16 | Everything essential works on the phone screen | [ ] |
 | 17 | Old months and years stay available | [ ] |
 | 18 | Another family's data can never be seen (covered by the integration tests) | [ ] |
+| 19 | A yearly bill still open at year end is never counted twice or dropped: it stays until marked done, moved into this year, or dropped (Yearly bills → year-end) | [ ] |
+| 1b-a | With no signal (airplane mode), an expense saves on the phone, shows "1 expense waiting to send", and sends once when the signal is back | [ ] |
+| 1b-b | On the 1st, Home shows "October is over: take a look"; the review closes the month with one tap | [ ] |
+| 1b-c | Activity lists every change; "All expenses" filters by month, item, who paid and how | [ ] |
+| 1b-d | A group passing 80% of its month's plan sends one alert to both phones | [ ] |
 
 The day after deploying, check the cron ran (Vercel → Logs, `/api/cron/daily` returns 200 with a summary). On the 1st
 of the month, the checklist reminder should arrive on both phones.

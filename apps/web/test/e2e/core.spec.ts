@@ -65,4 +65,42 @@ test('sign up, set up the family, confirm the deposit, add an expense, see it in
   await page.goto('/forecast');
   await expect(page.getByTestId('forecast-months').locator('tbody tr')).toHaveCount(12);
   await expect(page.getByTestId('no-red')).toBeVisible();
+
+  // 9. The same ₹300 at the same shop twice: "Same purchase?" → Same; Vegetables counts ₹300 once.
+  const addAtShop = async () => {
+    await page.getByRole('link', { name: 'Add' }).click();
+    await expect(page.getByRole('heading', { name: 'Add an expense' })).toBeVisible();
+    await page.getByLabel('Amount', { exact: true }).fill('300');
+    await page.getByLabel('Item').selectOption({ label: 'Vegetables' });
+    await page.getByLabel('Where (optional)').fill('Corner veg shop');
+    await page.getByRole('button', { name: 'Save' }).click();
+  };
+  await addAtShop();
+  await expect(page.getByText('Saved ₹300.00.')).toBeVisible();
+  await addAtShop();
+  await expect(page.getByTestId('duplicate-question')).toContainText('Same purchase?');
+  await page.getByRole('button', { name: 'Same purchase' }).click();
+  await expect(page.getByTestId('duplicate-question')).toHaveCount(0);
+  await page.goto('/month/2026-11');
+  await expect(page.getByTestId('line-Vegetables')).toContainText('₹300');
+  await expect(page.getByTestId('line-Vegetables')).not.toContainText('₹600');
+
+  // 10. Activity lists what happened; the ledger lists November's expenses.
+  await page.goto('/activity');
+  await expect(page.getByText('You said two expenses were the same purchase')).toBeVisible();
+  await page.goto('/ledger?month=2026-11');
+  await expect(page.getByText('Corner veg shop')).toHaveCount(1);
+
+  // 11. October's review can be closed by an Admin, once.
+  await page.goto('/month/2026-10/review');
+  await page.getByRole('button', { name: 'Close October 2026' }).click();
+  await expect(page.getByText('October 2026 is closed.')).toBeVisible();
+
+  // 12. Family settings: rename; the currency stays locked.
+  await page.goto('/settings/family');
+  await page.getByLabel('Name', { exact: true }).fill('Kumar Family');
+  await page.getByRole('button', { name: 'Save' }).first().click();
+  await expect(page.getByText('Saved.')).toBeVisible();
+  await page.getByRole('link', { name: 'Home' }).click();
+  await expect(page.getByRole('heading', { name: 'Kumar Family' })).toBeVisible();
 });
