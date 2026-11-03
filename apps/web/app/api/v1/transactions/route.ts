@@ -3,7 +3,9 @@ import type { IsoDate } from '@nestwise/domain/shared';
 import { makeListExpensesUseCase, makeRecordExpenseUseCase } from '@/composition/expenses';
 import { perRequest } from '@/http/per-request';
 import { requireActor } from '@/http/require-actor';
+import { runInBackground } from '@/http/background';
 import { withApiErrors } from '@/http/with-api-errors';
+import { sendSpendingAlerts } from '@/orchestration/send-spending-alerts';
 
 export const GET = withApiErrors(async (request: Request) => {
   await perRequest();
@@ -32,5 +34,7 @@ export const POST = withApiErrors(async (request: Request) => {
     actor,
     ...(txnDate === undefined ? {} : { txnDate: txnDate as IsoDate }),
   });
+  // Spending alerts go out after the answer, so saving never waits on push or email.
+  if (created && transaction.status === 'confirmed') runInBackground('Spending alerts', sendSpendingAlerts(actor.familyId, transaction.period));
   return Response.json(RecordExpenseResponse.parse({ transaction, duplicate }), { status: created ? 201 : 200 });
 });

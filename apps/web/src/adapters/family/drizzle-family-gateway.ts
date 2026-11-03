@@ -36,7 +36,12 @@ export class DrizzleFamilyGateway implements FamilyGateway {
       alertThresholds: [...family.alertThresholds],
       createdBy: family.createdBy,
       createdAt: family.createdAt,
-    });
+    })
+      // Saving an existing family changes only what may change; the currency and minor unit are locked (DB trigger too).
+      .onConflictDoUpdate({
+        target: families.id,
+        set: { name: family.name, setAsideOverrideMinor: family.setAsideOverrideMinor, alertThresholds: [...family.alertThresholds] },
+      });
     return family;
   }
 

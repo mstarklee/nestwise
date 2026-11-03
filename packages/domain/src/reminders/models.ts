@@ -1,7 +1,7 @@
 import type { IsoDate, Period } from '../shared';
 import type { YearLineState } from '../year-plan';
 
-export type ReminderKind = 'checklist' | 'bill_prior_month' | 'bill_due_month' | 'bill_3_days' | 'red' | 'undated' | 'next_year' | 'year_end';
+export type ReminderKind = 'checklist' | 'bill_prior_month' | 'bill_due_month' | 'bill_3_days' | 'red' | 'undated' | 'next_year' | 'year_end' | 'spending_alert';
 
 /**
  * What to say, as a message key plus values; the app turns it into words from messages/en.json (so the core holds

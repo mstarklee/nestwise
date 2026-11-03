@@ -40,3 +40,11 @@ export type InviteResponse = z.infer<typeof InviteResponse>;
 
 export const MembershipResponse = z.object({ familyId: z.string(), role: Role });
 export type MembershipResponse = z.infer<typeof MembershipResponse>;
+
+export const UpdateFamilyRequest = z.object({ name: z.string().max(200).optional(), alertThresholds: z.array(z.number().int()).max(10).optional() });
+export type UpdateFamilyRequest = z.infer<typeof UpdateFamilyRequest>;
+
+export const FamilySettingsResponse = z.object({
+  family: z.object({ id: z.string(), name: z.string(), currencyCode: z.string(), alertThresholds: z.array(z.number().int()) }),
+});
+export type FamilySettingsResponse = z.infer<typeof FamilySettingsResponse>;

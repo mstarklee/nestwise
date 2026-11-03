@@ -2,6 +2,7 @@ import type { Db } from '@nestwise/db';
 import { testDatabaseUrl } from '@nestwise/db';
 import { getTestDb, truncateApp } from '@nestwise/db/testing';
 import { afterAll, beforeAll, beforeEach } from 'vitest';
+import { settleBackground } from '@/http/background';
 
 // Route handlers build their own pool through getDb(), which reads DATABASE_URL: point it at the test database so a
 // test can never touch the real one.
@@ -17,9 +18,12 @@ export function useTestDb(): () => Db {
     db = await getTestDb();
   });
   beforeEach(async () => {
+    // Work a route started after its response (spending alerts) must finish before the tables are emptied.
+    await settleBackground();
     await truncateApp(db!);
   });
   afterAll(async () => {
+    await settleBackground();
     await db?.$client.end();
   });
   return () => db!;

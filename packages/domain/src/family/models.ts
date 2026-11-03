@@ -97,3 +97,10 @@ export function numberLocaleFor(currencyCode: string, countryCode: string | null
 export function inviteUsable(invite: Invite, now: Date): boolean {
   return invite.usedAt === null && invite.cancelledAt === null && invite.expiresAt > now;
 }
+
+export interface UpdateFamilySettingsCommand {
+  readonly actor: Actor;
+  readonly name?: string;
+  /** Spending-alert levels in percent, e.g. [80, 100]. */
+  readonly alertThresholds?: readonly number[];
+}

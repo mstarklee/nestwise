@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import { PageLoading } from '@/components/page-loading';
 import { Card, CardTitle } from '@/components/ui/card';
 import { pageContext } from '@/http/page-session';
+import { FamilySettingsForm } from './family-settings-form';
 import { InviteForm } from './invite-form';
 
 export default function FamilySettingsPage() {
@@ -34,6 +35,12 @@ async function FamilySettings() {
           <dd>{t(`roles.${actor.role}`)}</dd>
         </dl>
       </Card>
+      {actor.role === 'admin' && (
+        <Card>
+          <CardTitle>{t('changeTitle')}</CardTitle>
+          <FamilySettingsForm name={family.name} alertThresholds={family.alertThresholds} />
+        </Card>
+      )}
       {actor.role === 'admin' && (
         <Card>
           <CardTitle>{t('inviteTitle')}</CardTitle>

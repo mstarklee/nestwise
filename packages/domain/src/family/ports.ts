@@ -2,6 +2,7 @@ import type { ActivityGateway, Role } from '../shared';
 import type { Family, Invite, Membership, OpeningPotEntry } from './models';
 
 export interface FamilyGateway {
+  /** Creates the family, or updates its name, set-aside override and alert levels (never the currency). */
   save(family: Family): Promise<Family>;
   findById(familyId: string): Promise<Family | undefined>;
   /** Every family, for the daily job. */

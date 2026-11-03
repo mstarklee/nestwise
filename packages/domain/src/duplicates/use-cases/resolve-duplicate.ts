@@ -1,5 +1,5 @@
 import type { ExpensesUnitOfWork } from '../../expenses';
-import { assertCan, type Clock, type IdGenerator } from '../../shared';
+import { assertCan, type Clock, type IdGenerator, type Period } from '../../shared';
 import { DuplicateAlreadyResolvedError, DuplicateMatchNotFoundError, InvalidDuplicateAnswerError } from '../errors';
 import type { DuplicateMatch, ResolveDuplicateCommand } from '../models';
 import { earlier } from '../rules';
@@ -16,10 +16,11 @@ export class ResolveDuplicateUseCase {
     private readonly clock: Clock,
   ) {}
 
-  async execute(command: ResolveDuplicateCommand): Promise<void> {
+  /** Returns the month of the expenses in the question (where spending changed). */
+  async execute(command: ResolveDuplicateCommand): Promise<{ readonly period: Period }> {
     assertCan(command.actor, 'record_expense');
     const familyId = command.actor.familyId;
-    await this.uow.run(async (gateways) => {
+    return this.uow.run(async (gateways) => {
       const { transactions, duplicates, evidence, activity } = gateways;
       const match = await duplicates.find(familyId, command.matchId);
       if (!match) throw new DuplicateMatchNotFoundError('That question was not found');
@@ -65,6 +66,7 @@ export class ResolveDuplicateUseCase {
         after: resolved,
         at: now,
       });
+      return { period: b.period };
     });
   }
 }
