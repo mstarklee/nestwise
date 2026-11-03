@@ -9,3 +9,6 @@ node_modules/
 # Playwright
 test-results/
 playwright-report/
+
+# Vercel CLI link
+.vercel

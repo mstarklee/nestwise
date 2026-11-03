@@ -1,4 +1,5 @@
 {
+  "framework": "nextjs",
   "buildCommand": "pnpm --filter @nestwise/db migrate:deploy && pnpm build",
   "crons": [{ "path": "/api/cron/daily", "schedule": "30 2 * * *" }]
 }
