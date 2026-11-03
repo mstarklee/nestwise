@@ -14,7 +14,8 @@ export type OutboxEntry = {
 
 export type SendResult = { status: number; json: unknown };
 export type Send = (body: OutboxBody) => Promise<SendResult>;
-export type FlushResult = { sent: number; failed: number; responses: ReadonlyMap<string, unknown> };
+/** `signedOut`: the sign-in had ended, so sending stopped and everything still waits for the next sign-in. */
+export type FlushResult = { sent: number; failed: number; signedOut: boolean; responses: ReadonlyMap<string, unknown> };
 
 export interface Outbox {
   add(body: OutboxBody): Promise<OutboxEntry>;
@@ -33,7 +34,9 @@ const changed = () => {
 };
 
 /** Refusals that sending again cannot fix: the person must fix or discard the entry. */
-const REFUSED = new Set([400, 401, 403, 404, 409, 422]);
+const REFUSED = new Set([400, 403, 404, 409, 422]);
+/** The sign-in has ended: nothing is wrong with the entries, so they wait until the person signs in again. */
+const SIGNED_OUT = 401;
 
 const postTransaction: Send = async (body) => {
   const response = await fetch('/api/v1/transactions', {
@@ -54,7 +57,7 @@ class OutboxDb extends Dexie {
 }
 
 /** The phone's outbox for new expenses (TRD §8.2): every save lands here first, then goes to the server. */
-export function createOutbox(name = 'nestwise-outbox'): Outbox {
+export function createOutbox(name: string): Outbox {
   const db = new OutboxDb(name);
   let running: Promise<FlushResult> | null = null;
 
@@ -62,6 +65,7 @@ export function createOutbox(name = 'nestwise-outbox'): Outbox {
     const responses = new Map<string, unknown>();
     let sent = 0;
     let failed = 0;
+    let signedOut = false;
     const waiting = await db.entries.where('state').equals('waiting').sortBy('savedAt');
     for (const entry of waiting) {
       let result: SendResult;
@@ -69,6 +73,10 @@ export function createOutbox(name = 'nestwise-outbox'): Outbox {
         result = await send(entry.body);
       } catch {
         break; // no signal: stop here and keep everything waiting, in order
+      }
+      if (result.status === SIGNED_OUT) {
+        signedOut = true;
+        break;
       }
       if (result.status >= 200 && result.status < 300) {
         await db.entries.delete(entry.id);
@@ -82,7 +90,7 @@ export function createOutbox(name = 'nestwise-outbox'): Outbox {
       // Anything else (a 5xx) stays waiting for the next try.
     }
     if (sent + failed > 0) changed();
-    return { sent, failed, responses };
+    return { sent, failed, signedOut, responses };
   }
 
   return {
@@ -112,10 +120,17 @@ export function createOutbox(name = 'nestwise-outbox'): Outbox {
   };
 }
 
-let shared: Outbox | null = null;
+const shared = new Map<string, Outbox>();
 
-/** The browser's one outbox. */
-export function outbox(): Outbox {
-  shared ??= createOutbox();
-  return shared;
+/**
+ * The signed-in person's outbox on this phone. Each person has their own, so entries saved by one are never sent with
+ * someone else's sign-in, nor shown to them, when two people use the same phone.
+ */
+export function outbox(userId: string): Outbox {
+  let box = shared.get(userId);
+  if (!box) {
+    box = createOutbox(`nestwise-outbox-${userId}`);
+    shared.set(userId, box);
+  }
+  return box;
 }

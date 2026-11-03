@@ -7,33 +7,36 @@ import { useEffect, useState } from 'react';
 import { API_OK } from '@/client/api-client';
 import { OUTBOX_CHANGED, outbox } from '@/client/outbox';
 
-/** The outbox's waiting and failed counts, kept current. */
-export function useOutboxCounts() {
+/** The signed-in person's outbox counts, kept current. */
+export function useOutboxCounts(userId: string) {
   const [counts, setCounts] = useState({ waiting: 0, failed: 0 });
   useEffect(() => {
-    const read = () => void outbox().counts().then(setCounts);
+    const read = () => void outbox(userId).counts().then(setCounts);
     read();
     window.addEventListener(OUTBOX_CHANGED, read);
     return () => window.removeEventListener(OUTBOX_CHANGED, read);
-  }, []);
+  }, [userId]);
   return counts;
 }
 
 /**
  * Sends the phone's outbox whenever there may be signal (TRD §8.2): on opening, when the signal returns, when the app
  * comes back to the screen, and after any successful request. iPhone has no background sync, so these are the moments.
- * Shows a quiet "2 waiting to send" note, or "1 couldn't send" with a link to fix it.
+ * Shows a quiet "2 waiting to send" note, "1 couldn't send" with a link to fix it, or, when the sign-in has ended,
+ * a link to sign in again (the entries keep waiting and send once the person is back).
  */
-export function OutboxSync() {
+export function OutboxSync({ userId }: { userId: string }) {
   const t = useTranslations('outbox');
   const router = useRouter();
-  const { waiting, failed } = useOutboxCounts();
+  const { waiting, failed } = useOutboxCounts(userId);
+  const [signedOut, setSignedOut] = useState(false);
 
   useEffect(() => {
     const flush = () =>
-      void outbox()
+      void outbox(userId)
         .flush()
         .then((result) => {
+          setSignedOut(result.signedOut);
           if (result.sent > 0) router.refresh();
         });
     const visible = () => {
@@ -48,12 +51,19 @@ export function OutboxSync() {
       window.removeEventListener(API_OK, flush);
       document.removeEventListener('visibilitychange', visible);
     };
-  }, [router]);
+  }, [router, userId]);
 
   if (waiting === 0 && failed === 0) return null;
   return (
     <p className="text-center text-xs text-zinc-600" data-testid="outbox-status">
-      {waiting > 0 && t('waiting', { count: waiting })}
+      {waiting > 0 &&
+        (signedOut ? (
+          <Link href="/sign-in" className="underline">
+            {t('signInToSend', { count: waiting })}
+          </Link>
+        ) : (
+          t('waiting', { count: waiting })
+        ))}
       {waiting > 0 && failed > 0 && ' · '}
       {failed > 0 && (
         <Link href="/add#outbox" className="text-red-700 underline">

@@ -58,6 +58,14 @@ describe('duplicate checks and the Inbox', () => {
     expect(rows[0]!.merged_into).not.toBeNull();
   });
 
+  it('Same and Different tapped at the same moment: one wins, the other is 409, and the month matches the winner', async () => {
+    const { token, spouse, groceries } = await spouseRepeats();
+    const [entry] = (await inbox(token)).entries;
+    const [same, different] = await Promise.all([answer(token, entry!.matchId, { answer: 'same' }), answer(spouse, entry!.matchId, { answer: 'different' })]);
+    expect([same.status, different.status].sort()).toEqual([204, 409]);
+    expect(await groceriesActual(token, groceries)).toBe(same.status === 204 ? 94_500 : 189_000);
+  });
+
   it('Different: both count', async () => {
     const { token, groceries } = await spouseRepeats();
     const [entry] = (await inbox(token)).entries;

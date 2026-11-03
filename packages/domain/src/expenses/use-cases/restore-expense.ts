@@ -23,7 +23,9 @@ export class RestoreExpenseUseCase {
     if (now.getTime() - before.deletedAt.getTime() > RESTORE_MS) {
       throw new ExpenseNotRestorableError(`A deleted expense can be restored for ${RESTORE_DAYS} days`);
     }
-    const after: Transaction = { ...before, deletedAt: null, updatedAt: now };
+    // Deleting a waiting expense dropped its "Same purchase?" question, so it comes back counting, not waiting forever.
+    const status = before.status === 'pending' && before.mergedInto === null ? 'confirmed' : before.status;
+    const after: Transaction = { ...before, deletedAt: null, status, updatedAt: now };
     return this.uow.run(async ({ transactions, activity, months }) => {
       await transactions.update(after);
       await activity.record({

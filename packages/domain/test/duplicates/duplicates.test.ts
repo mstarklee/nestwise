@@ -14,6 +14,7 @@ import {
   EditExpenseUseCase,
   type RecordExpenseCommand,
   RecordExpenseUseCase,
+  RestoreExpenseUseCase,
   type Transaction,
 } from '../../src/expenses';
 import { EnsureMonthBudgetUseCase, GetMonthSummaryUseCase } from '../../src/month-budget';
@@ -251,6 +252,16 @@ describe('a duplicate question that goes stale (Review Focus 5)', () => {
     expect(await inbox.execute({ actor: me })).toEqual([]);
     expect(ledger.rows.get(uuid(2))!.status).toBe('confirmed');
     expect(await groceries()).toBe(189_500);
+  });
+
+  it('deleting the pending side and then restoring it: it counts again and shows in the ledger, with no question left', async () => {
+    await record.execute(spend(me, 1));
+    await record.execute(spend(spouse, 2));
+    await remove.execute({ actor: spouse, id: uuid(2) });
+    await new RestoreExpenseUseCase(uow, ledger, clock).execute({ actor: spouse, id: uuid(2) });
+    expect(await inbox.execute({ actor: me })).toEqual([]);
+    expect(ledger.rows.get(uuid(2))!.status).toBe('confirmed');
+    expect(await groceries()).toBe(189_000);
   });
 
   it('editing only the note keeps the question', async () => {

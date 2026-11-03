@@ -44,7 +44,7 @@ async function Add() {
   return (
     <>
       <AddExpenseForm today={today} money={money} monthly={groups('monthly')} yearly={yearly} userId={actor.userId} />
-      <OutboxFailures money={money} />
+      <OutboxFailures money={money} userId={actor.userId} />
     </>
   );
 }

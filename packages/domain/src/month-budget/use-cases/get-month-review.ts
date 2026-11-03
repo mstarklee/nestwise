@@ -69,16 +69,24 @@ export class GetMonthReviewUseCase {
     };
   }
 
+  /** Bills due this month and not fully paid: this year's, and last year's carried into this year ("Still to pay"). */
   private async unpaidBills(actor: GetMonthReviewCommand['actor'], period: Period) {
-    try {
-      const view = await this.yearPlan.execute({ actor, year: period.year });
-      return view.lines
-        .filter((l) => l.state === 'open' && l.dueYear === period.year && l.dueMonth === period.month && l.remainingMinor > 0)
-        .map((l) => ({ lineId: l.id, name: l.name, remainingMinor: l.remainingMinor }));
-    } catch (error) {
-      if (error instanceof YearPlanNotFoundError) return [];
-      throw error;
+    const bills = [];
+    for (const year of [period.year - 1, period.year]) {
+      let view;
+      try {
+        view = await this.yearPlan.execute({ actor, year });
+      } catch (error) {
+        if (error instanceof YearPlanNotFoundError) continue;
+        throw error;
+      }
+      bills.push(
+        ...view.lines
+          .filter((l) => l.state === 'open' && l.dueYear === period.year && l.dueMonth === period.month && l.remainingMinor > 0)
+          .map((l) => ({ lineId: l.id, name: l.name, remainingMinor: l.remainingMinor })),
+      );
     }
+    return bills;
   }
 
   /** The reviewed month and the ones before it that have a budget (never creating one just to look). */

@@ -258,6 +258,7 @@
   },
   "outbox": {
     "waiting": "{count, plural, one {# expense} other {# expenses}} waiting to send",
+    "signInToSend": "Sign in again to send {count, plural, one {# waiting expense} other {# waiting expenses}}",
     "failed": "{count, plural, one {# expense} other {# expenses}} couldn’t send",
     "failedTitle": "Couldn’t send",
     "failedExplain": "These were saved on this phone, but NestWise couldn’t accept them. Add them again if needed, then discard these.",

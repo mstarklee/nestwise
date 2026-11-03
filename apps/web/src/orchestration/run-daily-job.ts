@@ -104,12 +104,12 @@ async function runForFamily(family: Family, now: Date, deps: DailyJobDeps): Prom
   return { sent, undelivered };
 }
 
-/** This year's and next year's lines, with what is still owed. */
+/** Last year's, this year's and next year's lines, with what is still owed. Last year's lines that were carried ("Still to pay") are due this year, so they get reminders too. */
 async function yearLinesOf(db: Db, familyId: string, current: Period): Promise<DailyYearLine[]> {
   const plans = new DrizzleYearPlanGateway(db);
   const paid = new DrizzleYearPaidGateway(db);
   const lines: DailyYearLine[] = [];
-  for (const year of [current.year, addMonths(current, 12).year]) {
+  for (const year of [current.year - 1, current.year, addMonths(current, 12).year]) {
     const plan = await plans.findByYear(familyId, year);
     if (!plan) continue;
     const paidByLine = await paid.paidByLine(familyId, year);

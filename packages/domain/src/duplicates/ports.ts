@@ -9,7 +9,8 @@ export interface DuplicateMatchGateway {
   listPending(familyId: string): Promise<readonly DuplicateMatch[]>;
   /** pairKey()s of the pairs with this transaction that were answered Different. */
   differentPairsFor(familyId: string, txnId: string): Promise<ReadonlySet<string>>;
-  save(match: DuplicateMatch): Promise<void>;
+  /** Records the answer only while the question is still unanswered; false if someone answered it, or it went stale, first. */
+  answer(match: DuplicateMatch): Promise<boolean>;
   /** Removes the unanswered questions this transaction is part of, and returns them. */
   clearPendingFor(familyId: string, txnId: string): Promise<readonly DuplicateMatch[]>;
 }

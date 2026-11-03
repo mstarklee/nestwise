@@ -85,15 +85,15 @@ export function AddExpenseForm({ today, money, monthly, yearly, userId }: { toda
         merchant: String(form.get('merchant')) || null,
         note: String(form.get('note')) || null,
       };
-      await outbox().add(body);
-      let result = await outbox().flush();
+      await outbox(userId).add(body);
+      let result = await outbox(userId).flush();
       // A send already under way may have started before this entry was added; one more pass picks it up.
-      if (!result.responses.has(body.id)) result = await outbox().flush();
-      const entry = (await outbox().list()).find((e) => e.id === body.id);
+      if (!result.responses.has(body.id)) result = await outbox(userId).flush();
+      const entry = (await outbox(userId).list()).find((e) => e.id === body.id);
       const refused = entry?.state === 'failed' ? entry : undefined;
       if (refused) {
         // The person is right here: show why, keep what they typed, and let them fix it.
-        await outbox().discard(body.id);
+        await outbox(userId).discard(body.id);
         setError(errorText(new ApiError(refused.error?.status ?? 0, refused.error?.code ?? 'ServerError', '')));
         return;
       }

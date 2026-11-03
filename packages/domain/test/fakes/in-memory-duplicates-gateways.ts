@@ -25,8 +25,11 @@ export class InMemoryDuplicateMatchGateway implements DuplicateMatchGateway {
         .map((m) => pairKey(m.txnA, m.txnB)),
     );
   }
-  async save(match: DuplicateMatch) {
-    if (this.rows.get(match.id)?.familyId === match.familyId) this.rows.set(match.id, match);
+  async answer(match: DuplicateMatch) {
+    const row = this.rows.get(match.id);
+    if (row?.familyId !== match.familyId || row.status !== 'pending') return false;
+    this.rows.set(match.id, match);
+    return true;
   }
   async clearPendingFor(familyId: string, txnId: string) {
     const cleared = [...this.rows.values()].filter(

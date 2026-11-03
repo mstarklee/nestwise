@@ -12,17 +12,17 @@ import { useErrorText } from '@/components/use-error-text';
 type Money = { currency: string; minorUnit: number; locale: string };
 
 /** Expenses saved on the phone that the server refused: shown until the person discards them (never dropped silently). */
-export function OutboxFailures({ money }: { money: Money }) {
+export function OutboxFailures({ money, userId }: { money: Money; userId: string }) {
   const t = useTranslations('outbox');
   const errorText = useErrorText();
   const [failed, setFailed] = useState<OutboxEntry[]>([]);
 
   useEffect(() => {
-    const read = () => void outbox().list().then((all) => setFailed(all.filter((e) => e.state === 'failed')));
+    const read = () => void outbox(userId).list().then((all) => setFailed(all.filter((e) => e.state === 'failed')));
     read();
     window.addEventListener(OUTBOX_CHANGED, read);
     return () => window.removeEventListener(OUTBOX_CHANGED, read);
-  }, []);
+  }, [userId]);
 
   if (failed.length === 0) return null;
   return (
@@ -37,7 +37,7 @@ export function OutboxFailures({ money }: { money: Money }) {
               {typeof entry.body.txnDate === 'string' && ` · ${formatDay(entry.body.txnDate, money.locale)}`}
               <span className="block text-red-700">{errorText(new ApiError(entry.error?.status ?? 0, entry.error?.code ?? 'ServerError', ''))}</span>
             </span>
-            <Button size="sm" variant="outline" onClick={() => void outbox().discard(entry.id)}>
+            <Button size="sm" variant="outline" onClick={() => void outbox(userId).discard(entry.id)}>
               {t('discard')}
             </Button>
           </li>

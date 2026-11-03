@@ -28,13 +28,13 @@ export class ResolveDuplicateUseCase {
       if (command.keepId !== undefined && command.keepId !== match.txnA && command.keepId !== match.txnB) {
         throw new InvalidDuplicateAnswerError('Keep one of the two expenses in the question');
       }
+      const now = this.clock.now();
+      const resolved: DuplicateMatch = { ...match, status: command.answer, resolvedBy: command.actor.userId, resolvedAt: now };
+      // Claim the question first: if two people answer at once, the second waits here, then finds it answered.
+      if (!(await duplicates.answer(resolved))) throw new DuplicateAlreadyResolvedError('That question was already answered');
       const a = await transactions.findById(familyId, match.txnA);
       const b = await transactions.findById(familyId, match.txnB);
       if (!a || !b) throw new DuplicateMatchNotFoundError('That question was not found');
-
-      const now = this.clock.now();
-      const resolved: DuplicateMatch = { ...match, status: command.answer, resolvedBy: command.actor.userId, resolvedAt: now };
-      await duplicates.save(resolved);
 
       if (command.answer === 'different') {
         if (b.status === 'pending') await transactions.update({ ...b, status: 'confirmed', updatedAt: now });

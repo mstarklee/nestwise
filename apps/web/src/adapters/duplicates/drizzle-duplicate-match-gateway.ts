@@ -58,11 +58,14 @@ export class DrizzleDuplicateMatchGateway implements DuplicateMatchGateway {
     return new Set(rows.map((r) => pairKey(r.a, r.b)));
   }
 
-  async save(match: DuplicateMatch): Promise<void> {
-    await this.db
+  async answer(match: DuplicateMatch): Promise<boolean> {
+    // The row lock this update takes makes a second answer at the same moment wait, then match nothing.
+    const updated = await this.db
       .update(duplicateMatches)
       .set({ status: match.status, resolvedBy: match.resolvedBy, resolvedAt: match.resolvedAt })
-      .where(and(eq(duplicateMatches.id, match.id), eq(duplicateMatches.familyId, match.familyId)));
+      .where(and(eq(duplicateMatches.id, match.id), eq(duplicateMatches.familyId, match.familyId), eq(duplicateMatches.status, 'pending')))
+      .returning({ id: duplicateMatches.id });
+    return updated.length > 0;
   }
 
   async clearPendingFor(familyId: string, txnId: string): Promise<readonly DuplicateMatch[]> {
