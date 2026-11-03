@@ -53,12 +53,13 @@ skills differ on code structure, the skills win.
   prefers numbered questions they can answer by number.
 - **Commits.** Commit only when the owner asks.
 
-## Status (2026-11-02)
+## Status (2026-11-03)
 
-- Done:
-  - the PRD, TRD and plan are approved
-  - both skills are written and tested
-- Next: **Stage 0**, the iPhone spike (plan Task 0), then Stage 1a Task 1.
-- Open:
-  - the owner hasn't yet chosen the execution method: native, or subagent-per-task
-  - visual design is parked; build plain shadcn/ui screens until it's done
+- Live at https://nestwise-alpha.vercel.app:
+  - Stage 1a (core money model)
+  - Stage 1b: offline adding, duplicates and the Inbox, month-end and year-end reviews, activity and the expense list, spending alerts, template changes to future months
+- Stage 1b plan: `docs/superpowers/plans/2026-11-03-nestwise-stage-1b.md`, built natively with one fresh whole-branch review; its deferred minors are in the plan's ledger
+- Waiting on the owner:
+  - iPhone setup, the spouse invite and the airplane-mode check (`docs/RUNBOOK.md` §4–5)
+  - the first daily cron run
+- Next, in order: Voice (OpenAI), UI design (frontend-design skill; the owner noted some Home display items to look at), Photo receipts
