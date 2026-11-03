@@ -5,7 +5,6 @@ import { Suspense } from 'react';
 import { formatMoney, formatMoneyRounded, formatPeriod, toYm } from '@/client/format';
 import { makeGetHomeSummaryUseCase } from '@/composition/forecast';
 import { makeListInboxUseCase } from '@/composition/duplicates';
-import { makeGetChecklistUseCase } from '@/composition/pot';
 import { PageLoading } from '@/components/page-loading';
 import { Card, CardTitle } from '@/components/ui/card';
 import { moneyOf, pageContext } from '@/http/page-session';
@@ -23,11 +22,8 @@ async function Home() {
   const { actor, family, current } = await pageContext();
   const t = await getTranslations('home');
   const tStatus = await getTranslations('status');
-  const [home, checklist, inbox] = await Promise.all([
-    makeGetHomeSummaryUseCase().execute({ actor }),
-    makeGetChecklistUseCase().execute({ actor, period: current }),
-    makeListInboxUseCase().execute({ actor }),
-  ]);
+  const [home, inbox] = await Promise.all([makeGetHomeSummaryUseCase().execute({ actor }), makeListInboxUseCase().execute({ actor })]);
+  const { checklist } = home;
   const money = moneyOf(family);
   const rounded = (minor: number) => formatMoneyRounded(minor, money.currency, money.minorUnit, money.locale);
   const exact = (minor: number) => formatMoney(minor, money.currency, money.minorUnit, money.locale);

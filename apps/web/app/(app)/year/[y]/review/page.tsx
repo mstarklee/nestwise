@@ -57,7 +57,7 @@ async function NextYearReview({ params }: { params: Params }) {
               {isAdmin ? (
                 <>
                   <AmountEditor year={year} lineId={line.id} initial={minorToInput(line.plannedMinor, money.minorUnit)} minorUnit={money.minorUnit} />
-                  <YearLineActions year={year} line={{ id: line.id, dueMonth: line.dueMonth, dueDay: line.dueDay, paid: line.status === 'paid' }} />
+                  <YearLineActions year={year} line={{ id: line.id, dueMonth: line.dueMonth, dueDay: line.dueDay, paid: line.status === 'paid' }} locale={money.locale} />
                 </>
               ) : null}
             </li>

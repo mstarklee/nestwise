@@ -14,14 +14,27 @@ type Money = { currency: string; minorUnit: number; locale: string };
 type Entry = { itemId: string; name: string; amountMinor: number; dueMonth: number | null };
 
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
-const monthName = (m: number) => new Intl.DateTimeFormat('en', { month: 'short', timeZone: 'UTC' }).format(Date.UTC(2000, m - 1, 1));
+const monthName = (m: number, locale: string) => new Intl.DateTimeFormat(locale, { month: 'short', timeZone: 'UTC' }).format(Date.UTC(2000, m - 1, 1));
 
 function parseAmount(value: string, minorUnit: number): number {
   const trimmed = value.trim();
   return trimmed === '' || trimmed === '0' ? 0 : parseMinor(trimmed, minorUnit as 0 | 1 | 2 | 3);
 }
 
-export function TemplateItemEditor({ entry, yearly, canEdit, money }: { entry: Entry; yearly: boolean; canEdit: boolean; money: Money }) {
+export function TemplateItemEditor({
+  entry,
+  yearly,
+  canEdit,
+  money,
+  futureMonths = [],
+}: {
+  entry: Entry;
+  yearly: boolean;
+  canEdit: boolean;
+  money: Money;
+  /** Months after this one that exist and may also take a new amount (PRD §6.2). */
+  futureMonths?: { ym: string; label: string }[];
+}) {
   const t = useTranslations('templates');
   const errorText = useErrorText();
   const router = useRouter();
@@ -45,6 +58,7 @@ export function TemplateItemEditor({ entry, yearly, canEdit, money }: { entry: E
         name: String(form.get('name')),
         // Fields left out are kept (hint range, due day); clearing the month also clears the day.
         template: { amountMinor, ...(yearly ? { dueMonth, ...(dueMonth === null ? { dueDay: null } : {}) } : {}) },
+        applyToMonths: form.getAll('applyTo').map(String),
       });
       setEditing(false);
       setError(null);
@@ -68,7 +82,7 @@ export function TemplateItemEditor({ entry, yearly, canEdit, money }: { entry: E
       <div className="flex items-center justify-between gap-2 text-sm">
         <span>
           {entry.name}
-          {yearly && <span className="text-zinc-500"> · {entry.dueMonth === null ? t('noMonth') : monthName(entry.dueMonth)}</span>}
+          {yearly && <span className="text-zinc-500"> · {entry.dueMonth === null ? t('noMonth') : monthName(entry.dueMonth, money.locale)}</span>}
         </span>
         <span className="flex items-center gap-2">
           <span className="tabular-nums">{amount}</span>
@@ -91,12 +105,22 @@ export function TemplateItemEditor({ entry, yearly, canEdit, money }: { entry: E
             <option value="">{t('noMonth')}</option>
             {MONTHS.map((m) => (
               <option key={m} value={m}>
-                {monthName(m)}
+                {monthName(m, money.locale)}
               </option>
             ))}
           </Select>
         )}
       </div>
+      {futureMonths.length > 0 && (
+        <fieldset className="text-sm">
+          <legend className="text-zinc-600">{t('alsoApply')}</legend>
+          {futureMonths.map((m) => (
+            <label key={m.ym} className="mr-3 inline-flex items-center gap-1">
+              <input type="checkbox" name="applyTo" value={m.ym} className="size-4" /> {m.label}
+            </label>
+          ))}
+        </fieldset>
+      )}
       <div className="flex gap-2">
         <Button size="sm" type="submit">
           {t('save')}

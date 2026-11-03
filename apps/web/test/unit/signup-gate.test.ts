@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { planImportAllowed, signupAllowed } from '@/http/signup-gate';
+import { planImportAllowed, setupShowsImport, signupAllowed } from '@/http/signup-gate';
 
 describe('signupAllowed', () => {
   it('in invite mode, allows only listed emails (any case, spaces ignored)', () => {
@@ -24,5 +24,14 @@ describe('planImportAllowed', () => {
     expect(planImportAllowed(' priya@EXAMPLE.com', env)).toBe(true);
     expect(planImportAllowed('stranger@example.com', env)).toBe(false);
     expect(planImportAllowed('priya@example.com', {})).toBe(false);
+  });
+});
+
+describe('setupShowsImport', () => {
+  const env = { PLAN_IMPORT_EMAILS: 'priya@example.com' };
+  it('shows "Import our plan" only to a listed Admin', () => {
+    expect(setupShowsImport('priya@example.com', 'admin', env)).toBe(true);
+    expect(setupShowsImport('priya@example.com', 'member', env)).toBe(false);
+    expect(setupShowsImport('arun@example.com', 'admin', env)).toBe(false);
   });
 });

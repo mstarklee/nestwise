@@ -1,7 +1,8 @@
 import type { TemplateEntry } from '@nestwise/domain/plan';
 import { getTranslations } from 'next-intl/server';
 import { Suspense } from 'react';
-import { formatMoney } from '@/client/format';
+import { formatMoney, formatPeriod, toYm } from '@/client/format';
+import { makePreviewFutureMonthsUseCase } from '@/composition/month-budget';
 import { makeGetTemplatesUseCase } from '@/composition/plan';
 import { PageLoading } from '@/components/page-loading';
 import { Card, CardTitle } from '@/components/ui/card';
@@ -20,7 +21,10 @@ export default function TemplatesPage() {
 async function Templates() {
   const { actor, family } = await pageContext();
   const t = await getTranslations('templates');
-  const templates = await makeGetTemplatesUseCase().execute({ actor });
+  const [templates, future] = await Promise.all([
+    makeGetTemplatesUseCase().execute({ actor }),
+    actor.role === 'admin' ? makePreviewFutureMonthsUseCase().execute({ actor }) : { months: [] },
+  ]);
   const money = moneyOf(family);
   const canEdit = actor.role === 'admin';
   const sections = [
@@ -50,6 +54,7 @@ async function Templates() {
                       yearly={section.kind === 'yearly'}
                       canEdit={canEdit}
                       money={money}
+                      futureMonths={section.kind === 'yearly' ? [] : future.months.map((m) => ({ ym: toYm(m), label: formatPeriod(m, money.locale) }))}
                     />
                   </li>
                 ))}

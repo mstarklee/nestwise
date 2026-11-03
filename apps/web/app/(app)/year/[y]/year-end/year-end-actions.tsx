@@ -11,14 +11,14 @@ import { useErrorText } from '@/components/use-error-text';
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 
 /** Done / Still to pay (with a month or "No month yet") / Drop, for one of last year's open bills. */
-export function YearEndActions({ year, lineId }: { year: number; lineId: string }) {
+export function YearEndActions({ year, lineId, locale }: { year: number; lineId: string; locale: string }) {
   const t = useTranslations('yearEnd');
   const errorText = useErrorText();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [month, setMonth] = useState('');
-  const monthName = (m: number) => new Intl.DateTimeFormat('en', { month: 'short', timeZone: 'UTC' }).format(Date.UTC(year + 1, m - 1, 1));
+  const monthName = (m: number) => new Intl.DateTimeFormat(locale, { month: 'short', timeZone: 'UTC' }).format(Date.UTC(year + 1, m - 1, 1));
 
   async function send(answer: unknown) {
     setBusy(true);

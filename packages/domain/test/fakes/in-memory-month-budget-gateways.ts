@@ -46,6 +46,12 @@ export class InMemoryMonthBudgetGateway implements MonthBudgetGateway, MonthStat
     }
     return false;
   }
+  async listPeriodsAfter(familyId: string, period: Period) {
+    return [...this.rows.values()]
+      .filter((b) => b.familyId === familyId && (b.period.year > period.year || (b.period.year === period.year && b.period.month > period.month)))
+      .map((b) => b.period)
+      .sort((a, b) => a.year - b.year || a.month - b.month);
+  }
   async statusOf(familyId: string, period: Period) {
     return this.rows.get(key(familyId, period))?.status;
   }

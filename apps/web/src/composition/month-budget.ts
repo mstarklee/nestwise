@@ -1,11 +1,13 @@
 import 'server-only';
 import type { Db } from '@nestwise/db';
 import {
+  ApplyTemplateToMonthsUseCase,
   AutoCloseMonthUseCase,
   CloseMonthUseCase,
   CopyOrBlankMonthUseCase,
   EnsureMonthBudgetUseCase,
   GetMonthSummaryUseCase,
+  PreviewFutureMonthsUseCase,
   SetMonthLineUseCase,
 } from '@nestwise/domain/month-budget';
 import type { Clock } from '@nestwise/domain/shared';
@@ -40,3 +42,15 @@ export const makeGetMonthSummaryUseCase = (db: Db = getDb()) =>
 export const makeCloseMonthUseCase = (db: Db = getDb()) => new CloseMonthUseCase(new DrizzleMonthBudgetUnitOfWork(db), new DrizzleFamilyGateway(db), systemClock);
 
 export const makeAutoCloseMonthUseCase = (db: Db = getDb(), clock: Clock = systemClock) => new AutoCloseMonthUseCase(new DrizzleMonthBudgetUnitOfWork(db), clock);
+
+export const makePreviewFutureMonthsUseCase = (db: Db = getDb()) => new PreviewFutureMonthsUseCase(new DrizzleMonthBudgetGateway(db), new DrizzleFamilyGateway(db), systemClock);
+
+export const makeApplyTemplateToMonthsUseCase = (db: Db = getDb()) =>
+  new ApplyTemplateToMonthsUseCase(
+    new DrizzleMonthBudgetUnitOfWork(db),
+    new DrizzleMonthBudgetGateway(db),
+    new DrizzlePlanGateway(db),
+    new DrizzleFamilyGateway(db),
+    uuidIds,
+    systemClock,
+  );

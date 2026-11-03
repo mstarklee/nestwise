@@ -139,6 +139,11 @@ describe('GetHomeSummaryUseCase', () => {
     expect(h.cards).toContain('undated');
   });
 
+  it('home carries this month’s checklist, so the screen reads it once', async () => {
+    const h = await home.execute({ actor: admin });
+    expect(h.checklist).toMatchObject({ period: NOV, pot: { status: 'pending' } });
+  });
+
   it('home shows the next_year card from 1 December until an Admin confirms next year', async () => {
     clock.set('2026-12-01T04:00:00Z');
     expect((await home.execute({ actor: admin })).cards).not.toContain('next_year'); // no 2027 plan yet

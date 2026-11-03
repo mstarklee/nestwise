@@ -28,7 +28,8 @@ In Vercel → the `nestwise` project → Settings → Environment Variables (Pro
 - `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (`mailto:` + your email).
 - `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=465`, `SMTP_USER`, `SMTP_PASSWORD` (a Gmail **app password**), `EMAIL_FROM`.
 
-In Vercel → Settings → General, set **Root Directory** to `apps/web`.
+In Vercel → Settings → General, set **Root Directory** to `apps/web`, and keep **Include files outside the Root
+Directory in the Build Step** switched on (the app builds from the shared `packages/*`).
 
 ## 2. Migrate the production database
 

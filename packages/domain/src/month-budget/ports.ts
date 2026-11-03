@@ -10,6 +10,8 @@ export interface MonthBudgetGateway {
   replaceLines(familyId: string, budgetId: string, createdFrom: MonthCreatedFrom, lines: readonly MonthLine[]): Promise<void>;
   /** Marks it closed; false if it already was. closedBy is null when the daily job closed it. */
   close(familyId: string, budgetId: string, closedBy: string | null, at: Date): Promise<boolean>;
+  /** Months after `period` that have a budget, oldest first. */
+  listPeriodsAfter(familyId: string, period: Period): Promise<readonly Period[]>;
 }
 
 /** Whether a month is open or closed, for marking late changes; undefined when the month has no budget. */

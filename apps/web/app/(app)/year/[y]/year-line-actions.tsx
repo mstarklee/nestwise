@@ -11,14 +11,22 @@ import { useErrorText } from '@/components/use-error-text';
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 
 /** Admin actions on an open yearly line: give it a month (or none), mark it done, or drop it this year. */
-export function YearLineActions({ year, line }: { year: number; line: { id: string; dueMonth: number | null; dueDay: number | null; paid: boolean } }) {
+export function YearLineActions({
+  year,
+  line,
+  locale,
+}: {
+  year: number;
+  line: { id: string; dueMonth: number | null; dueDay: number | null; paid: boolean };
+  locale: string;
+}) {
   const t = useTranslations('year');
   const errorText = useErrorText();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const base = `/api/v1/years/${year}/lines/${line.id}`;
-  const monthName = (month: number) => new Intl.DateTimeFormat('en', { month: 'short', timeZone: 'UTC' }).format(Date.UTC(year, month - 1, 1));
+  const monthName = (month: number) => new Intl.DateTimeFormat(locale, { month: 'short', timeZone: 'UTC' }).format(Date.UTC(year, month - 1, 1));
 
   async function run(action: () => Promise<unknown>) {
     setBusy(true);

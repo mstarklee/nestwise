@@ -199,6 +199,7 @@
     "drop": "Drop this year"
   },
   "templates": {
+    "alsoApply": "Also use the new amount in:",
     "title": "Templates",
     "intro": "Changes apply to months and years not created yet.",
     "monthly": "Monthly spending",

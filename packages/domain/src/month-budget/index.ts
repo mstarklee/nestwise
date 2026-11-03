@@ -2,6 +2,7 @@ export * from './errors';
 export * from './models';
 export * from './ports';
 export * from './review';
+export { ApplyTemplateToMonthsUseCase, PreviewFutureMonthsUseCase } from './use-cases/apply-template';
 export { AutoCloseMonthUseCase, CloseMonthUseCase } from './use-cases/close-month';
 export { CopyOrBlankMonthUseCase } from './use-cases/copy-or-blank-month';
 export { EnsureMonthBudgetUseCase } from './use-cases/ensure-month-budget';

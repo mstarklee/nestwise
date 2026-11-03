@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { MonthParam } from './month-budget';
 
 /** Shape only; the template rules (≥ 0, due fields only on yearly items) live in the domain. */
 export const TemplateFieldsRequest = z.object({
@@ -12,7 +13,12 @@ export const TemplateFieldsRequest = z.object({
 export const AddItemRequest = TemplateFieldsRequest.extend({ groupId: z.uuid(), name: z.string().max(400) });
 export type AddItemRequest = z.infer<typeof AddItemRequest>;
 
-export const UpdateItemRequest = z.object({ name: z.string().max(400).optional(), template: TemplateFieldsRequest.optional() });
+export const UpdateItemRequest = z.object({
+  name: z.string().max(400).optional(),
+  template: TemplateFieldsRequest.optional(),
+  /** Months after this one that also take the new amount (PRD §6.2), as "YYYY-MM". */
+  applyToMonths: z.array(MonthParam).max(24).optional(),
+});
 export type UpdateItemRequest = z.infer<typeof UpdateItemRequest>;
 
 export const ReorderItemsRequest = z.object({ itemIds: z.array(z.uuid()).max(500) });

@@ -46,7 +46,12 @@ export async function deliver(n: PlannedNotification, family: Family, now: Date,
   if (!delivered && n.emailFallback) {
     const user = await new DrizzleUserGateway(deps.db).findById(n.userId);
     const link = process.env.APP_URL ? `${process.env.APP_URL.replace(/\/$/, '')}${payload.url}` : payload.url;
-    if (user) delivered = await deps.email.send(user.email, payload.title, `${payload.body}\n\n${link}`).catch(() => false);
+    if (user) {
+      delivered = await deps.email.send(user.email, payload.title, `${payload.body}\n\n${link}`).catch((error: unknown) => {
+        console.error('Email failed', error instanceof Error ? error.message : 'unknown error');
+        return false;
+      });
+    }
   }
   if (!delivered) await sentLog.release(n.userId, n.dedupeKey); // a later run may still reach them
   return delivered ? 'sent' : 'undelivered';
@@ -72,7 +77,7 @@ export function render(n: PlannedNotification, family: Family): PushPayload {
   values.reviewMonth = typeof v.reviewMonth === 'object' ? formatPeriod(v.reviewMonth, family.numberLocale) : 'none';
   if (typeof v.dueDate === 'string') {
     const [y, m, d] = v.dueDate.split('-').map(Number) as [number, number, number];
-    values.weekday = new Intl.DateTimeFormat('en', { weekday: 'long', timeZone: 'UTC' }).format(Date.UTC(y, m - 1, d));
+    values.weekday = new Intl.DateTimeFormat(family.numberLocale, { weekday: 'long', timeZone: 'UTC' }).format(Date.UTC(y, m - 1, d));
   }
   return { title: t(`${n.kind}.title`, values), body: t(`${n.kind}.body`, values), url: n.url };
 }

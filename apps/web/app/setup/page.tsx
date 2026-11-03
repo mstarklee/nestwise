@@ -7,7 +7,7 @@ import { makeGetTemplatesUseCase } from '@/composition/plan';
 import { makeGetSetupStatusUseCase, makeGetYearPlanUseCase } from '@/composition/year-plan';
 import { PageLoading } from '@/components/page-loading';
 import { moneyOf, pageActorOrNone, pageUser } from '@/http/page-session';
-import { planImportAllowed } from '@/http/signup-gate';
+import { setupShowsImport } from '@/http/signup-gate';
 import { FamilyForm } from './family-form';
 import { FirstYearCheckForm } from './first-year-check-form';
 import { PlanStep } from './plan-step';
@@ -33,7 +33,7 @@ async function Setup({ searchParams }: { searchParams: SearchParams }) {
 
   const templates = await makeGetTemplatesUseCase().execute({ actor });
   const hasPlan = templates.monthly.length + templates.savings.length + templates.yearly.length > 0;
-  if (!hasPlan && (await searchParams).plan !== 'empty') return <PlanStep canImport={planImportAllowed(user.email)} />;
+  if (!hasPlan && (await searchParams).plan !== 'empty') return <PlanStep canImport={setupShowsImport(user.email, actor.role)} />;
   if (actor.role !== 'admin' || (await makeGetSetupStatusUseCase().execute({ actor })).firstYearCheckDone) redirect('/home');
 
   const { family } = await makeGetFamilyUseCase().execute({ actor });

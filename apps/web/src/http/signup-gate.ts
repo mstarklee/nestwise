@@ -13,6 +13,11 @@ export function signupAllowed(email: string, env: Env = process.env): boolean {
   return allowed.includes(email.trim().toLowerCase());
 }
 
+/** Setup shows "Import our plan" only to an Admin whose email may import (a member's tap would only fail with 403). */
+export function setupShowsImport(email: string, role: 'admin' | 'member' | 'viewer', env: Env = process.env): boolean {
+  return role === 'admin' && planImportAllowed(email, env);
+}
+
 /** Who may load the family's own plan from fixtures/sample-plan.ts at setup: only emails in PLAN_IMPORT_EMAILS. */
 export function planImportAllowed(email: string, env: Env = process.env): boolean {
   return (env.PLAN_IMPORT_EMAILS ?? '')

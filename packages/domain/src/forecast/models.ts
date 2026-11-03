@@ -1,3 +1,4 @@
+import type { Checklist } from '../pot';
 import type { Actor, Period } from '../shared';
 import type { YearLineStatus } from '../year-plan';
 
@@ -126,4 +127,6 @@ export interface HomeSummary {
   readonly thisMonth: { readonly plannedMinor: number; readonly actualMinor: number; readonly groupsOver: readonly string[] };
   readonly undated: readonly UndatedSummary[];
   readonly cards: readonly HomeCard[];
+  /** This month's checklist, so the screen does not read it a second time. */
+  readonly checklist: Checklist;
 }

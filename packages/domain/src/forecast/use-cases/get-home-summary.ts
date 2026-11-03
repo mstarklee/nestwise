@@ -55,6 +55,7 @@ export class GetHomeSummaryUseCase {
       },
       undated: forecast.undated,
       cards,
+      checklist,
     };
   }
 }

@@ -41,7 +41,7 @@ async function YearEnd({ params }: { params: Params }) {
           <p className="text-sm tabular-nums text-zinc-600">
             {line.paidMinor > 0 ? t('partPaid', { paid: exact(line.paidMinor), planned: exact(line.plannedMinor) }) : t('unpaid', { planned: exact(line.plannedMinor) })}
           </p>
-          {actor.role === 'admin' && <YearEndActions year={year} lineId={line.id} />}
+          {actor.role === 'admin' && <YearEndActions year={year} lineId={line.id} locale={money.locale} />}
         </Card>
       ))}
     </div>

@@ -2,7 +2,7 @@ import 'server-only';
 import { type DbOrTx, groups, items, monthBudgets, monthLines } from '@nestwise/db';
 import type { MonthBudget, MonthBudgetGateway, MonthCreatedFrom, MonthLine, MonthStatus, MonthStatusGateway } from '@nestwise/domain/month-budget';
 import type { Period } from '@nestwise/domain/shared';
-import { and, asc, eq, ne } from 'drizzle-orm';
+import { and, asc, eq, gt, ne, or } from 'drizzle-orm';
 import { isUniqueViolation } from '../shared/postgres-errors';
 
 const lineRow = (familyId: string, budgetId: string, line: MonthLine) => ({
@@ -25,6 +25,20 @@ export class DrizzleMonthBudgetGateway implements MonthBudgetGateway, MonthStatu
       .where(and(eq(monthBudgets.familyId, familyId), eq(monthBudgets.year, period.year), eq(monthBudgets.month, period.month)))
       .limit(1);
     return row?.status;
+  }
+
+  async listPeriodsAfter(familyId: string, period: Period): Promise<readonly Period[]> {
+    const rows = await this.db
+      .select({ year: monthBudgets.year, month: monthBudgets.month })
+      .from(monthBudgets)
+      .where(
+        and(
+          eq(monthBudgets.familyId, familyId),
+          or(gt(monthBudgets.year, period.year), and(eq(monthBudgets.year, period.year), gt(monthBudgets.month, period.month))),
+        ),
+      )
+      .orderBy(asc(monthBudgets.year), asc(monthBudgets.month));
+    return rows;
   }
 
   async close(familyId: string, budgetId: string, closedBy: string | null, at: Date): Promise<boolean> {
