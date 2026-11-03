@@ -20,6 +20,12 @@ type Group = { label: string; items: { id: string; name: string }[] };
 type Other = { amountMinor: number; merchant: string | null; txnDate: string; enteredBy: string };
 type RecordResponse = { transaction: { amountMinor: number }; duplicate: { matchId: string; other: Other } | null };
 
+/** A picked option: an item, or "itemId@2026" for last year's still-open bill (paid against that year's plan). */
+function target(value: string): { itemId: string; planYear?: number } {
+  const [itemId, year] = value.split('@');
+  return year ? { itemId: itemId!, planYear: Number(year) } : { itemId: itemId! };
+}
+
 /** "2026-11-01" → "2026-10-31". */
 function dayBefore(isoDate: string): string {
   const [year, month, day] = isoDate.split('-').map(Number);
@@ -47,13 +53,13 @@ export function AddExpenseForm({ today, money, monthly, yearly, userId }: { toda
     const form = new FormData(formElement);
     setError(null);
     let amountMinor: number;
-    let allocations: { itemId: string; amountMinor: number }[];
+    let allocations: { itemId: string; planYear?: number; amountMinor: number }[];
     try {
       amountMinor = parseMinor(String(form.get('amount')), unit);
       allocations =
         parts.length === 1
-          ? [{ itemId: parts[0]!.itemId, amountMinor }]
-          : parts.map((p) => ({ itemId: p.itemId, amountMinor: parseMinor(p.amount, unit) }));
+          ? [{ ...target(parts[0]!.itemId), amountMinor }]
+          : parts.map((p) => ({ ...target(p.itemId), amountMinor: parseMinor(p.amount, unit) }));
     } catch {
       setError(t('badAmount'));
       return;
@@ -123,7 +129,7 @@ export function AddExpenseForm({ today, money, monthly, yearly, userId }: { toda
     >
       <option value="">{t('chooseItem')}</option>
       {[...monthly, ...yearly].map((group, g) => (
-        <optgroup key={`${group.label}-${g}`} label={g < monthly.length ? group.label : t('yearlyGroup', { group: group.label })}>
+        <optgroup key={`${group.label}-${g}`} label={g < monthly.length || group.items.some((i) => i.id.includes('@')) ? group.label : t('yearlyGroup', { group: group.label })}>
           {group.items.map((item) => (
             <option key={item.id} value={item.id}>
               {item.name}

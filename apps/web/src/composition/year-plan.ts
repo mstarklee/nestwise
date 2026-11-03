@@ -8,6 +8,11 @@ import {
   GetYearPlanUseCase,
   MarkYearLineDoneUseCase,
   SetYearLineScheduleUseCase,
+  AnswerYearEndLineUseCase,
+  ConfirmNextYearReviewUseCase,
+  GetNextYearReviewUseCase,
+  GetYearEndReviewUseCase,
+  SetYearLineAmountUseCase,
 } from '@nestwise/domain/year-plan';
 import { DrizzleFamilyGateway } from '../adapters/family/drizzle-family-gateway';
 import { DrizzlePlanGateway } from '../adapters/plan/drizzle-plan-gateway';
@@ -43,3 +48,16 @@ export const makeGetYearPlanUseCase = (db: Db = getDb()) =>
   );
 
 export const makeGetSetupStatusUseCase = (db: Db = getDb()) => new GetSetupStatusUseCase(new DrizzleYearPlanGateway(db));
+
+export const makeGetYearEndReviewUseCase = (db: Db = getDb()) => new GetYearEndReviewUseCase(new DrizzleYearPlanGateway(db), new DrizzleYearPaidGateway(db));
+
+export const makeAnswerYearEndLineUseCase = (db: Db = getDb()) =>
+  new AnswerYearEndLineUseCase(new DrizzleYearPlanUnitOfWork(db), new DrizzleYearPlanGateway(db), systemClock);
+
+export const makeGetNextYearReviewUseCase = (db: Db = getDb()) => new GetNextYearReviewUseCase(makeGetYearPlanUseCase(db), new DrizzleYearPlanGateway(db));
+
+export const makeConfirmNextYearReviewUseCase = (db: Db = getDb()) =>
+  new ConfirmNextYearReviewUseCase(new DrizzleYearPlanUnitOfWork(db), new DrizzleYearPlanGateway(db), systemClock);
+
+export const makeSetYearLineAmountUseCase = (db: Db = getDb()) =>
+  new SetYearLineAmountUseCase(new DrizzleYearPlanUnitOfWork(db), new DrizzleYearPlanGateway(db), systemClock);

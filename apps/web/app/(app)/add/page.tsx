@@ -1,6 +1,8 @@
 import { getTranslations } from 'next-intl/server';
 import { Suspense } from 'react';
+import { YearPlanNotFoundError } from '@nestwise/domain/year-plan';
 import { makeGetTemplatesUseCase } from '@/composition/plan';
+import { makeGetYearPlanUseCase } from '@/composition/year-plan';
 import { PageLoading } from '@/components/page-loading';
 import { moneyOf, pageContext } from '@/http/page-session';
 import { AddExpenseForm } from './add-expense-form';
@@ -28,10 +30,20 @@ async function Add() {
     return [...byGroup.values()];
   };
   if (actor.role === 'viewer') return <p className="py-4">{t('viewerCannot')}</p>;
+  // Last year's bills still open (carried or not yet answered) are paid against their own year's plan (TRD §5.7).
+  const lastYear = Number(today.slice(0, 4)) - 1;
+  let stillOpen: { id: string; name: string }[] = [];
+  try {
+    const view = await makeGetYearPlanUseCase().execute({ actor, year: lastYear });
+    stillOpen = view.lines.filter((l) => l.state === 'open' && l.remainingMinor > 0).map((l) => ({ id: `${l.itemId}@${lastYear}`, name: `${l.name} (${lastYear})` }));
+  } catch (error) {
+    if (!(error instanceof YearPlanNotFoundError)) throw error;
+  }
+  const yearly = stillOpen.length > 0 ? [...groups('yearly'), { label: t('lastYearGroup', { year: lastYear }), items: stillOpen }] : groups('yearly');
   const money = moneyOf(family);
   return (
     <>
-      <AddExpenseForm today={today} money={money} monthly={groups('monthly')} yearly={groups('yearly')} userId={actor.userId} />
+      <AddExpenseForm today={today} money={money} monthly={groups('monthly')} yearly={yearly} userId={actor.userId} />
       <OutboxFailures money={money} />
     </>
   );

@@ -24,6 +24,11 @@ export class YearLineNotCompletableError extends YearPlanError {
   readonly category = 'conflict' as const;
 }
 
+/** A year-end question was already answered (perhaps by the other Admin). */
+export class YearEndAlreadyAnsweredError extends YearPlanError {
+  readonly category = 'conflict' as const;
+}
+
 export class FirstYearCheckDoneError extends YearPlanError {
   readonly category = 'conflict' as const;
 }

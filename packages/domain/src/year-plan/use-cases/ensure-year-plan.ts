@@ -29,6 +29,7 @@ export class EnsureYearPlanUseCase {
       familyId: command.familyId,
       year: command.year,
       firstYearCheckAt: null,
+      nextYearReviewedAt: null,
       lines: yearly.map((e) => ({
         id: this.ids.next(),
         familyId: command.familyId,

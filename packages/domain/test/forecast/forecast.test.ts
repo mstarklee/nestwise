@@ -5,7 +5,7 @@ import { EnsureMonthBudgetUseCase, GetMonthSummaryUseCase } from '../../src/mont
 import { ImportPlanUseCase } from '../../src/plan';
 import { ConfirmPotDepositUseCase, ConfirmSavingsUseCase, GetChecklistUseCase, RecordPotMovementUseCase, SkipChecklistItemUseCase } from '../../src/pot';
 import type { Actor } from '../../src/shared';
-import { ApplyFirstYearCheckUseCase, EnsureYearPlanUseCase } from '../../src/year-plan';
+import { ApplyFirstYearCheckUseCase, ConfirmNextYearReviewUseCase, EnsureYearPlanUseCase, GetYearEndReviewUseCase } from '../../src/year-plan';
 import { familyRecord } from '../fakes/family-record';
 import { FixedClock } from '../fakes/fixed-clock';
 import { InMemoryFamilyGateway } from '../fakes/in-memory-family-gateways';
@@ -70,6 +70,8 @@ beforeEach(async () => {
     new GetChecklistUseCase(ensureMonth, yearPlans, planUow.plan, families, pot),
     new GetMonthSummaryUseCase(ensureMonth, actuals, planUow.plan),
     monthBudgets,
+    yearPlans,
+    new GetYearEndReviewUseCase(yearPlans, paid),
   );
   ensureOctober = () => ensureMonth.execute({ familyId: 'f1', period: { year: 2026, month: 10 } });
 });
@@ -135,6 +137,23 @@ describe('GetHomeSummaryUseCase', () => {
     const h = await home.execute({ actor: admin });
     expect(h.undated.find((u) => u.year === 2027)).toMatchObject({ count: 13, totalMinor: 15_700_000 });
     expect(h.cards).toContain('undated');
+  });
+
+  it('home shows the next_year card from 1 December until an Admin confirms next year', async () => {
+    clock.set('2026-12-01T04:00:00Z');
+    expect((await home.execute({ actor: admin })).cards).not.toContain('next_year'); // no 2027 plan yet
+    await ensureYear.execute({ familyId: 'f1', year: 2027 });
+    expect((await home.execute({ actor: admin })).cards).toContain('next_year');
+    await new ConfirmNextYearReviewUseCase(new InMemoryYearPlanUnitOfWork(yearPlans), yearPlans, clock).execute({ actor: admin, year: 2027 });
+    expect((await home.execute({ actor: admin })).cards).not.toContain('next_year');
+  });
+
+  it('home shows the year_end card in January while last year still has open lines', async () => {
+    await ensureYear.execute({ familyId: 'f1', year: 2027 });
+    clock.set('2027-01-02T04:00:00Z');
+    expect((await home.execute({ actor: admin })).cards).toContain('year_end');
+    for (const line of (await yearPlans.findByYear('f1', 2026))!.lines) await yearPlans.saveLine({ ...line, state: 'done' });
+    expect((await home.execute({ actor: admin })).cards).not.toContain('year_end');
   });
 
   it('home shows the month review card while last month is open, and not once it is closed', async () => {

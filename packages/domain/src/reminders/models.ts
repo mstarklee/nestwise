@@ -1,7 +1,7 @@
 import type { IsoDate, Period } from '../shared';
 import type { YearLineState } from '../year-plan';
 
-export type ReminderKind = 'checklist' | 'bill_prior_month' | 'bill_due_month' | 'bill_3_days' | 'red' | 'undated';
+export type ReminderKind = 'checklist' | 'bill_prior_month' | 'bill_due_month' | 'bill_3_days' | 'red' | 'undated' | 'next_year' | 'year_end';
 
 /**
  * What to say, as a message key plus values; the app turns it into words from messages/en.json (so the core holds
@@ -59,6 +59,10 @@ export interface DailyFacts {
   readonly checklistPending: boolean;
   /** Last month is not closed yet, so the 1st-of-month message also points to its review. */
   readonly lastMonthOpen: boolean;
+  /** Last year's lines still open with something left (for the 1 January message); null when there are none. */
+  readonly lastYearOpen: { readonly count: number; readonly totalMinor: number } | null;
+  /** Next year's plan exists and no Admin has confirmed it yet (for the 1 December message). */
+  readonly nextYearReady: boolean;
   readonly lastRedState: RedState | null;
 }
 

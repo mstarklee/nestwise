@@ -105,6 +105,10 @@
     "giveMonths": "Give them a month",
     "inboxCount": "{count, plural, one {# expense waits} other {# expenses wait}} for an answer in the Inbox.",
     "monthReview": "{month} is over: take a look.",
+    "nextYear": "{year}’s yearly bills are ready to check.",
+    "openNextYear": "Check them",
+    "yearEnd": "Some {year} bills are still open.",
+    "openYearEnd": "Answer them",
     "openReview": "See how it went",
     "openInbox": "Open the Inbox"
   },
@@ -159,6 +163,27 @@
     "openInbox": "Open the Inbox",
     "close": "Close {month}",
     "closed": "{month} is closed. Late expenses can still be added."
+  },
+  "yearEnd": {
+    "title": "{year}: bills still open",
+    "explain": "For each one: done (anything not spent stays in the pot), still to pay in {next}, or drop it. Until you answer, nothing is dropped or counted twice.",
+    "allAnswered": "Every {year} bill is answered.",
+    "partPaid": "Paid {paid} of {planned}",
+    "unpaid": "Not paid yet ({planned})",
+    "done": "Done",
+    "drop": "Drop",
+    "carry": "Still to pay in {next}",
+    "carryMonth": "Month in {next}",
+    "noMonth": "No month yet"
+  },
+  "nextYear": {
+    "title": "Yearly bills for {year}",
+    "explain": "Check the amounts and months. Change anything that is different this year, then tap Looks right.",
+    "confirmed": "Confirmed. You can still change amounts and months any time.",
+    "amount": "Amount",
+    "save": "Save",
+    "badAmount": "Please enter an amount like 5000 or 5,000.50.",
+    "looksRight": "Looks right"
   },
   "year": {
     "title": "Yearly bills {year}",
@@ -215,6 +240,7 @@
     "item": "Item",
     "chooseItem": "Choose an item",
     "yearlyGroup": "{group} (yearly, from the pot)",
+    "lastYearGroup": "Still open from {year} (from the pot)",
     "partAmount": "Part amount",
     "split": "Split across items",
     "date": "Date",
@@ -301,6 +327,14 @@
     "goHome": "Go to Home"
   },
   "notifications": {
+    "next_year": {
+      "title": "{year}’s yearly bills are ready",
+      "body": "Take a look at {year}’s yearly bills: amounts and months."
+    },
+    "year_end": {
+      "title": "{year}: bills still open",
+      "body": "{year} has {count, plural, one {# bill} other {# bills}} still open, {total}. Take a look."
+    },
     "checklist": {
       "title": "This month’s checklist",
       "body": "Time to confirm the pot deposit and savings. The pot has {pot}.{reviewMonth, select, none {} other { {reviewMonth} is over: take a look.}}"

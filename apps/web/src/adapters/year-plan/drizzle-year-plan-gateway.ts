@@ -44,6 +44,7 @@ export class DrizzleYearPlanGateway implements YearPlanGateway {
       familyId: plan.familyId,
       year: plan.year,
       firstYearCheckAt: plan.firstYearCheckAt,
+      nextYearReviewedAt: plan.nextYearReviewedAt,
       lines: rows.map(({ line }) => toYearLine(line, plan.year)),
     };
   }
@@ -51,7 +52,9 @@ export class DrizzleYearPlanGateway implements YearPlanGateway {
   async create(plan: YearPlan): Promise<YearPlan> {
     try {
       await this.db.transaction(async (tx) => {
-        await tx.insert(yearPlans).values({ id: plan.id, familyId: plan.familyId, year: plan.year, firstYearCheckAt: plan.firstYearCheckAt });
+        await tx
+          .insert(yearPlans)
+          .values({ id: plan.id, familyId: plan.familyId, year: plan.year, firstYearCheckAt: plan.firstYearCheckAt, nextYearReviewedAt: plan.nextYearReviewedAt });
         if (plan.lines.length === 0) return;
         await tx.insert(yearLines).values(
           plan.lines.map((l) => ({
@@ -92,8 +95,17 @@ export class DrizzleYearPlanGateway implements YearPlanGateway {
   async saveLine(line: YearLine): Promise<void> {
     await this.db
       .update(yearLines)
-      .set({ dueMonth: line.dueMonth, dueDay: line.dueDay, state: line.state })
+      .set({ plannedMinor: line.plannedMinor, dueYear: line.dueYear, dueMonth: line.dueMonth, dueDay: line.dueDay, state: line.state })
       .where(and(eq(yearLines.id, line.id), eq(yearLines.familyId, line.familyId)));
+  }
+
+  async markNextYearReviewed(familyId: string, yearPlanId: string, at: Date): Promise<boolean> {
+    const rows = await this.db
+      .update(yearPlans)
+      .set({ nextYearReviewedAt: at })
+      .where(and(eq(yearPlans.id, yearPlanId), eq(yearPlans.familyId, familyId), isNull(yearPlans.nextYearReviewedAt)))
+      .returning({ id: yearPlans.id });
+    return rows.length === 1;
   }
 
   async markFirstYearCheck(familyId: string, yearPlanId: string, at: Date): Promise<boolean> {

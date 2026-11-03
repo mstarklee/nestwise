@@ -57,6 +57,24 @@ async function Home() {
         )}
       </Card>
 
+      {home.cards.includes('next_year') && (
+        <Card>
+          <p className="text-sm">{t('nextYear', { year: current.year + 1 })}</p>
+          <Link href={`/year/${current.year + 1}/review`} className="mt-1 block text-sm text-green-900 underline">
+            {t('openNextYear')}
+          </Link>
+        </Card>
+      )}
+
+      {home.cards.includes('year_end') && (
+        <Card>
+          <p className="text-sm">{t('yearEnd', { year: current.year - 1 })}</p>
+          <Link href={`/year/${current.year - 1}/year-end`} className="mt-1 block text-sm text-green-900 underline">
+            {t('openYearEnd')}
+          </Link>
+        </Card>
+      )}
+
       {home.cards.includes('month_review') && (
         <Card>
           <p className="text-sm">{t('monthReview', { month: formatPeriod(addMonths(current, -1), money.locale) })}</p>

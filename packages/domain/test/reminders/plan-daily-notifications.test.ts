@@ -40,6 +40,8 @@ function facts(overrides: Partial<DailyFacts> = {}): DailyFacts {
     yearLines: [],
     checklistPending: false,
     lastMonthOpen: false,
+    lastYearOpen: null,
+    nextYearReady: false,
     lastRedState: null,
     ...overrides,
   };
@@ -71,6 +73,24 @@ describe('PlanDailyNotificationsUseCase', () => {
     const reviewOnly = plan.execute(facts({ checklistPending: false, lastMonthOpen: true }));
     expect(kinds(reviewOnly)).toEqual(['u1:checklist', 'u2:checklist']);
     expect(plan.execute(facts({ checklistPending: true })).notifications[0]!.message.values).not.toHaveProperty('reviewMonth');
+  });
+
+  it('on 1 Jan 2027 plans one year_end message per person while 2026 has open lines; none when nothing is open', () => {
+    const r = plan.execute(facts({ today: date('2027-01-01'), lastYearOpen: { count: 3, totalMinor: 2_300_000 } }));
+    const yearEnd = r.notifications.filter((n) => n.kind === 'year_end');
+    expect(yearEnd.map((n) => n.userId)).toEqual(['u1', 'u2']);
+    expect(yearEnd[0]).toMatchObject({ dedupeKey: 'year_end:2026', url: '/year/2026/year-end', emailFallback: false, message: { values: { year: 2026, count: 3, totalMinor: 2_300_000 } } });
+    expect(plan.execute(facts({ today: date('2027-01-01') })).notifications.filter((n) => n.kind === 'year_end')).toEqual([]);
+    expect(plan.execute(facts({ today: date('2027-01-02'), lastYearOpen: { count: 3, totalMinor: 2_300_000 } })).notifications.filter((n) => n.kind === 'year_end')).toEqual([]);
+  });
+
+  it('on 1 Dec 2026 plans next_year once next year is waiting for review', () => {
+    const r = plan.execute(facts({ today: date('2026-12-01'), nextYearReady: true }));
+    expect(r.notifications.filter((n) => n.kind === 'next_year')).toEqual([
+      expect.objectContaining({ userId: 'u1', dedupeKey: 'next_year:2027', url: '/year/2027/review', message: { key: 'next_year', values: { year: 2027 } } }),
+      expect.objectContaining({ userId: 'u2', dedupeKey: 'next_year:2027' }),
+    ]);
+    expect(plan.execute(facts({ today: date('2026-12-01') })).notifications.filter((n) => n.kind === 'next_year')).toEqual([]);
   });
 
   it('on 1 Nov 2026 plans the checklist reminder and bill_due_month for bike insurance', () => {

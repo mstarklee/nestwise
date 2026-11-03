@@ -29,6 +29,15 @@ export class InMemoryYearPlanGateway implements YearPlanGateway {
       this.rows.set(k, { ...plan, lines: plan.lines.map((l) => (l.id === line.id ? line : l)) });
     }
   }
+  async markNextYearReviewed(familyId: string, yearPlanId: string, at: Date) {
+    for (const [k, plan] of this.rows) {
+      if (plan.id !== yearPlanId || plan.familyId !== familyId) continue;
+      if (plan.nextYearReviewedAt) return false;
+      this.rows.set(k, { ...plan, nextYearReviewedAt: at });
+      return true;
+    }
+    return false;
+  }
   async markFirstYearCheck(familyId: string, yearPlanId: string, at: Date) {
     for (const [k, plan] of this.rows) {
       if (plan.id !== yearPlanId || plan.familyId !== familyId) continue;

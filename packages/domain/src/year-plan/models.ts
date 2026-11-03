@@ -62,6 +62,8 @@ export interface YearPlan {
   readonly year: number;
   /** Set once the first-year check has been answered; it never runs twice. */
   readonly firstYearCheckAt: Date | null;
+  /** Set when an Admin confirmed this plan in the 1 December review. */
+  readonly nextYearReviewedAt: Date | null;
   readonly lines: readonly YearLine[];
 }
 

@@ -9,7 +9,7 @@ import {
   type PlannedNotification,
   type PushPayload,
 } from '@nestwise/domain/reminders';
-import { type Actor, addMonths, type Clock, type Period, periodOf, todayIn } from '@nestwise/domain/shared';
+import { type Actor, addMonths, type Clock, type Period, periodOf, sumMinor, todayIn } from '@nestwise/domain/shared';
 import { remainingMinor } from '@nestwise/domain/year-plan';
 import { createTranslator } from 'next-intl';
 import messages from '../../messages/en.json';
@@ -29,7 +29,7 @@ import { getDb } from '../composition/db';
 import { makeGetForecastUseCase } from '../composition/forecast';
 import { makeAutoCloseMonthUseCase, makeEnsureMonthBudgetUseCase } from '../composition/month-budget';
 import { makeGetChecklistUseCase } from '../composition/pot';
-import { makeEnsureYearPlanUseCase, makeGetSetupStatusUseCase } from '../composition/year-plan';
+import { makeEnsureYearPlanUseCase, makeGetSetupStatusUseCase, makeGetYearEndReviewUseCase } from '../composition/year-plan';
 
 export interface DailyJobDeps {
   readonly db: Db;
@@ -89,13 +89,15 @@ async function runForFamily(family: Family, now: Date, deps: DailyJobDeps): Prom
   await makeAutoCloseMonthUseCase(db, clock).execute({ familyId: family.id, today });
 
   const redStates = new DrizzleRedStateGateway(db);
-  const [forecast, checklist, members, yearLines, lastRedState, lastMonth] = await Promise.all([
+  const [forecast, checklist, members, yearLines, lastRedState, lastMonth, lastYear, nextYear] = await Promise.all([
     makeGetForecastUseCase(db, clock).execute({ actor }),
     makeGetChecklistUseCase(db).execute({ actor, period: current }),
     new DrizzleMembershipGateway(db).listActive(family.id),
     yearLinesOf(db, family.id, current),
     redStates.find(family.id),
     new DrizzleMonthBudgetGateway(db).statusOf(family.id, addMonths(current, -1)),
+    makeGetYearEndReviewUseCase(db).execute({ actor, year: current.year - 1 }),
+    new DrizzleYearPlanGateway(db).findByYear(family.id, current.year + 1),
   ]);
   const plan = new PlanDailyNotificationsUseCase().execute({
     familyId: family.id,
@@ -105,6 +107,8 @@ async function runForFamily(family: Family, now: Date, deps: DailyJobDeps): Prom
     yearLines,
     checklistPending: checklist.pot.status === 'pending' || checklist.savings.some((s) => s.status === 'pending'),
     lastMonthOpen: lastMonth === 'active',
+    lastYearOpen: lastYear.lines.length > 0 ? { count: lastYear.lines.length, totalMinor: sumMinor(lastYear.lines.map((l) => l.remainingMinor)) } : null,
+    nextYearReady: nextYear !== undefined && nextYear.nextYearReviewedAt === null,
     lastRedState,
   });
 
@@ -176,6 +180,7 @@ function render(n: PlannedNotification, family: Family): PushPayload {
   if (v.shortfallMinor !== undefined) values.shortfall = money(v.shortfallMinor);
   if (v.totalMinor !== undefined) values.total = money(v.totalMinor);
   if (typeof v.count === 'number') values.count = v.count;
+  if (typeof v.year === 'number') values.year = v.year;
   if (typeof v.period === 'object') values.month = formatPeriod(v.period, family.numberLocale);
   values.reviewMonth = typeof v.reviewMonth === 'object' ? formatPeriod(v.reviewMonth, family.numberLocale) : 'none';
   if (typeof v.dueDate === 'string') {

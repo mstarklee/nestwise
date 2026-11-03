@@ -7,12 +7,14 @@ export interface YearPlanGateway {
   /** Creates the plan with its lines; if another request created that year first, returns that one instead. */
   create(plan: YearPlan): Promise<YearPlan>;
   findLine(familyId: string, yearLineId: string): Promise<YearLine | undefined>;
-  /** Saves the line's schedule and state. */
+  /** Saves the line's amount, due year, schedule and state. */
   saveLine(line: YearLine): Promise<void>;
   /** Marks the first-year check answered; false if it already was (the guard against two taps at once). */
   markFirstYearCheck(familyId: string, yearPlanId: string, at: Date): Promise<boolean>;
   /** True once any of the family's year plans has its first-year check answered (that is, setup is finished). */
   hasFirstYearCheck(familyId: string): Promise<boolean>;
+  /** Marks the plan reviewed ("Looks right"); false if it already was. */
+  markNextYearReviewed(familyId: string, yearPlanId: string, at: Date): Promise<boolean>;
 }
 
 export interface YearPaidGateway {

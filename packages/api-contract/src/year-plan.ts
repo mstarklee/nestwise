@@ -52,3 +52,31 @@ export const YearPlanResponse = z.object({
   totalMinor: z.number().int(),
 });
 export type YearPlanResponse = z.infer<typeof YearPlanResponse>;
+
+export const YearEndAnswerRequest = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('done') }),
+  z.object({ kind: z.literal('drop') }),
+  z.object({ kind: z.literal('carry'), dueMonth: z.number().int().nullable() }),
+]);
+export type YearEndAnswerRequest = z.infer<typeof YearEndAnswerRequest>;
+
+export const YearEndReviewResponse = z.object({
+  year: z.number().int(),
+  lines: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      plannedMinor: z.number().int(),
+      paidMinor: z.number().int(),
+      remainingMinor: z.number().int(),
+      dueMonth: z.number().int().nullable(),
+    }),
+  ),
+});
+export type YearEndReviewResponse = z.infer<typeof YearEndReviewResponse>;
+
+export const NextYearReviewResponse = YearPlanResponse.pick({ year: true, lines: true }).extend({ confirmed: z.boolean() });
+export type NextYearReviewResponse = z.infer<typeof NextYearReviewResponse>;
+
+export const SetYearLineAmountRequest = z.object({ plannedMinor: z.number().int() });
+export type SetYearLineAmountRequest = z.infer<typeof SetYearLineAmountRequest>;
