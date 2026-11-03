@@ -27,3 +27,18 @@ export function testDatabaseUrl(env: Env = process.env): string {
   if (name === env.DB_NAME) throw new Error('TEST_DB_NAME is the same database as DB_NAME; tests would erase it');
   return fromParts(env, name);
 }
+
+/**
+ * Where `migrate` applies the committed migrations, or null to skip.
+ *   dev    → DIRECT_DATABASE_URL, or the DB_* database
+ *   prod   → PROD_DIRECT_DATABASE_URL only (by hand, RUNBOOK.md)
+ *   deploy → the Vercel build: PROD_DIRECT_DATABASE_URL on production deploys only; previews and local builds skip
+ */
+export function migrationUrl(mode: 'dev' | 'prod' | 'deploy', env: Env = process.env): string | null {
+  if (mode === 'dev') return env.DIRECT_DATABASE_URL ?? databaseUrl(env);
+  if (mode === 'deploy' && env.VERCEL_ENV !== 'production') return null;
+  if (!env.PROD_DIRECT_DATABASE_URL) {
+    throw new Error('Set PROD_DIRECT_DATABASE_URL (the production session-pooler or direct connection, port 5432).');
+  }
+  return env.PROD_DIRECT_DATABASE_URL;
+}

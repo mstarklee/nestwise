@@ -18,7 +18,11 @@ In Vercel → the `nestwise` project → Settings → Environment Variables (Pro
 `apps/web/.env.example`:
 
 - `DATABASE_URL`: the Supabase **transaction pooler** string (port 6543).
-- `SIGNUP_MODE=invite`, `ALLOWED_SIGNUP_EMAILS` (your email and your spouse's), `PLAN_IMPORT_EMAILS` (your email).
+- `PROD_DIRECT_DATABASE_URL` (**Production only**, not Preview): the Supabase **session pooler** string (port 5432).
+  Each production deploy uses it to update the database first (section 2). Supabase's "Direct connection" address
+  does not work from Vercel, so use the session pooler one.
+- `SIGNUP_MODE=invite`, `ALLOWED_SIGNUP_EMAILS` (your email; your spouse joins by invite link and need not be
+  listed), `PLAN_IMPORT_EMAILS` (your email).
 - `APP_URL`: the app's address, e.g. `https://<project>.vercel.app`.
 - `CRON_SECRET`: a long random string (Vercel sends it to the daily job).
 - `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (`mailto:` + your email).
@@ -28,16 +32,22 @@ In Vercel → Settings → General, set **Root Directory** to `apps/web`.
 
 ## 2. Migrate the production database
 
-The schema changes are committed in `packages/db/migrations`. Apply them deliberately before each release that adds one.
+The schema changes are committed in `packages/db/migrations`. **Production deploys apply them automatically**:
+`apps/web/vercel.json` sets the build command to `pnpm --filter @nestwise/db migrate:deploy && pnpm build`.
 
-1. Put the production **direct** connection string (port 5432) in your own `.env.local` as `PROD_DIRECT_DATABASE_URL`.
-2. Run:
+- On a production deploy it applies whatever is missing, using `PROD_DIRECT_DATABASE_URL`, then builds. The build log
+  shows `Production migrations applied.`
+- If a migration fails, or `PROD_DIRECT_DATABASE_URL` is missing, the deploy fails and the current version stays live.
+- Preview deploys and local builds print `Not a production deploy: migrations skipped.` and never touch production.
 
-   ```bash
-   pnpm --filter @nestwise/db migrate:prod
-   ```
+To apply them by hand instead (for example, to check a migration before deploying), put the same string in your own
+`.env.local` as `PROD_DIRECT_DATABASE_URL` and run:
 
-   It prints `Production migrations applied.` Running it again is safe; it only applies what is missing.
+```bash
+pnpm --filter @nestwise/db migrate:prod
+```
+
+Running either again is safe; they only apply what is missing.
 
 The migrations switch on row-level security for every table, with no policies for Supabase's public roles, and
 create the role `nestwise_app` with access to schema `app`. If the app connects as the tables' owner (the default

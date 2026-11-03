@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { databaseUrl, testDatabaseUrl } from '../src/database-url';
+import { databaseUrl, migrationUrl, testDatabaseUrl } from '../src/database-url';
 
 const parts = { DB_HOST: 'localhost', DB_PORT: '5432', DB_NAME: 'nestwise', DB_USER: 'postgres', DB_PASSWORD: 'p@ss:w/rd#1' };
 
@@ -35,5 +35,29 @@ describe('testDatabaseUrl', () => {
   it('refuses to point tests at the main database or at production', () => {
     expect(() => testDatabaseUrl({ ...parts, TEST_DB_NAME: 'nestwise' })).toThrow(/same database/);
     expect(() => testDatabaseUrl({ ...parts, VERCEL_ENV: 'production' })).toThrow(/production/);
+  });
+});
+
+describe('migrationUrl', () => {
+  const prodUrl = 'postgres://p:p@prod:5432/postgres';
+
+  it('development uses DIRECT_DATABASE_URL, or the DB_* database', () => {
+    expect(migrationUrl('dev', { ...parts, DIRECT_DATABASE_URL: 'postgres://d:d@h:1/d' })).toBe('postgres://d:d@h:1/d');
+    expect(new URL(migrationUrl('dev', parts)!).pathname).toBe('/nestwise');
+  });
+
+  it('by hand for production uses PROD_DIRECT_DATABASE_URL only', () => {
+    expect(migrationUrl('prod', { ...parts, DATABASE_URL: 'postgres://pool:6543/x', PROD_DIRECT_DATABASE_URL: prodUrl })).toBe(prodUrl);
+    expect(() => migrationUrl('prod', { ...parts, DATABASE_URL: 'postgres://pool:6543/x' })).toThrow(/PROD_DIRECT_DATABASE_URL/);
+  });
+
+  it('a production deploy uses PROD_DIRECT_DATABASE_URL and fails the deploy without it', () => {
+    expect(migrationUrl('deploy', { VERCEL_ENV: 'production', PROD_DIRECT_DATABASE_URL: prodUrl })).toBe(prodUrl);
+    expect(() => migrationUrl('deploy', { VERCEL_ENV: 'production', DATABASE_URL: 'postgres://pool:6543/x' })).toThrow(/PROD_DIRECT_DATABASE_URL/);
+  });
+
+  it('preview deploys and local builds skip, even when a production URL is present', () => {
+    expect(migrationUrl('deploy', { VERCEL_ENV: 'preview', PROD_DIRECT_DATABASE_URL: prodUrl })).toBeNull();
+    expect(migrationUrl('deploy', { ...parts, PROD_DIRECT_DATABASE_URL: prodUrl })).toBeNull();
   });
 });
