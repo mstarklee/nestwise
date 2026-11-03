@@ -1,4 +1,5 @@
 import type { DuplicateMatchGateway, EvidenceGateway } from '../duplicates';
+import type { MonthStatusGateway } from '../month-budget';
 import type { ActivityGateway, IsoDate } from '../shared';
 import type { ExpenseFilter, Transaction, TransactionKind } from './models';
 
@@ -21,6 +22,7 @@ export interface ExpensesGateways {
   readonly activity: ActivityGateway;
   readonly duplicates: DuplicateMatchGateway;
   readonly evidence: EvidenceGateway;
+  readonly months: MonthStatusGateway;
 }
 
 /** Expense writes, duplicate questions, proofs and their activity rows, all or nothing. */

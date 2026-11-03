@@ -1,8 +1,8 @@
 import 'server-only';
 import { type DbOrTx, groups, items, monthBudgets, monthLines } from '@nestwise/db';
-import type { MonthBudget, MonthBudgetGateway, MonthCreatedFrom, MonthLine } from '@nestwise/domain/month-budget';
+import type { MonthBudget, MonthBudgetGateway, MonthCreatedFrom, MonthLine, MonthStatus, MonthStatusGateway } from '@nestwise/domain/month-budget';
 import type { Period } from '@nestwise/domain/shared';
-import { and, asc, eq } from 'drizzle-orm';
+import { and, asc, eq, ne } from 'drizzle-orm';
 import { isUniqueViolation } from '../shared/postgres-errors';
 
 const lineRow = (familyId: string, budgetId: string, line: MonthLine) => ({
@@ -15,8 +15,27 @@ const lineRow = (familyId: string, budgetId: string, line: MonthLine) => ({
   plannedMinor: line.plannedMinor,
 });
 
-export class DrizzleMonthBudgetGateway implements MonthBudgetGateway {
+export class DrizzleMonthBudgetGateway implements MonthBudgetGateway, MonthStatusGateway {
   constructor(private readonly db: DbOrTx) {}
+
+  async statusOf(familyId: string, period: Period): Promise<MonthStatus | undefined> {
+    const [row] = await this.db
+      .select({ status: monthBudgets.status })
+      .from(monthBudgets)
+      .where(and(eq(monthBudgets.familyId, familyId), eq(monthBudgets.year, period.year), eq(monthBudgets.month, period.month)))
+      .limit(1);
+    return row?.status;
+  }
+
+  async close(familyId: string, budgetId: string, closedBy: string | null, at: Date): Promise<boolean> {
+    // Only an open month changes, so two closes at once close it once.
+    const closed = await this.db
+      .update(monthBudgets)
+      .set({ status: 'closed', closedAt: at, closedBy })
+      .where(and(eq(monthBudgets.id, budgetId), eq(monthBudgets.familyId, familyId), ne(monthBudgets.status, 'closed')))
+      .returning({ id: monthBudgets.id });
+    return closed.length > 0;
+  }
 
   async findByPeriod(familyId: string, period: Period): Promise<MonthBudget | undefined> {
     const [budget] = await this.db

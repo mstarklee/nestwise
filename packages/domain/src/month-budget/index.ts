@@ -1,7 +1,10 @@
 export * from './errors';
 export * from './models';
 export * from './ports';
+export * from './review';
+export { AutoCloseMonthUseCase, CloseMonthUseCase } from './use-cases/close-month';
 export { CopyOrBlankMonthUseCase } from './use-cases/copy-or-blank-month';
 export { EnsureMonthBudgetUseCase } from './use-cases/ensure-month-budget';
+export { GetMonthReviewUseCase } from './use-cases/get-month-review';
 export { GetMonthSummaryUseCase } from './use-cases/get-month-summary';
 export { SetMonthLineUseCase } from './use-cases/set-month-line';

@@ -39,6 +39,10 @@ export function addMonths(period: Period, n: number): Period {
   return { year: Math.floor(index / 12), month: (((index % 12) + 12) % 12) + 1 };
 }
 
+export function samePeriod(a: Period, b: Period): boolean {
+  return a.year === b.year && a.month === b.month;
+}
+
 export function comparePeriods(a: Period, b: Period): number {
   return a.year !== b.year ? a.year - b.year : a.month - b.month;
 }

@@ -1,11 +1,15 @@
 import 'server-only';
 import type { Db } from '@nestwise/db';
 import {
+  AutoCloseMonthUseCase,
+  CloseMonthUseCase,
   CopyOrBlankMonthUseCase,
   EnsureMonthBudgetUseCase,
   GetMonthSummaryUseCase,
   SetMonthLineUseCase,
 } from '@nestwise/domain/month-budget';
+import type { Clock } from '@nestwise/domain/shared';
+import { DrizzleFamilyGateway } from '../adapters/family/drizzle-family-gateway';
 import { DrizzleActualsGateway } from '../adapters/month-budget/drizzle-actuals-gateway';
 import { DrizzleMonthBudgetGateway } from '../adapters/month-budget/drizzle-month-budget-gateway';
 import { DrizzleMonthBudgetUnitOfWork } from '../adapters/month-budget/drizzle-month-budget-unit-of-work';
@@ -32,3 +36,7 @@ export const makeCopyOrBlankMonthUseCase = (db: Db = getDb()) =>
 
 export const makeGetMonthSummaryUseCase = (db: Db = getDb()) =>
   new GetMonthSummaryUseCase(makeEnsureMonthBudgetUseCase(db), new DrizzleActualsGateway(db), new DrizzlePlanGateway(db));
+
+export const makeCloseMonthUseCase = (db: Db = getDb()) => new CloseMonthUseCase(new DrizzleMonthBudgetUnitOfWork(db), new DrizzleFamilyGateway(db), systemClock);
+
+export const makeAutoCloseMonthUseCase = (db: Db = getDb(), clock: Clock = systemClock) => new AutoCloseMonthUseCase(new DrizzleMonthBudgetUnitOfWork(db), clock);

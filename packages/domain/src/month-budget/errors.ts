@@ -11,6 +11,10 @@ export class MonthItemNotFoundError extends MonthBudgetError {
   readonly category = 'not_found' as const;
 }
 
+export class MonthAlreadyClosedError extends MonthBudgetError {
+  readonly category = 'conflict' as const;
+}
+
 export class MonthHasExpensesError extends MonthBudgetError {
   readonly category = 'conflict' as const;
 }

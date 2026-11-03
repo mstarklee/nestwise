@@ -37,3 +37,21 @@ export const MonthLineResponse = z.object({
   line: z.object({ itemId: z.string(), plannedMinor: z.number().int(), nameSnapshot: z.string(), groupNameSnapshot: z.string() }),
 });
 export type MonthLineResponse = z.infer<typeof MonthLineResponse>;
+
+const Answer = z.enum(['done', 'different', 'skipped', 'unanswered']);
+const Line = z.object({ ...Figures, itemId: z.string(), name: z.string(), groupName: z.string() });
+
+export const MonthReviewResponse = z.object({
+  period: z.object({ year: z.number().int(), month: z.number().int() }),
+  status: z.enum(['draft', 'active', 'closed']),
+  totals: z.object(Figures),
+  over: z.array(Line),
+  under: z.array(Line),
+  billsPaid: z.array(z.object({ itemId: z.string(), name: z.string(), paidMinor: z.number().int() })),
+  billsUnpaid: z.array(z.object({ lineId: z.string(), name: z.string(), remainingMinor: z.number().int() })),
+  potDeposit: Answer,
+  savings: z.array(z.object({ itemId: z.string(), name: z.string(), plannedMinor: z.number().int(), answer: Answer, amountMinor: z.number().int().nullable() })),
+  inboxCount: z.number().int(),
+  streaks: z.array(z.object({ itemId: z.string(), name: z.string(), months: z.number().int(), suggestedMinor: z.number().int() })),
+});
+export type MonthReviewResponse = z.infer<typeof MonthReviewResponse>;

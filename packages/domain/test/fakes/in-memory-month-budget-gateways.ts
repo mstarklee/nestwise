@@ -5,13 +5,14 @@ import type {
   MonthBudgetUnitOfWork,
   MonthCreatedFrom,
   MonthLine,
+  MonthStatusGateway,
 } from '../../src/month-budget';
 import type { ActivityGateway, Period } from '../../src/shared';
 import { InMemoryActivityGateway } from './in-memory-activity-gateway';
 
 const key = (familyId: string, p: Period) => `${familyId}:${p.year}-${p.month}`;
 
-export class InMemoryMonthBudgetGateway implements MonthBudgetGateway {
+export class InMemoryMonthBudgetGateway implements MonthBudgetGateway, MonthStatusGateway {
   rows = new Map<string, MonthBudget>();
 
   async findByPeriod(familyId: string, period: Period) {
@@ -35,6 +36,18 @@ export class InMemoryMonthBudgetGateway implements MonthBudgetGateway {
     for (const [k, b] of this.rows) {
       if (b.id === budgetId && b.familyId === familyId) this.rows.set(k, { ...b, createdFrom, lines: [...lines] });
     }
+  }
+  async close(familyId: string, budgetId: string, _closedBy: string | null, _at: Date) {
+    for (const [k, b] of this.rows) {
+      if (b.id === budgetId && b.familyId === familyId && b.status !== 'closed') {
+        this.rows.set(k, { ...b, status: 'closed' });
+        return true;
+      }
+    }
+    return false;
+  }
+  async statusOf(familyId: string, period: Period) {
+    return this.rows.get(key(familyId, period))?.status;
   }
   count() {
     return this.rows.size;

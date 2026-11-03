@@ -21,7 +21,7 @@ export class DeleteExpenseUseCase {
     const now = this.clock.now();
     const after: Transaction = { ...before, deletedAt: now, updatedAt: now };
     return this.uow.run(async (gateways) => {
-      const { transactions, activity } = gateways;
+      const { transactions, activity, months } = gateways;
       await transactions.update(after);
       await releaseMatchesOf(gateways, familyId, after.id, now); // its open "Same purchase?" questions are stale now
       await activity.record({
@@ -33,6 +33,7 @@ export class DeleteExpenseUseCase {
         before: { deletedAt: null },
         after: { deletedAt: now },
         at: now,
+        lateEdit: (await months.statusOf(familyId, after.period)) === 'closed',
       });
       return after;
     });

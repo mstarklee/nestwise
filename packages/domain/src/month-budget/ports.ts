@@ -1,5 +1,5 @@
 import type { ActivityGateway, Period } from '../shared';
-import type { MonthBudget, MonthCreatedFrom, MonthLine } from './models';
+import type { MonthBudget, MonthCreatedFrom, MonthLine, MonthStatus } from './models';
 
 export interface MonthBudgetGateway {
   findByPeriod(familyId: string, period: Period): Promise<MonthBudget | undefined>;
@@ -8,6 +8,13 @@ export interface MonthBudgetGateway {
   /** Inserts or replaces the line for `line.itemId`. */
   saveLine(familyId: string, budgetId: string, line: MonthLine): Promise<void>;
   replaceLines(familyId: string, budgetId: string, createdFrom: MonthCreatedFrom, lines: readonly MonthLine[]): Promise<void>;
+  /** Marks it closed; false if it already was. closedBy is null when the daily job closed it. */
+  close(familyId: string, budgetId: string, closedBy: string | null, at: Date): Promise<boolean>;
+}
+
+/** Whether a month is open or closed, for marking late changes; undefined when the month has no budget. */
+export interface MonthStatusGateway {
+  statusOf(familyId: string, period: Period): Promise<MonthStatus | undefined>;
 }
 
 export interface ActualsGateway {

@@ -70,7 +70,7 @@ export class RecordExpenseUseCase {
       updatedAt: now,
     };
 
-    return this.uow.run(async ({ transactions, activity, duplicates }) => {
+    return this.uow.run(async ({ transactions, activity, duplicates, months }) => {
       const near = await transactions.listNear(familyId, txnDate, transaction.amountMinor, kind);
       const candidates = findDuplicateCandidates(transaction, near, await duplicates.differentPairsFor(familyId, transaction.id));
       const first = [...candidates].sort((x, y) => x.other.createdAt.getTime() - y.other.createdAt.getTime() || x.other.id.localeCompare(y.other.id))[0];
@@ -89,6 +89,7 @@ export class RecordExpenseUseCase {
         before: null,
         after: saved,
         at: now,
+        lateEdit: (await months.statusOf(familyId, period)) === 'closed',
       });
       if (!first) return { transaction: saved, created: true, duplicate: null };
       const matchId = this.ids.next();

@@ -1,11 +1,12 @@
+import { addMonths } from '@nestwise/domain/shared';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { Suspense } from 'react';
-import { formatMoney, formatMoneyRounded, formatPeriod } from '@/client/format';
+import { formatMoney, formatMoneyRounded, formatPeriod, toYm } from '@/client/format';
 import { makeGetHomeSummaryUseCase } from '@/composition/forecast';
+import { makeListInboxUseCase } from '@/composition/duplicates';
 import { makeGetChecklistUseCase } from '@/composition/pot';
 import { PageLoading } from '@/components/page-loading';
-import { makeListInboxUseCase } from '@/composition/duplicates';
 import { Card, CardTitle } from '@/components/ui/card';
 import { moneyOf, pageContext } from '@/http/page-session';
 import { ChecklistCard } from './checklist-card';
@@ -55,6 +56,15 @@ async function Home() {
           </p>
         )}
       </Card>
+
+      {home.cards.includes('month_review') && (
+        <Card>
+          <p className="text-sm">{t('monthReview', { month: formatPeriod(addMonths(current, -1), money.locale) })}</p>
+          <Link href={`/month/${toYm(addMonths(current, -1))}/review`} className="mt-1 block text-sm text-green-900 underline">
+            {t('openReview')}
+          </Link>
+        </Card>
+      )}
 
       {inbox.length > 0 && (
         <Card>

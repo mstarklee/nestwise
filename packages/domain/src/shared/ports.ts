@@ -16,6 +16,8 @@ export interface ActivityEvent {
   readonly before: unknown;
   readonly after: unknown;
   readonly at: Date;
+  /** A change to a month that was already closed (PRD §6.3); shown as late in the activity history. */
+  readonly lateEdit?: boolean;
 }
 
 export interface ActivityGateway {

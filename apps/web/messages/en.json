@@ -104,6 +104,8 @@
     "undated": "{count, plural, one {# item} other {# items}} ({amount}) in {year} have no month yet.",
     "giveMonths": "Give them a month",
     "inboxCount": "{count, plural, one {# expense waits} other {# expenses wait}} for an answer in the Inbox.",
+    "monthReview": "{month} is over: take a look.",
+    "openReview": "See how it went",
     "openInbox": "Open the Inbox"
   },
   "checklist": {
@@ -136,6 +138,27 @@
     "actual": "Spent",
     "savings": "Savings plan",
     "badAmount": "Please enter an amount like 5000 or 5,000.50."
+  },
+  "review": {
+    "title": "{month}: how it went",
+    "headline": "You spent {actual} of {planned} planned.",
+    "over": "{amount} over.",
+    "under": "{amount} under.",
+    "overUnder": "Over and under plan",
+    "fullList": "See every item",
+    "streak": "{item} has been over plan {months} months in a row.",
+    "raise": "Raise {month} to {amount}",
+    "bills": "Yearly bills",
+    "noBills": "No yearly bills this month.",
+    "billPaid": "{name}: paid {amount} from the pot",
+    "billUnpaid": "{name}: {amount} still to pay",
+    "savings": "Pot deposit and savings",
+    "potDeposit": "Pot deposit",
+    "answer": "{name}: {answer, select, done {done} different {done, different amount} skipped {not this month} other {not answered}}",
+    "inbox": "{count, plural, one {# expense waits} other {# expenses wait}} in the Inbox.",
+    "openInbox": "Open the Inbox",
+    "close": "Close {month}",
+    "closed": "{month} is closed. Late expenses can still be added."
   },
   "year": {
     "title": "Yearly bills {year}",
@@ -280,7 +303,7 @@
   "notifications": {
     "checklist": {
       "title": "This month’s checklist",
-      "body": "Time to confirm the pot deposit and savings. The pot has {pot}."
+      "body": "Time to confirm the pot deposit and savings. The pot has {pot}.{reviewMonth, select, none {} other { {reviewMonth} is over: take a look.}}"
     },
     "bill_prior_month": {
       "title": "Next month: {name}",

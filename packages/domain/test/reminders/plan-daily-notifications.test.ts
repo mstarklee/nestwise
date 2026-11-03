@@ -39,6 +39,7 @@ function facts(overrides: Partial<DailyFacts> = {}): DailyFacts {
     forecast: { balanceMinor: 0, months: months({ year: 2026, month: 11 }, Array(12).fill(1_000)), redMonths: [], undated: [] },
     yearLines: [],
     checklistPending: false,
+    lastMonthOpen: false,
     lastRedState: null,
     ...overrides,
   };
@@ -61,6 +62,15 @@ describe('PlanDailyNotificationsUseCase', () => {
         emailFallback: true,
       })),
     );
+  });
+
+  it('the 1 Nov checklist message carries reviewMonth 2026-10 while October is open; still one message per person', () => {
+    const result = plan.execute(facts({ checklistPending: true, lastMonthOpen: true }));
+    expect(kinds(result)).toEqual(['u1:checklist', 'u2:checklist']);
+    expect(result.notifications[0]!.message.values).toMatchObject({ reviewMonth: { year: 2026, month: 10 } });
+    const reviewOnly = plan.execute(facts({ checklistPending: false, lastMonthOpen: true }));
+    expect(kinds(reviewOnly)).toEqual(['u1:checklist', 'u2:checklist']);
+    expect(plan.execute(facts({ checklistPending: true })).notifications[0]!.message.values).not.toHaveProperty('reviewMonth');
   });
 
   it('on 1 Nov 2026 plans the checklist reminder and bill_due_month for bike insurance', () => {

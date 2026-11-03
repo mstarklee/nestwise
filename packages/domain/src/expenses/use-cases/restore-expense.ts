@@ -24,7 +24,7 @@ export class RestoreExpenseUseCase {
       throw new ExpenseNotRestorableError(`A deleted expense can be restored for ${RESTORE_DAYS} days`);
     }
     const after: Transaction = { ...before, deletedAt: null, updatedAt: now };
-    return this.uow.run(async ({ transactions, activity }) => {
+    return this.uow.run(async ({ transactions, activity, months }) => {
       await transactions.update(after);
       await activity.record({
         familyId,
@@ -35,6 +35,7 @@ export class RestoreExpenseUseCase {
         before: { deletedAt: before.deletedAt },
         after: { deletedAt: null },
         at: now,
+        lateEdit: (await months.statusOf(familyId, after.period)) === 'closed',
       });
       return after;
     });

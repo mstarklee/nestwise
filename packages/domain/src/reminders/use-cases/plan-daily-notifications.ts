@@ -31,7 +31,12 @@ export class PlanDailyNotificationsUseCase {
     const add = (kind: ReminderKind, dedupeKey: string, message: ReminderMessage['values'], url: string, emailFallback: boolean) =>
       planned.push({ kind, dedupeKey, message: { key: kind, values: message }, url, emailFallback });
 
-    if (day === 1 && facts.checklistPending) add('checklist', `checklist:${ym(current)}`, { potMinor: facts.forecast.balanceMinor }, '/home', false);
+    // One 1st-of-month message: the checklist, plus last month's review while it is open (Stage 1b design §4).
+    if (day === 1 && (facts.checklistPending || facts.lastMonthOpen)) {
+      const values: Record<string, number | Period> = { potMinor: facts.forecast.balanceMinor };
+      if (facts.lastMonthOpen) values.reviewMonth = addMonths(current, -1);
+      add('checklist', `checklist:${ym(current)}`, values, '/home', false);
+    }
 
     const bills = facts.yearLines.filter(owed);
     if (day === 1) {

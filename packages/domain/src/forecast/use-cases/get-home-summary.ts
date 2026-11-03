@@ -1,33 +1,36 @@
-import type { GetMonthSummaryUseCase } from '../../month-budget';
+import type { GetMonthSummaryUseCase, MonthStatusGateway } from '../../month-budget';
 import type { GetChecklistUseCase } from '../../pot';
-import { assertCan } from '../../shared';
+import { addMonths, assertCan } from '../../shared';
 import type { ForecastCommand, HomeCard, HomeSummary } from '../models';
 import type { GetForecastUseCase } from './get-forecast';
 
 /**
  * Home: the pot (balance, safe to spend, the first short month), the next three months of bills, this month's
- * spending, and which cards to show. The month-review card arrives with the month-end review (Stage 1b).
+ * spending, and which cards to show (the month review shows while last month is still open).
  */
 export class GetHomeSummaryUseCase {
   constructor(
     private readonly forecast: GetForecastUseCase,
     private readonly checklist: GetChecklistUseCase,
     private readonly monthSummary: GetMonthSummaryUseCase,
+    private readonly months: MonthStatusGateway,
   ) {}
 
   async execute(command: ForecastCommand): Promise<HomeSummary> {
     assertCan(command.actor, 'read');
     const forecast = await this.forecast.execute(command);
     const current = forecast.months[0]!.period;
-    const [checklist, month] = await Promise.all([
+    const [checklist, month, lastMonth] = await Promise.all([
       this.checklist.execute({ actor: command.actor, period: current }),
       this.monthSummary.execute({ actor: command.actor, period: current }),
+      this.months.statusOf(command.actor.familyId, addMonths(current, -1)),
     ]);
 
     const red = forecast.months.find((m) => m.endMinor < 0);
     const cards: HomeCard[] = [];
     if (checklist.pot.status === 'pending' || checklist.savings.some((s) => s.status === 'pending')) cards.push('checklist');
     if (forecast.undated.some((u) => u.count > 0)) cards.push('undated');
+    if (lastMonth === 'active') cards.push('month_review');
 
     return {
       pot: {

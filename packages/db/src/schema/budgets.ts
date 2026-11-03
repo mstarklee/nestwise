@@ -63,6 +63,8 @@ export const yearPlans = app.table(
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     /** Set once the first-year check has been answered; it never runs twice. */
     firstYearCheckAt: timestamp({ withTimezone: true }),
+    /** Set when an Admin confirms next year's bills in the 1 December review ("Looks right"). */
+    nextYearReviewedAt: timestamp({ withTimezone: true }),
   },
   (t) => [unique('year_plans_family_year_key').on(t.familyId, t.year)],
 );

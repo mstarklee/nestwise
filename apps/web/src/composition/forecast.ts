@@ -8,6 +8,7 @@ import { DrizzlePotGateway } from '../adapters/pot/drizzle-pot-gateway';
 import { systemClock } from '../adapters/shared/system-clock';
 import { DrizzleYearPaidGateway } from '../adapters/year-plan/drizzle-year-paid-gateway';
 import { DrizzleYearPlanGateway } from '../adapters/year-plan/drizzle-year-plan-gateway';
+import { DrizzleMonthBudgetGateway } from '../adapters/month-budget/drizzle-month-budget-gateway';
 import { getDb } from './db';
 import { makeGetMonthSummaryUseCase } from './month-budget';
 import { makeGetChecklistUseCase } from './pot';
@@ -24,4 +25,4 @@ export const makeGetForecastUseCase = (db: Db = getDb(), clock: Clock = systemCl
   );
 
 export const makeGetHomeSummaryUseCase = (db: Db = getDb()) =>
-  new GetHomeSummaryUseCase(makeGetForecastUseCase(db), makeGetChecklistUseCase(db), makeGetMonthSummaryUseCase(db));
+  new GetHomeSummaryUseCase(makeGetForecastUseCase(db), makeGetChecklistUseCase(db), makeGetMonthSummaryUseCase(db), new DrizzleMonthBudgetGateway(db));

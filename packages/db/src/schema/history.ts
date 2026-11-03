@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { bigserial, check, index, jsonb, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import { bigserial, boolean, check, index, jsonb, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import { app } from './app-schema';
 import { families } from './families';
 import { transactions } from './money';
@@ -69,6 +69,8 @@ export const activity = app.table(
     before: jsonb(),
     after: jsonb(),
     at: timestamp({ withTimezone: true }).notNull(),
+    /** A change to a month that was already closed (PRD §6.3). */
+    lateEdit: boolean().notNull().default(false),
   },
   (t) => [index('activity_family_at_idx').on(t.familyId, t.at)],
 );

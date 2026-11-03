@@ -16,6 +16,7 @@ export class DrizzleActivityGateway implements ActivityGateway {
       before: event.before ?? null,
       after: event.after ?? null,
       at: event.at,
+      lateEdit: event.lateEdit ?? false,
     });
   }
 }

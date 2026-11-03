@@ -16,6 +16,7 @@ import messages from '../../messages/en.json';
 import { DrizzleUserGateway } from '../adapters/auth/drizzle-user-gateway';
 import { DrizzleFamilyGateway } from '../adapters/family/drizzle-family-gateway';
 import { DrizzleMembershipGateway } from '../adapters/family/drizzle-membership-gateway';
+import { DrizzleMonthBudgetGateway } from '../adapters/month-budget/drizzle-month-budget-gateway';
 import { DrizzleNotificationsSentGateway } from '../adapters/reminders/drizzle-notifications-sent-gateway';
 import { DrizzlePushSubscriptionGateway } from '../adapters/reminders/drizzle-push-subscription-gateway';
 import { DrizzleRedStateGateway } from '../adapters/reminders/drizzle-red-state-gateway';
@@ -26,7 +27,7 @@ import { DrizzleYearPlanGateway } from '../adapters/year-plan/drizzle-year-plan-
 import { formatMoneyRounded, formatPeriod } from '../client/format';
 import { getDb } from '../composition/db';
 import { makeGetForecastUseCase } from '../composition/forecast';
-import { makeEnsureMonthBudgetUseCase } from '../composition/month-budget';
+import { makeAutoCloseMonthUseCase, makeEnsureMonthBudgetUseCase } from '../composition/month-budget';
 import { makeGetChecklistUseCase } from '../composition/pot';
 import { makeEnsureYearPlanUseCase, makeGetSetupStatusUseCase } from '../composition/year-plan';
 
@@ -84,15 +85,17 @@ async function runForFamily(family: Family, now: Date, deps: DailyJobDeps): Prom
   const day = Number(today.slice(8, 10));
   if (day === 1) await makeEnsureMonthBudgetUseCase(db).execute({ familyId: family.id, period: current });
   if (day === 1 && current.month === 12) await makeEnsureYearPlanUseCase(db).execute({ familyId: family.id, year: current.year + 1 });
-
   const clock: Clock = { now: () => now };
+  await makeAutoCloseMonthUseCase(db, clock).execute({ familyId: family.id, today });
+
   const redStates = new DrizzleRedStateGateway(db);
-  const [forecast, checklist, members, yearLines, lastRedState] = await Promise.all([
+  const [forecast, checklist, members, yearLines, lastRedState, lastMonth] = await Promise.all([
     makeGetForecastUseCase(db, clock).execute({ actor }),
     makeGetChecklistUseCase(db).execute({ actor, period: current }),
     new DrizzleMembershipGateway(db).listActive(family.id),
     yearLinesOf(db, family.id, current),
     redStates.find(family.id),
+    new DrizzleMonthBudgetGateway(db).statusOf(family.id, addMonths(current, -1)),
   ]);
   const plan = new PlanDailyNotificationsUseCase().execute({
     familyId: family.id,
@@ -101,6 +104,7 @@ async function runForFamily(family: Family, now: Date, deps: DailyJobDeps): Prom
     forecast,
     yearLines,
     checklistPending: checklist.pot.status === 'pending' || checklist.savings.some((s) => s.status === 'pending'),
+    lastMonthOpen: lastMonth === 'active',
     lastRedState,
   });
 
@@ -173,6 +177,7 @@ function render(n: PlannedNotification, family: Family): PushPayload {
   if (v.totalMinor !== undefined) values.total = money(v.totalMinor);
   if (typeof v.count === 'number') values.count = v.count;
   if (typeof v.period === 'object') values.month = formatPeriod(v.period, family.numberLocale);
+  values.reviewMonth = typeof v.reviewMonth === 'object' ? formatPeriod(v.reviewMonth, family.numberLocale) : 'none';
   if (typeof v.dueDate === 'string') {
     const [y, m, d] = v.dueDate.split('-').map(Number) as [number, number, number];
     values.weekday = new Intl.DateTimeFormat('en', { weekday: 'long', timeZone: 'UTC' }).format(Date.UTC(y, m - 1, d));

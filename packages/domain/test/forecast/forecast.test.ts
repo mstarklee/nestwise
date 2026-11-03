@@ -21,6 +21,8 @@ const NOV_2026_END_BALANCES = [
   3_541_666, 7_233_332, 9_424_999, 13_116_666, 16_808_333, 20_500_000, 18_191_667, 9_883_334, 8_275_001, 11_966_668, 15_658_334, 15_700_000,
 ];
 
+let monthBudgets: InMemoryMonthBudgetGateway;
+let ensureOctober: () => Promise<{ id: string }>;
 let planUow: InMemoryPlanUnitOfWork;
 let families: InMemoryFamilyGateway;
 let yearPlans: InMemoryYearPlanGateway;
@@ -60,13 +62,16 @@ beforeEach(async () => {
   pot = new InMemoryPotGateway(); // B0 = 0
   potUow = new InMemoryPotUnitOfWork(pot);
   actuals = new InMemoryActualsGateway();
-  const ensureMonth = new EnsureMonthBudgetUseCase(new InMemoryMonthBudgetGateway(), planUow.plan, ids);
+  monthBudgets = new InMemoryMonthBudgetGateway();
+  const ensureMonth = new EnsureMonthBudgetUseCase(monthBudgets, planUow.plan, ids);
   forecast = new GetForecastUseCase(families, pot, yearPlans, paid, planUow.plan, clock);
   home = new GetHomeSummaryUseCase(
     forecast,
     new GetChecklistUseCase(ensureMonth, yearPlans, planUow.plan, families, pot),
     new GetMonthSummaryUseCase(ensureMonth, actuals, planUow.plan),
+    monthBudgets,
   );
+  ensureOctober = () => ensureMonth.execute({ familyId: 'f1', period: { year: 2026, month: 10 } });
 });
 
 describe('GetForecastUseCase', () => {
@@ -130,6 +135,14 @@ describe('GetHomeSummaryUseCase', () => {
     const h = await home.execute({ actor: admin });
     expect(h.undated.find((u) => u.year === 2027)).toMatchObject({ count: 13, totalMinor: 15_700_000 });
     expect(h.cards).toContain('undated');
+  });
+
+  it('home shows the month review card while last month is open, and not once it is closed', async () => {
+    expect((await home.execute({ actor: admin })).cards).not.toContain('month_review'); // no October budget: started in November
+    const october = await ensureOctober();
+    expect((await home.execute({ actor: admin })).cards).toContain('month_review');
+    await monthBudgets.close('f1', october.id, 'u1', clock.now());
+    expect((await home.execute({ actor: admin })).cards).not.toContain('month_review');
   });
 
   it('home shows the checklist card on the 1st until the deposit is confirmed or skipped', async () => {

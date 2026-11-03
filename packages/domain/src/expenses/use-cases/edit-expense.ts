@@ -42,7 +42,7 @@ export class EditExpenseUseCase {
     const after: Transaction = { ...before, amountMinor, txnDate, period, merchant, note, paidBy, allocations, updatedAt: now };
 
     return this.uow.run(async (gateways) => {
-      const { transactions, activity } = gateways;
+      const { transactions, activity, months } = gateways;
       await transactions.update(after);
       // A changed amount or date makes any open "Same purchase?" question about it stale.
       if (after.amountMinor !== before.amountMinor || after.txnDate !== before.txnDate) await releaseMatchesOf(gateways, familyId, after.id, now);
@@ -55,6 +55,7 @@ export class EditExpenseUseCase {
         before,
         after,
         at: now,
+        lateEdit: (await months.statusOf(familyId, before.period)) === 'closed' || (await months.statusOf(familyId, period)) === 'closed',
       });
       return (await transactions.findById(familyId, after.id)) ?? after;
     });

@@ -4,6 +4,7 @@ import type { ExpensesGateways, ExpensesUnitOfWork } from '@nestwise/domain/expe
 import { DrizzleActivityGateway } from '../activity/drizzle-activity-gateway';
 import { DrizzleDuplicateMatchGateway } from '../duplicates/drizzle-duplicate-match-gateway';
 import { DrizzleEvidenceGateway } from '../duplicates/drizzle-evidence-gateway';
+import { DrizzleMonthBudgetGateway } from '../month-budget/drizzle-month-budget-gateway';
 import { DrizzleTransactionGateway } from './drizzle-transaction-gateway';
 
 export class DrizzleExpensesUnitOfWork implements ExpensesUnitOfWork {
@@ -16,6 +17,7 @@ export class DrizzleExpensesUnitOfWork implements ExpensesUnitOfWork {
         activity: new DrizzleActivityGateway(tx),
         duplicates: new DrizzleDuplicateMatchGateway(tx),
         evidence: new DrizzleEvidenceGateway(tx),
+        months: new DrizzleMonthBudgetGateway(tx),
       }),
     );
   }

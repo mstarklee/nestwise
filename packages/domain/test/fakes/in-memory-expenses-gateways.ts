@@ -1,5 +1,5 @@
 import type { ExpenseFilter, ExpensesGateways, ExpensesUnitOfWork, Transaction, TransactionGateway, TransactionKind } from '../../src/expenses';
-import type { ActualsGateway } from '../../src/month-budget';
+import type { ActualsGateway, MonthStatusGateway } from '../../src/month-budget';
 import type { IsoDate, Period } from '../../src/shared';
 import type { YearPaidGateway } from '../../src/year-plan';
 import { FailingActivityGateway, InMemoryActivityGateway } from './in-memory-activity-gateway';
@@ -101,7 +101,10 @@ export class InMemoryExpensesUnitOfWork implements ExpensesUnitOfWork {
   readonly evidence = new InMemoryEvidenceGateway();
   failActivity = false;
 
-  constructor(readonly transactions: InMemoryTransactionGateway) {}
+  constructor(
+    readonly transactions: InMemoryTransactionGateway,
+    readonly months: MonthStatusGateway = { statusOf: async () => undefined },
+  ) {}
 
   async run<T>(work: (gateways: ExpensesGateways) => Promise<T>): Promise<T> {
     const snapshot = {
@@ -116,6 +119,7 @@ export class InMemoryExpensesUnitOfWork implements ExpensesUnitOfWork {
         activity: new FailingActivityGateway(this.activity, () => this.failActivity),
         duplicates: this.duplicates,
         evidence: this.evidence,
+        months: this.months,
       });
     } catch (error) {
       this.transactions.rows = snapshot.rows;

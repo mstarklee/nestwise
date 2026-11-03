@@ -57,6 +57,8 @@ export interface DailyFacts {
   readonly yearLines: readonly DailyYearLine[];
   /** Something on this month's checklist is still unanswered. */
   readonly checklistPending: boolean;
+  /** Last month is not closed yet, so the 1st-of-month message also points to its review. */
+  readonly lastMonthOpen: boolean;
   readonly lastRedState: RedState | null;
 }
 
