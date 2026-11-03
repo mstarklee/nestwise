@@ -5,9 +5,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { type FormEvent, useRef, useState } from 'react';
-import { api } from '@/client/api-client';
+import { ApiError } from '@/client/api-client';
 import { formatDay, formatMoney } from '@/client/format';
 import { newId } from '@/client/new-id';
+import { outbox } from '@/client/outbox';
 import { Button } from '@/components/ui/button';
 import { DuplicateQuestion, type DuplicateQuestionProps } from '@/components/duplicate-question';
 import { Card } from '@/components/ui/card';
@@ -19,17 +20,25 @@ type Group = { label: string; items: { id: string; name: string }[] };
 type Other = { amountMinor: number; merchant: string | null; txnDate: string; enteredBy: string };
 type RecordResponse = { transaction: { amountMinor: number }; duplicate: { matchId: string; other: Other } | null };
 
+/** "2026-11-01" → "2026-10-31". */
+function dayBefore(isoDate: string): string {
+  const [year, month, day] = isoDate.split('-').map(Number);
+  return new Date(Date.UTC(year!, month! - 1, day! - 1)).toISOString().slice(0, 10);
+}
+
 /** Amount → item → save (PRD §6.6). Splits add more parts; the parts must add up to the amount. */
 export function AddExpenseForm({ today, money, monthly, yearly, userId }: { today: string; money: Money; monthly: Group[]; yearly: Group[]; userId: string }) {
   const t = useTranslations('add');
+  const tOutbox = useTranslations('outbox');
   const errorText = useErrorText();
   const router = useRouter();
   const [parts, setParts] = useState([{ key: 0, itemId: '', amount: '' }]);
   const [error, setError] = useState<string | null>(null);
-  const [saved, setSaved] = useState<{ amount: string; ym: string; question: DuplicateQuestionProps | null } | null>(null);
+  const [saved, setSaved] = useState<{ amount: string; ym: string; question: DuplicateQuestionProps | null; onPhone: boolean } | null>(null);
   const [busy, setBusy] = useState(false);
   // One id per entry, kept across retries so a resend is recognised (not saved twice).
   const id = useRef(newId());
+  const dateInput = useRef<HTMLInputElement>(null);
   const unit = money.minorUnit as 0 | 1 | 2 | 3;
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -60,7 +69,8 @@ export function AddExpenseForm({ today, money, monthly, yearly, userId }: { toda
     const txnDate = String(form.get('date'));
     setBusy(true);
     try {
-      const { transaction, duplicate } = await api<RecordResponse>('POST', '/api/v1/transactions', {
+      // Every save goes to the phone's outbox first, then to the server: one path, signal or not.
+      const body = {
         id: id.current,
         kind: form.get('refund') === 'on' ? 'refund' : 'expense',
         amountMinor,
@@ -68,8 +78,22 @@ export function AddExpenseForm({ today, money, monthly, yearly, userId }: { toda
         allocations,
         merchant: String(form.get('merchant')) || null,
         note: String(form.get('note')) || null,
-      });
+      };
+      await outbox().add(body);
+      let result = await outbox().flush();
+      // A send already under way may have started before this entry was added; one more pass picks it up.
+      if (!result.responses.has(body.id)) result = await outbox().flush();
+      const entry = (await outbox().list()).find((e) => e.id === body.id);
+      const refused = entry?.state === 'failed' ? entry : undefined;
+      if (refused) {
+        // The person is right here: show why, keep what they typed, and let them fix it.
+        await outbox().discard(body.id);
+        setError(errorText(new ApiError(refused.error?.status ?? 0, refused.error?.code ?? 'ServerError', '')));
+        return;
+      }
+      const response = result.responses.get(body.id) as RecordResponse | undefined;
       const format = (minor: number) => formatMoney(minor, money.currency, money.minorUnit, money.locale);
+      const duplicate = response?.duplicate ?? null;
       const question: DuplicateQuestionProps | null = duplicate && {
         matchId: duplicate.matchId,
         amount: format(duplicate.other.amountMinor),
@@ -78,7 +102,7 @@ export function AddExpenseForm({ today, money, monthly, yearly, userId }: { toda
         mine: duplicate.other.enteredBy === userId,
         canPostpone: true,
       };
-      setSaved({ amount: format(transaction.amountMinor), ym: txnDate.slice(0, 7), question });
+      setSaved({ amount: format(response?.transaction.amountMinor ?? amountMinor), ym: txnDate.slice(0, 7), question, onPhone: entry !== undefined });
       id.current = newId();
       formElement.reset();
       setParts([{ key: 0, itemId: '', amount: '' }]);
@@ -137,7 +161,12 @@ export function AddExpenseForm({ today, money, monthly, yearly, userId }: { toda
         </Button>
         <div>
           <Label htmlFor="date">{t('date')}</Label>
-          <Input id="date" name="date" type="date" defaultValue={today} required />
+          <div className="flex gap-2">
+            <Input id="date" name="date" type="date" defaultValue={today} required ref={dateInput} />
+            <Button type="button" size="sm" variant="outline" onClick={() => dateInput.current && (dateInput.current.value = dayBefore(today))}>
+              {t('yesterday')}
+            </Button>
+          </div>
         </div>
         <div>
           <Label htmlFor="merchant">{t('merchant')}</Label>
@@ -156,7 +185,12 @@ export function AddExpenseForm({ today, money, monthly, yearly, userId }: { toda
           {error}
         </p>
       )}
-      {saved && !saved.question && (
+      {saved && saved.onPhone && (
+        <p role="status" className="text-sm text-green-900">
+          {tOutbox('savedOnPhone', { amount: saved.amount })}
+        </p>
+      )}
+      {saved && !saved.onPhone && !saved.question && (
         <p role="status" className="text-sm text-green-900">
           {t('saved', { amount: saved.amount })}{' '}
           <Link href={`/month/${saved.ym}`} className="underline">

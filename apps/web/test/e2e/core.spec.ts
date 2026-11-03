@@ -46,7 +46,22 @@ test('sign up, set up the family, confirm the deposit, add an expense, see it in
   await expect(page).toHaveURL(/\/month\/2026-11/);
   await expect(page.getByTestId('line-Groceries')).toContainText('₹945');
 
-  // 7. The forecast shows 12 months and no short month.
+  // 7. With no signal: ₹120 Fruits saves on the phone, waits, then sends once when the signal returns.
+  await page.getByRole('link', { name: 'Add' }).click();
+  await expect(page.getByRole('heading', { name: 'Add an expense' })).toBeVisible();
+  await page.context().setOffline(true);
+  await page.getByLabel('Amount', { exact: true }).fill('120');
+  await page.getByLabel('Item').selectOption({ label: 'Fruits' });
+  await page.getByRole('button', { name: 'Save' }).click();
+  await expect(page.getByText('Saved ₹120.00 on this phone.')).toBeVisible();
+  await expect(page.getByTestId('outbox-status')).toHaveText('1 expense waiting to send');
+  await page.context().setOffline(false);
+  await expect(page.getByTestId('outbox-status')).toHaveCount(0);
+  await page.goto('/month/2026-11');
+  await expect(page.getByTestId('line-Fruits')).toContainText('₹120');
+  await expect(page.getByTestId('line-Fruits')).not.toContainText('₹240');
+
+  // 8. The forecast shows 12 months and no short month.
   await page.goto('/forecast');
   await expect(page.getByTestId('forecast-months').locator('tbody tr')).toHaveCount(12);
   await expect(page.getByTestId('no-red')).toBeVisible();

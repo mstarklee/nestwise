@@ -4,6 +4,7 @@ import { makeGetTemplatesUseCase } from '@/composition/plan';
 import { PageLoading } from '@/components/page-loading';
 import { moneyOf, pageContext } from '@/http/page-session';
 import { AddExpenseForm } from './add-expense-form';
+import { OutboxFailures } from './outbox-failures';
 
 export default function AddPage() {
   return (
@@ -27,5 +28,11 @@ async function Add() {
     return [...byGroup.values()];
   };
   if (actor.role === 'viewer') return <p className="py-4">{t('viewerCannot')}</p>;
-  return <AddExpenseForm today={today} money={moneyOf(family)} monthly={groups('monthly')} yearly={groups('yearly')} userId={actor.userId} />;
+  const money = moneyOf(family);
+  return (
+    <>
+      <AddExpenseForm today={today} money={money} monthly={groups('monthly')} yearly={groups('yearly')} userId={actor.userId} />
+      <OutboxFailures money={money} />
+    </>
+  );
 }

@@ -195,6 +195,7 @@
     "partAmount": "Part amount",
     "split": "Split across items",
     "date": "Date",
+    "yesterday": "Yesterday",
     "merchant": "Where (optional)",
     "note": "Note (optional)",
     "refund": "This is a refund",
@@ -204,6 +205,15 @@
     "badAmount": "Please enter an amount like 945 or 204.50.",
     "partsMustAddUp": "The parts must add up to the amount.",
     "savedMaybeRepeat": "Saved {amount}. It may be a repeat:"
+  },
+  "outbox": {
+    "waiting": "{count, plural, one {# expense} other {# expenses}} waiting to send",
+    "failed": "{count, plural, one {# expense} other {# expenses}} couldn’t send",
+    "failedTitle": "Couldn’t send",
+    "failedExplain": "These were saved on this phone, but NestWise couldn’t accept them. Add them again if needed, then discard these.",
+    "discard": "Discard",
+    "offline": "Offline — figures as of {time}",
+    "savedOnPhone": "Saved {amount} on this phone. It will send when there’s signal."
   },
   "duplicates": {
     "question": "{who, select, me {You} other {Someone in your family}} logged {amount}{shop, select, __none__ {} other { at {shop}}} on {day}. Same purchase?",
