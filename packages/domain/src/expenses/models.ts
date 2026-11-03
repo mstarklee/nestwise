@@ -98,6 +98,14 @@ export interface ExpenseFilter {
   readonly period: Period;
   readonly itemId?: string;
   readonly enteredBy?: string;
+  readonly paidBy?: string;
+  readonly captureMethod?: CaptureMethod;
+}
+
+/** One confirmed expense in the ledger, with how many proofs back it (itself plus merged entries and photos). */
+export interface LedgerEntry {
+  readonly transaction: Transaction;
+  readonly proofs: number;
 }
 
 export interface ListExpensesCommand extends ExpenseFilter {

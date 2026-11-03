@@ -109,6 +109,8 @@ export class DrizzleTransactionGateway implements TransactionGateway {
       isNull(transactions.mergedInto),
     ];
     if (filter.enteredBy) where.push(eq(transactions.enteredBy, filter.enteredBy));
+    if (filter.paidBy) where.push(eq(transactions.paidBy, filter.paidBy));
+    if (filter.captureMethod) where.push(eq(transactions.captureMethod, filter.captureMethod));
     if (filter.itemId) {
       where.push(
         exists(

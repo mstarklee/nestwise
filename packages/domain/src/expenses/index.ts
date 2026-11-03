@@ -4,5 +4,6 @@ export * from './ports';
 export { DeleteExpenseUseCase } from './use-cases/delete-expense';
 export { EditExpenseUseCase } from './use-cases/edit-expense';
 export { ListExpensesUseCase } from './use-cases/list-expenses';
+export { ListLedgerUseCase } from './use-cases/list-ledger';
 export { RecordExpenseUseCase } from './use-cases/record-expense';
 export { RestoreExpenseUseCase } from './use-cases/restore-expense';

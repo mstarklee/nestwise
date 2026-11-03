@@ -35,6 +35,8 @@ export class InMemoryTransactionGateway implements TransactionGateway {
       .filter((t) => t.familyId === familyId && t.deletedAt === null && samePeriod(t.period, filter.period))
       .filter((t) => !filter.itemId || t.allocations.some((a) => a.itemId === filter.itemId))
       .filter((t) => !filter.enteredBy || t.enteredBy === filter.enteredBy)
+      .filter((t) => !filter.paidBy || t.paidBy === filter.paidBy)
+      .filter((t) => !filter.captureMethod || t.captureMethod === filter.captureMethod)
       .sort((a, b) => b.txnDate.localeCompare(a.txnDate) || b.createdAt.getTime() - a.createdAt.getTime());
   }
   async listNear(familyId: string, txnDate: IsoDate, amountMinor: number, kind: TransactionKind) {

@@ -18,4 +18,6 @@ export interface EvidenceGateway {
   add(evidence: Evidence): Promise<void>;
   /** Re-points every proof of one transaction to another (when it is merged away). */
   moveTo(familyId: string, fromTxnId: string, toTxnId: string): Promise<void>;
+  /** Live proofs per transaction id (only ids that have any). */
+  countByTransaction(familyId: string, txnIds: readonly string[]): Promise<ReadonlyMap<string, number>>;
 }

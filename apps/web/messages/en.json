@@ -316,9 +316,29 @@
   },
   "activity": {
     "title": "Activity",
-    "comingLater": "The activity list is coming soon. Every change is already being recorded.",
+    "explain": "Every change and decision, newest first.",
+    "empty": "Nothing yet.",
+    "row": "{who, select, me {You} other {{who}}} {action, select, expense_record {added an expense} refund_record {added a refund} expense_edit {changed an expense} expense_delete {deleted an expense} expense_restore {brought back a deleted expense} duplicate_same {said two expenses were the same purchase} duplicate_different {said two expenses were different purchases} month_close {closed a month} month_line_set {changed a month’s budget} checklist_skip {answered “not this month” on the checklist} pot_deposit {confirmed the pot deposit} pot_extra_in {put extra money in the pot} pot_taken_out {took money out of the pot} savings_confirm {confirmed a savings amount} year_line_amount {changed a yearly bill’s amount} year_line_schedule {changed a yearly bill’s month} year_line_done {marked a yearly bill done} year_line_cancel {dropped a yearly bill for this year} year_end_done {closed last year’s bill as done} year_end_drop {dropped last year’s bill} year_end_carry {moved last year’s bill into this year} year_plan_reviewed {confirmed next year’s bills} year_plan_first_year_check {answered the first-year check} item_added {added a template item} item_updated {changed a template item} item_archived {archived a template item} items_reordered {reordered template items} plan_imported {imported the family plan} family_created {created the family} member_joined {joined the family} other {made a change}}",
+    "late": "late change",
+    "more": "Show older",
+    "ledger": "All expenses",
     "settings": "Settings",
     "install": "Install and reminders"
+  },
+  "ledger": {
+    "title": "Expenses",
+    "month": "Month",
+    "item": "Item",
+    "anyItem": "Any item",
+    "person": "Who paid",
+    "anyone": "Anyone",
+    "method": "How it was added",
+    "anyMethod": "Any way",
+    "methods": "{method, select, typed {Typed} voice {Voice} receipt {Receipt} other {{method}}}",
+    "show": "Show",
+    "empty": "No expenses match.",
+    "entered": "Added by {who, select, me {you} other {{who}}}",
+    "proofs": "{count, plural, one {# proof} other {# proofs}}"
   },
   "join": {
     "title": "Join your family on NestWise",

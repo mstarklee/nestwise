@@ -46,6 +46,13 @@ export class InMemoryEvidenceGateway implements EvidenceGateway {
   async moveTo(familyId: string, fromTxnId: string, toTxnId: string) {
     this.rows = this.rows.map((e) => (e.familyId === familyId && e.transactionId === fromTxnId ? { ...e, transactionId: toTxnId } : e));
   }
+  async countByTransaction(familyId: string, txnIds: readonly string[]) {
+    const counts = new Map<string, number>();
+    for (const e of this.rows) {
+      if (e.familyId === familyId && e.transactionId && txnIds.includes(e.transactionId)) counts.set(e.transactionId, (counts.get(e.transactionId) ?? 0) + 1);
+    }
+    return counts;
+  }
   forTransaction(txnId: string): readonly Evidence[] {
     return this.rows.filter((e) => e.transactionId === txnId);
   }

@@ -29,7 +29,13 @@ export const EditExpenseRequest = z.object({
 });
 export type EditExpenseRequest = z.infer<typeof EditExpenseRequest>;
 
-export const ListExpensesQuery = z.object({ month: MonthParam, itemId: z.uuid().optional(), enteredBy: z.uuid().optional() });
+export const ListExpensesQuery = z.object({
+  month: MonthParam,
+  itemId: z.uuid().optional(),
+  enteredBy: z.uuid().optional(),
+  paidBy: z.uuid().optional(),
+  method: z.enum(['typed', 'voice', 'receipt']).optional(),
+});
 export type ListExpensesQuery = z.infer<typeof ListExpensesQuery>;
 
 export const Transaction = z.object({

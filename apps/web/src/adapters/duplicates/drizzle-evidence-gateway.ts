@@ -1,7 +1,7 @@
 import 'server-only';
 import { type DbOrTx, evidence } from '@nestwise/db';
 import type { Evidence, EvidenceGateway } from '@nestwise/domain/duplicates';
-import { and, eq } from 'drizzle-orm';
+import { and, count, eq, inArray, isNull } from 'drizzle-orm';
 
 export class DrizzleEvidenceGateway implements EvidenceGateway {
   constructor(private readonly db: DbOrTx) {}
@@ -17,6 +17,16 @@ export class DrizzleEvidenceGateway implements EvidenceGateway {
       createdBy: proof.createdBy,
       createdAt: proof.createdAt,
     });
+  }
+
+  async countByTransaction(familyId: string, txnIds: readonly string[]): Promise<ReadonlyMap<string, number>> {
+    if (txnIds.length === 0) return new Map();
+    const rows = await this.db
+      .select({ txnId: evidence.transactionId, n: count() })
+      .from(evidence)
+      .where(and(eq(evidence.familyId, familyId), inArray(evidence.transactionId, [...txnIds]), isNull(evidence.deletedAt)))
+      .groupBy(evidence.transactionId);
+    return new Map(rows.filter((r) => r.txnId !== null).map((r) => [r.txnId!, r.n]));
   }
 
   async moveTo(familyId: string, fromTxnId: string, toTxnId: string): Promise<void> {

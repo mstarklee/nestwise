@@ -14,7 +14,8 @@
     "./plan": "./src/plan/index.ts",
     "./expenses": "./src/expenses/index.ts",
     "./reminders": "./src/reminders/index.ts",
-    "./duplicates": "./src/duplicates/index.ts"
+    "./duplicates": "./src/duplicates/index.ts",
+    "./activity": "./src/activity/index.ts"
   },
   "scripts": {
     "lint": "eslint .",

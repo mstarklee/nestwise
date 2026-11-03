@@ -9,7 +9,14 @@ export const GET = withApiErrors(async (request: Request) => {
   await perRequest();
   const actor = await requireActor(request);
   const query = ListExpensesQuery.parse(Object.fromEntries(new URL(request.url).searchParams));
-  const transactions = await makeListExpensesUseCase().execute({ actor, period: query.month, itemId: query.itemId, enteredBy: query.enteredBy });
+  const transactions = await makeListExpensesUseCase().execute({
+    actor,
+    period: query.month,
+    itemId: query.itemId,
+    enteredBy: query.enteredBy,
+    paidBy: query.paidBy,
+    captureMethod: query.method,
+  });
   return Response.json(TransactionListResponse.parse({ transactions }));
 });
 
