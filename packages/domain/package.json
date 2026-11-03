@@ -13,7 +13,8 @@
     "./family": "./src/family/index.ts",
     "./plan": "./src/plan/index.ts",
     "./expenses": "./src/expenses/index.ts",
-    "./reminders": "./src/reminders/index.ts"
+    "./reminders": "./src/reminders/index.ts",
+    "./duplicates": "./src/duplicates/index.ts"
   },
   "scripts": {
     "lint": "eslint .",

@@ -1,3 +1,4 @@
+import { releaseMatchesOf } from '../../duplicates/use-cases/release-matches';
 import { assertCan, type Clock } from '../../shared';
 import { TransactionNotFoundError } from '../errors';
 import type { ExpenseIdCommand, Transaction } from '../models';
@@ -19,8 +20,10 @@ export class DeleteExpenseUseCase {
     if (before.deletedAt) return before;
     const now = this.clock.now();
     const after: Transaction = { ...before, deletedAt: now, updatedAt: now };
-    return this.uow.run(async ({ transactions, activity }) => {
+    return this.uow.run(async (gateways) => {
+      const { transactions, activity } = gateways;
       await transactions.update(after);
+      await releaseMatchesOf(gateways, familyId, after.id, now); // its open "Same purchase?" questions are stale now
       await activity.record({
         familyId,
         actorId: command.actor.userId,

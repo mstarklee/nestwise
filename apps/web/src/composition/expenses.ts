@@ -13,6 +13,7 @@ import { DrizzleFamilyGateway } from '../adapters/family/drizzle-family-gateway'
 import { DrizzleMembershipGateway } from '../adapters/family/drizzle-membership-gateway';
 import { DrizzlePlanGateway } from '../adapters/plan/drizzle-plan-gateway';
 import { systemClock } from '../adapters/shared/system-clock';
+import { uuidIds } from '../adapters/shared/uuid-ids';
 import { getDb } from './db';
 import { makeEnsureMonthBudgetUseCase } from './month-budget';
 
@@ -25,6 +26,7 @@ export const makeRecordExpenseUseCase = (db: Db = getDb()) =>
     new DrizzleFamilyGateway(db),
     makeEnsureMonthBudgetUseCase(db),
     systemClock,
+    uuidIds,
   );
 
 export const makeEditExpenseUseCase = (db: Db = getDb()) =>

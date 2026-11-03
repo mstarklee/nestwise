@@ -1,9 +1,9 @@
 import 'server-only';
 import { randomUUID } from 'node:crypto';
 import { allocations, type DbOrTx, transactions } from '@nestwise/db';
-import type { Allocation, ExpenseFilter, Transaction, TransactionGateway } from '@nestwise/domain/expenses';
+import type { Allocation, ExpenseFilter, Transaction, TransactionGateway, TransactionKind } from '@nestwise/domain/expenses';
 import type { IsoDate } from '@nestwise/domain/shared';
-import { and, desc, eq, exists, inArray, isNull, type SQL } from 'drizzle-orm';
+import { and, between, desc, eq, exists, inArray, isNull, type SQL, sql } from 'drizzle-orm';
 
 type TxnRow = typeof transactions.$inferSelect;
 
@@ -19,9 +19,9 @@ const toTransaction = (row: TxnRow, parts: readonly Allocation[]): Transaction =
   note: row.note,
   enteredBy: row.enteredBy,
   paidBy: row.paidBy,
-  // Stage 1a records typed, confirmed entries only.
-  captureMethod: 'typed',
-  status: 'confirmed',
+  captureMethod: row.captureMethod,
+  status: row.status,
+  mergedInto: row.mergedInto,
   allocations: parts,
   entryTimeZone: row.entryTz,
   deletedAt: row.deletedAt,
@@ -87,6 +87,8 @@ export class DrizzleTransactionGateway implements TransactionGateway {
           merchant: t.merchant,
           note: t.note,
           paidBy: t.paidBy,
+          status: t.status,
+          mergedInto: t.mergedInto,
           deletedAt: t.deletedAt,
           updatedAt: t.updatedAt,
         })
@@ -122,6 +124,27 @@ export class DrizzleTransactionGateway implements TransactionGateway {
       .from(transactions)
       .where(and(...where))
       .orderBy(desc(transactions.txnDate), desc(transactions.createdAt));
+    const parts = await this.partsOf(
+      familyId,
+      rows.map((r) => r.id),
+    );
+    return rows.map((r) => toTransaction(r, parts.get(r.id) ?? []));
+  }
+
+  async listNear(familyId: string, txnDate: IsoDate, amountMinor: number, kind: TransactionKind): Promise<readonly Transaction[]> {
+    const rows = await this.db
+      .select()
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.familyId, familyId),
+          eq(transactions.amountMinor, amountMinor),
+          eq(transactions.kind, kind),
+          between(transactions.txnDate, sql`${txnDate}::date - 1`, sql`${txnDate}::date + 1`),
+          isNull(transactions.deletedAt),
+          isNull(transactions.mergedInto),
+        ),
+      );
     const parts = await this.partsOf(
       familyId,
       rows.map((r) => r.id),

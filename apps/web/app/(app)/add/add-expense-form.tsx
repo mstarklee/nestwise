@@ -6,24 +6,27 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { type FormEvent, useRef, useState } from 'react';
 import { api } from '@/client/api-client';
-import { formatMoney } from '@/client/format';
+import { formatDay, formatMoney } from '@/client/format';
 import { newId } from '@/client/new-id';
 import { Button } from '@/components/ui/button';
+import { DuplicateQuestion, type DuplicateQuestionProps } from '@/components/duplicate-question';
 import { Card } from '@/components/ui/card';
 import { Input, Label, Select } from '@/components/ui/input';
 import { useErrorText } from '@/components/use-error-text';
 
 type Money = { currency: string; minorUnit: number; locale: string };
 type Group = { label: string; items: { id: string; name: string }[] };
+type Other = { amountMinor: number; merchant: string | null; txnDate: string; enteredBy: string };
+type RecordResponse = { transaction: { amountMinor: number }; duplicate: { matchId: string; other: Other } | null };
 
 /** Amount → item → save (PRD §6.6). Splits add more parts; the parts must add up to the amount. */
-export function AddExpenseForm({ today, money, monthly, yearly }: { today: string; money: Money; monthly: Group[]; yearly: Group[] }) {
+export function AddExpenseForm({ today, money, monthly, yearly, userId }: { today: string; money: Money; monthly: Group[]; yearly: Group[]; userId: string }) {
   const t = useTranslations('add');
   const errorText = useErrorText();
   const router = useRouter();
   const [parts, setParts] = useState([{ key: 0, itemId: '', amount: '' }]);
   const [error, setError] = useState<string | null>(null);
-  const [saved, setSaved] = useState<{ amount: string; ym: string } | null>(null);
+  const [saved, setSaved] = useState<{ amount: string; ym: string; question: DuplicateQuestionProps | null } | null>(null);
   const [busy, setBusy] = useState(false);
   // One id per entry, kept across retries so a resend is recognised (not saved twice).
   const id = useRef(newId());
@@ -57,7 +60,7 @@ export function AddExpenseForm({ today, money, monthly, yearly }: { today: strin
     const txnDate = String(form.get('date'));
     setBusy(true);
     try {
-      await api('POST', '/api/v1/transactions', {
+      const { transaction, duplicate } = await api<RecordResponse>('POST', '/api/v1/transactions', {
         id: id.current,
         kind: form.get('refund') === 'on' ? 'refund' : 'expense',
         amountMinor,
@@ -66,7 +69,16 @@ export function AddExpenseForm({ today, money, monthly, yearly }: { today: strin
         merchant: String(form.get('merchant')) || null,
         note: String(form.get('note')) || null,
       });
-      setSaved({ amount: formatMoney(amountMinor, money.currency, money.minorUnit, money.locale), ym: txnDate.slice(0, 7) });
+      const format = (minor: number) => formatMoney(minor, money.currency, money.minorUnit, money.locale);
+      const question: DuplicateQuestionProps | null = duplicate && {
+        matchId: duplicate.matchId,
+        amount: format(duplicate.other.amountMinor),
+        shop: duplicate.other.merchant,
+        day: formatDay(duplicate.other.txnDate, money.locale),
+        mine: duplicate.other.enteredBy === userId,
+        canPostpone: true,
+      };
+      setSaved({ amount: format(transaction.amountMinor), ym: txnDate.slice(0, 7), question });
       id.current = newId();
       formElement.reset();
       setParts([{ key: 0, itemId: '', amount: '' }]);
@@ -144,13 +156,19 @@ export function AddExpenseForm({ today, money, monthly, yearly }: { today: strin
           {error}
         </p>
       )}
-      {saved && (
+      {saved && !saved.question && (
         <p role="status" className="text-sm text-green-900">
           {t('saved', { amount: saved.amount })}{' '}
           <Link href={`/month/${saved.ym}`} className="underline">
             {t('seeMonth')}
           </Link>
         </p>
+      )}
+      {saved?.question && (
+        <Card role="status" className="space-y-2">
+          <p className="text-sm text-green-900">{t('savedMaybeRepeat', { amount: saved.amount })}</p>
+          <DuplicateQuestion {...saved.question} onDone={() => setSaved({ ...saved, question: null })} />
+        </Card>
       )}
       <Button type="submit" className="w-full" disabled={busy}>
         {t('save')}

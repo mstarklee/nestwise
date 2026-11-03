@@ -71,7 +71,7 @@ beforeEach(async () => {
   uow = new InMemoryExpensesUnitOfWork(ledger);
   budgets = new InMemoryMonthBudgetGateway();
   const ensureMonth = new EnsureMonthBudgetUseCase(budgets, planUow.plan, ids);
-  record = new RecordExpenseUseCase(uow, ledger, planUow.plan, memberships, families, ensureMonth, clock);
+  record = new RecordExpenseUseCase(uow, ledger, planUow.plan, memberships, families, ensureMonth, clock, new SequentialIds('match'));
   edit = new EditExpenseUseCase(uow, ledger, planUow.plan, memberships, ensureMonth, clock);
   remove = new DeleteExpenseUseCase(uow, ledger, clock);
   restore = new RestoreExpenseUseCase(uow, ledger, clock);
@@ -137,7 +137,7 @@ describe('RecordExpenseUseCase', () => {
     const first = await record.execute(groceries945());
     const again = await record.execute(groceries945({ amountMinor: 1, allocations: [{ itemId: itemId('groceries'), amountMinor: 1 }] }));
     expect(first.created).toBe(true);
-    expect(again).toEqual({ transaction: first.transaction, created: false });
+    expect(again).toEqual({ transaction: first.transaction, created: false, duplicate: null });
     expect(ledger.count()).toBe(1);
     expect(uow.activity.count()).toBe(1);
   });

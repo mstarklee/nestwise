@@ -1,4 +1,4 @@
-import { ListExpensesQuery, RecordExpenseRequest, TransactionListResponse, TransactionResponse } from '@nestwise/api-contract';
+import { ListExpensesQuery, RecordExpenseRequest, RecordExpenseResponse, TransactionListResponse } from '@nestwise/api-contract';
 import type { IsoDate } from '@nestwise/domain/shared';
 import { makeListExpensesUseCase, makeRecordExpenseUseCase } from '@/composition/expenses';
 import { perRequest } from '@/http/per-request';
@@ -13,14 +13,17 @@ export const GET = withApiErrors(async (request: Request) => {
   return Response.json(TransactionListResponse.parse({ transactions }));
 });
 
-/** 201 for a new expense, 200 when the same id was already saved (a resend). The date defaults to today in the family's zone. */
+/**
+ * 201 for a new expense, 200 when the same id was already saved (a resend). The date defaults to today in the family's
+ * zone. When it may repeat another expense, it is saved as pending and `duplicate` carries the question.
+ */
 export const POST = withApiErrors(async (request: Request) => {
   const actor = await requireActor(request);
   const { txnDate, ...body } = RecordExpenseRequest.parse(await request.json());
-  const { transaction, created } = await makeRecordExpenseUseCase().execute({
+  const { transaction, created, duplicate } = await makeRecordExpenseUseCase().execute({
     ...body,
     actor,
     ...(txnDate === undefined ? {} : { txnDate: txnDate as IsoDate }),
   });
-  return Response.json(TransactionResponse.parse({ transaction }), { status: created ? 201 : 200 });
+  return Response.json(RecordExpenseResponse.parse({ transaction, duplicate }), { status: created ? 201 : 200 });
 });

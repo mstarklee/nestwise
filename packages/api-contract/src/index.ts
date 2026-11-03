@@ -5,5 +5,6 @@ export * from './month-budget';
 export * from './year-plan';
 export * from './pot';
 export * from './expenses';
+export * from './duplicates';
 export * from './forecast';
 export * from './reminders';

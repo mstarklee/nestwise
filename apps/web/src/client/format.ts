@@ -41,6 +41,12 @@ export function formatMonthShort(period: { year: number; month: number }, locale
   return new Intl.DateTimeFormat(locale, { month: 'short', timeZone: 'UTC' }).format(Date.UTC(period.year, period.month - 1, 1));
 }
 
+/** "2026-10-07" → "7 Oct" (the date as written; no time-zone shift). */
+export function formatDay(isoDate: string, locale: string): string {
+  const [year, month, day] = isoDate.split('-').map(Number);
+  return new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(Date.UTC(year!, month! - 1, day!));
+}
+
 /** { year: 2026, month: 11 } → "2026-11", the form used in URLs. */
 export function toYm(period: { year: number; month: number }): string {
   return `${period.year}-${String(period.month).padStart(2, '0')}`;

@@ -1,3 +1,4 @@
+import { releaseMatchesOf } from '../../duplicates/use-cases/release-matches';
 import type { MembershipGateway } from '../../family';
 import type { EnsureMonthBudgetUseCase } from '../../month-budget';
 import type { PlanGateway } from '../../plan';
@@ -40,8 +41,11 @@ export class EditExpenseUseCase {
     const now = this.clock.now();
     const after: Transaction = { ...before, amountMinor, txnDate, period, merchant, note, paidBy, allocations, updatedAt: now };
 
-    return this.uow.run(async ({ transactions, activity }) => {
+    return this.uow.run(async (gateways) => {
+      const { transactions, activity } = gateways;
       await transactions.update(after);
+      // A changed amount or date makes any open "Same purchase?" question about it stale.
+      if (after.amountMinor !== before.amountMinor || after.txnDate !== before.txnDate) await releaseMatchesOf(gateways, familyId, after.id, now);
       await activity.record({
         familyId,
         actorId: command.actor.userId,
@@ -52,7 +56,7 @@ export class EditExpenseUseCase {
         after,
         at: now,
       });
-      return after;
+      return (await transactions.findById(familyId, after.id)) ?? after;
     });
   }
 }

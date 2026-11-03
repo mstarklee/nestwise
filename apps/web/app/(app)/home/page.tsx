@@ -5,6 +5,7 @@ import { formatMoney, formatMoneyRounded, formatPeriod } from '@/client/format';
 import { makeGetHomeSummaryUseCase } from '@/composition/forecast';
 import { makeGetChecklistUseCase } from '@/composition/pot';
 import { PageLoading } from '@/components/page-loading';
+import { makeListInboxUseCase } from '@/composition/duplicates';
 import { Card, CardTitle } from '@/components/ui/card';
 import { moneyOf, pageContext } from '@/http/page-session';
 import { ChecklistCard } from './checklist-card';
@@ -21,9 +22,10 @@ async function Home() {
   const { actor, family, current } = await pageContext();
   const t = await getTranslations('home');
   const tStatus = await getTranslations('status');
-  const [home, checklist] = await Promise.all([
+  const [home, checklist, inbox] = await Promise.all([
     makeGetHomeSummaryUseCase().execute({ actor }),
     makeGetChecklistUseCase().execute({ actor, period: current }),
+    makeListInboxUseCase().execute({ actor }),
   ]);
   const money = moneyOf(family);
   const rounded = (minor: number) => formatMoneyRounded(minor, money.currency, money.minorUnit, money.locale);
@@ -53,6 +55,15 @@ async function Home() {
           </p>
         )}
       </Card>
+
+      {inbox.length > 0 && (
+        <Card>
+          <p className="text-sm">{t('inboxCount', { count: inbox.length })}</p>
+          <Link href="/inbox" className="mt-1 block text-sm text-green-900 underline">
+            {t('openInbox')}
+          </Link>
+        </Card>
+      )}
 
       {home.cards.includes('checklist') && <ChecklistCard checklist={checklist} money={money} canAnswer={actor.role !== 'viewer'} />}
 

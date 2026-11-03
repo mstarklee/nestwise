@@ -26,6 +26,7 @@ const txn = (familyId: string, userId: string, overrides: Partial<Transaction> =
   paidBy: userId,
   captureMethod: 'typed',
   status: 'confirmed',
+  mergedInto: null,
   allocations: [{ itemId: '', amountMinor: 94_500, planYear: null }],
   entryTimeZone: 'Asia/Kolkata',
   deletedAt: null,

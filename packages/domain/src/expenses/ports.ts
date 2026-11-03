@@ -1,5 +1,6 @@
-import type { ActivityGateway } from '../shared';
-import type { ExpenseFilter, Transaction } from './models';
+import type { DuplicateMatchGateway, EvidenceGateway } from '../duplicates';
+import type { ActivityGateway, IsoDate } from '../shared';
+import type { ExpenseFilter, Transaction, TransactionKind } from './models';
 
 /** Every method is scoped to one family. */
 export interface TransactionGateway {
@@ -11,9 +12,18 @@ export interface TransactionGateway {
   update(transaction: Transaction): Promise<void>;
   /** Live (not deleted) transactions of the period, newest first. */
   list(familyId: string, filter: ExpenseFilter): Promise<readonly Transaction[]>;
+  /** Live, not merged transactions with this amount and kind dated within a day of txnDate (duplicate candidates). */
+  listNear(familyId: string, txnDate: IsoDate, amountMinor: number, kind: TransactionKind): Promise<readonly Transaction[]>;
 }
 
-/** Expense writes plus their activity rows, all or nothing. */
+export interface ExpensesGateways {
+  readonly transactions: TransactionGateway;
+  readonly activity: ActivityGateway;
+  readonly duplicates: DuplicateMatchGateway;
+  readonly evidence: EvidenceGateway;
+}
+
+/** Expense writes, duplicate questions, proofs and their activity rows, all or nothing. */
 export interface ExpensesUnitOfWork {
-  run<T>(work: (gateways: { transactions: TransactionGateway; activity: ActivityGateway }) => Promise<T>): Promise<T>;
+  run<T>(work: (gateways: ExpensesGateways) => Promise<T>): Promise<T>;
 }

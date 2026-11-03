@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatMoney, formatMoneyRounded, formatPeriod, minorToInput } from '../../src/client/format';
+import { formatDay, formatMoney, formatMoneyRounded, formatPeriod, minorToInput } from '../../src/client/format';
 
 describe('formatMoney', () => {
   it('shows exact amounts in the family’s currency and number style', () => {
@@ -20,6 +20,13 @@ describe('formatMoneyRounded', () => {
     expect(formatMoneyRounded(50, 'INR', 2, 'en-IN')).toBe('₹1');
     expect(formatMoneyRounded(-3_233_332, 'INR', 2, 'en-IN')).toBe('-₹32,333');
     expect(formatMoneyRounded(1500, 'JPY', 0, 'ja-JP')).toBe('￥1,500');
+  });
+});
+
+describe('formatDay', () => {
+  it('shows a date as day and short month, in the family locale, never shifted by the time zone', () => {
+    expect(formatDay('2026-10-07', 'en-IN')).toBe('7 Oct');
+    expect(formatDay('2026-01-31', 'en-IN')).toBe('31 Jan');
   });
 });
 

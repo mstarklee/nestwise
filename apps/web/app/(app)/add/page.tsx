@@ -27,5 +27,5 @@ async function Add() {
     return [...byGroup.values()];
   };
   if (actor.role === 'viewer') return <p className="py-4">{t('viewerCannot')}</p>;
-  return <AddExpenseForm today={today} money={moneyOf(family)} monthly={groups('monthly')} yearly={groups('yearly')} />;
+  return <AddExpenseForm today={today} money={moneyOf(family)} monthly={groups('monthly')} yearly={groups('yearly')} userId={actor.userId} />;
 }

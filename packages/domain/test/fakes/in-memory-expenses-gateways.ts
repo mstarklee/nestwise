@@ -1,12 +1,14 @@
-import type { ExpenseFilter, ExpensesUnitOfWork, Transaction, TransactionGateway } from '../../src/expenses';
+import type { ExpenseFilter, ExpensesGateways, ExpensesUnitOfWork, Transaction, TransactionGateway, TransactionKind } from '../../src/expenses';
 import type { ActualsGateway } from '../../src/month-budget';
-import type { ActivityGateway, Period } from '../../src/shared';
+import type { IsoDate, Period } from '../../src/shared';
 import type { YearPaidGateway } from '../../src/year-plan';
 import { FailingActivityGateway, InMemoryActivityGateway } from './in-memory-activity-gateway';
+import { InMemoryDuplicateMatchGateway, InMemoryEvidenceGateway } from './in-memory-duplicates-gateways';
 import type { InMemoryYearPlanGateway } from './in-memory-year-plan-gateways';
 
 const samePeriod = (a: Period, b: Period) => a.year === b.year && a.month === b.month;
-const counts = (t: Transaction) => t.status === 'confirmed' && t.deletedAt === null;
+const counts = (t: Transaction) => t.status === 'confirmed' && t.deletedAt === null && t.mergedInto === null;
+const dayNumber = (date: IsoDate) => Date.parse(`${date}T00:00:00Z`) / 86_400_000;
 const signed = (t: Transaction, amount: number) => (t.kind === 'refund' ? -amount : amount);
 
 /**
@@ -34,6 +36,17 @@ export class InMemoryTransactionGateway implements TransactionGateway {
       .filter((t) => !filter.itemId || t.allocations.some((a) => a.itemId === filter.itemId))
       .filter((t) => !filter.enteredBy || t.enteredBy === filter.enteredBy)
       .sort((a, b) => b.txnDate.localeCompare(a.txnDate) || b.createdAt.getTime() - a.createdAt.getTime());
+  }
+  async listNear(familyId: string, txnDate: IsoDate, amountMinor: number, kind: TransactionKind) {
+    return [...this.rows.values()].filter(
+      (t) =>
+        t.familyId === familyId &&
+        t.deletedAt === null &&
+        t.mergedInto === null &&
+        t.amountMinor === amountMinor &&
+        t.kind === kind &&
+        Math.abs(dayNumber(t.txnDate) - dayNumber(txnDate)) <= 1,
+    );
   }
   count() {
     return this.rows.size;
@@ -84,17 +97,31 @@ export class InMemoryTransactionGateway implements TransactionGateway {
 
 export class InMemoryExpensesUnitOfWork implements ExpensesUnitOfWork {
   readonly activity = new InMemoryActivityGateway();
+  readonly duplicates = new InMemoryDuplicateMatchGateway();
+  readonly evidence = new InMemoryEvidenceGateway();
   failActivity = false;
 
   constructor(readonly transactions: InMemoryTransactionGateway) {}
 
-  async run<T>(work: (gateways: { transactions: TransactionGateway; activity: ActivityGateway }) => Promise<T>): Promise<T> {
-    const snapshot = { rows: new Map(this.transactions.rows), activity: this.activity.snapshot() };
+  async run<T>(work: (gateways: ExpensesGateways) => Promise<T>): Promise<T> {
+    const snapshot = {
+      rows: new Map(this.transactions.rows),
+      activity: this.activity.snapshot(),
+      matches: new Map(this.duplicates.rows),
+      evidence: [...this.evidence.rows],
+    };
     try {
-      return await work({ transactions: this.transactions, activity: new FailingActivityGateway(this.activity, () => this.failActivity) });
+      return await work({
+        transactions: this.transactions,
+        activity: new FailingActivityGateway(this.activity, () => this.failActivity),
+        duplicates: this.duplicates,
+        evidence: this.evidence,
+      });
     } catch (error) {
       this.transactions.rows = snapshot.rows;
       this.activity.restore(snapshot.activity);
+      this.duplicates.rows = snapshot.matches;
+      this.evidence.rows = snapshot.evidence;
       throw error;
     }
   }

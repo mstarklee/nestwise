@@ -32,7 +32,7 @@ export type EditExpenseRequest = z.infer<typeof EditExpenseRequest>;
 export const ListExpensesQuery = z.object({ month: MonthParam, itemId: z.uuid().optional(), enteredBy: z.uuid().optional() });
 export type ListExpensesQuery = z.infer<typeof ListExpensesQuery>;
 
-const Transaction = z.object({
+export const Transaction = z.object({
   id: z.string(),
   kind: z.enum(['expense', 'refund']),
   amountMinor: z.number().int(),
@@ -43,14 +43,22 @@ const Transaction = z.object({
   note: z.string().nullable(),
   enteredBy: z.string(),
   paidBy: z.string().nullable(),
-  captureMethod: z.literal('typed'),
-  status: z.literal('confirmed'),
+  captureMethod: z.enum(['typed', 'voice', 'receipt']),
+  status: z.enum(['pending', 'confirmed']),
+  mergedInto: z.string().nullable(),
   allocations: z.array(z.object({ itemId: z.string(), amountMinor: z.number().int(), planYear: z.number().int().nullable() })),
   deletedAt: z.date().nullable(),
   createdAt: z.date(),
 });
 
 export const TransactionResponse = z.object({ transaction: Transaction });
+
+/** POST /transactions: the saved expense, and the "Same purchase?" question when it may repeat another. */
+export const RecordExpenseResponse = z.object({
+  transaction: Transaction,
+  duplicate: z.object({ matchId: z.string(), other: Transaction }).nullable(),
+});
+export type RecordExpenseResponse = z.infer<typeof RecordExpenseResponse>;
 export type TransactionResponse = z.infer<typeof TransactionResponse>;
 
 export const TransactionListResponse = z.object({ transactions: z.array(Transaction) });

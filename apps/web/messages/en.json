@@ -102,7 +102,9 @@
     "groupsOver": "Over plan: {groups}",
     "seeMonth": "See this month",
     "undated": "{count, plural, one {# item} other {# items}} ({amount}) in {year} have no month yet.",
-    "giveMonths": "Give them a month"
+    "giveMonths": "Give them a month",
+    "inboxCount": "{count, plural, one {# expense waits} other {# expenses wait}} for an answer in the Inbox.",
+    "openInbox": "Open the Inbox"
   },
   "checklist": {
     "title": "This month’s checklist",
@@ -200,7 +202,20 @@
     "saved": "Saved {amount}.",
     "seeMonth": "See the month",
     "badAmount": "Please enter an amount like 945 or 204.50.",
-    "partsMustAddUp": "The parts must add up to the amount."
+    "partsMustAddUp": "The parts must add up to the amount.",
+    "savedMaybeRepeat": "Saved {amount}. It may be a repeat:"
+  },
+  "duplicates": {
+    "question": "{who, select, me {You} other {Someone in your family}} logged {amount}{shop, select, __none__ {} other { at {shop}}} on {day}. Same purchase?",
+    "same": "Same purchase",
+    "different": "Different",
+    "later": "Decide later"
+  },
+  "inbox": {
+    "title": "Inbox",
+    "explain": "These expenses look like repeats. They don’t count until someone answers.",
+    "empty": "Nothing waiting.",
+    "waiting": "{mine, select, me {You} other {Someone in your family}} added {amount} on {day}"
   },
   "settings": {
     "familyTitle": "Family",
