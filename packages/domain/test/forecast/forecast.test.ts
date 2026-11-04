@@ -8,6 +8,7 @@ import type { Actor } from '../../src/shared';
 import { ApplyFirstYearCheckUseCase, ConfirmNextYearReviewUseCase, EnsureYearPlanUseCase, GetYearEndReviewUseCase } from '../../src/year-plan';
 import { familyRecord } from '../fakes/family-record';
 import { FixedClock } from '../fakes/fixed-clock';
+import { InMemoryCaptureGateway } from '../fakes/in-memory-capture-gateways';
 import { InMemoryFamilyGateway } from '../fakes/in-memory-family-gateways';
 import { InMemoryActualsGateway, InMemoryMonthBudgetGateway } from '../fakes/in-memory-month-budget-gateways';
 import { InMemoryPlanUnitOfWork } from '../fakes/in-memory-plan-gateway';
@@ -31,6 +32,7 @@ let pot: InMemoryPotGateway;
 let potUow: InMemoryPotUnitOfWork;
 let actuals: InMemoryActualsGateway;
 let clock: FixedClock;
+let captures: InMemoryCaptureGateway;
 let ids: SequentialIds;
 let ensureYear: EnsureYearPlanUseCase;
 let forecast: GetForecastUseCase;
@@ -41,6 +43,7 @@ beforeEach(async () => {
   planUow = new InMemoryPlanUnitOfWork();
   ids = new SequentialIds();
   clock = new FixedClock('2026-11-01T04:00:00Z'); // 1 Nov in India
+  captures = new InMemoryCaptureGateway();
   await new ImportPlanUseCase(planUow, planUow.plan, ids, clock).execute({ actor: admin, plan: samplePlanImport });
   const items = await planUow.plan.listItems('f1', { includeArchived: true });
   itemId = (seedKey) => items.find((i) => i.seedKey === seedKey)!.id;
@@ -72,6 +75,7 @@ beforeEach(async () => {
     monthBudgets,
     yearPlans,
     new GetYearEndReviewUseCase(yearPlans, paid),
+    captures,
   );
   ensureOctober = () => ensureMonth.execute({ familyId: 'f1', period: { year: 2026, month: 10 } });
 });
@@ -137,6 +141,26 @@ describe('GetHomeSummaryUseCase', () => {
     const h = await home.execute({ actor: admin });
     expect(h.undated.find((u) => u.year === 2027)).toMatchObject({ count: 13, totalMinor: 15_700_000 });
     expect(h.cards).toContain('undated');
+  });
+
+  it('home shows the voice card only while a spoken note is waiting', async () => {
+    expect((await home.execute({ actor: admin })).cards).not.toContain('capture');
+
+    await captures.create({
+      id: 'batch-1',
+      familyId: 'f1',
+      createdBy: 'u1',
+      transcript: 'KPN 250',
+      sttModel: 'gpt-transcribe',
+      parseModel: 'gpt-6.1-terra',
+      entries: [],
+      createdAt: new Date('2026-11-01T05:00:00Z'),
+      resolvedAt: null,
+    });
+    expect((await home.execute({ actor: admin })).cards).toContain('capture');
+
+    await captures.resolve('f1', 'batch-1', new Date('2026-11-01T06:00:00Z'));
+    expect((await home.execute({ actor: admin })).cards).not.toContain('capture');
   });
 
   it('home carries this month’s checklist, so the screen reads it once', async () => {

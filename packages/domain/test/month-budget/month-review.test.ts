@@ -25,6 +25,7 @@ import { InMemoryMonthBudgetGateway, InMemoryMonthBudgetUnitOfWork } from '../fa
 import { InMemoryPlanUnitOfWork } from '../fakes/in-memory-plan-gateway';
 import { InMemoryPotGateway } from '../fakes/in-memory-pot-gateways';
 import { InMemoryYearPlanGateway } from '../fakes/in-memory-year-plan-gateways';
+import { InMemoryCaptureGateway } from '../fakes/in-memory-capture-gateways';
 import { SequentialIds } from '../fakes/sequential-ids';
 
 const admin: Actor = { userId: 'u1', familyId: 'f1', role: 'admin' };
@@ -103,7 +104,7 @@ beforeEach(async () => {
   const yearView = new GetYearPlanUseCase(ensureYear, yearPlans, ledger.yearPaid(yearPlans), families, clock);
   pot = new InMemoryPotGateway();
   const checklist = new GetChecklistUseCase(ensureMonth, yearPlans, planUow.plan, families, pot);
-  const inbox = new ListInboxUseCase(expensesUow.duplicates, ledger);
+  const inbox = new ListInboxUseCase(expensesUow.duplicates, ledger, new InMemoryCaptureGateway());
   review = new GetMonthReviewUseCase(summary, budgets, ledger, planUow.plan, yearView, checklist, inbox, families);
   close = new CloseMonthUseCase(monthUow, families, clock);
   autoClose = new AutoCloseMonthUseCase(monthUow, clock);

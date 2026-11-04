@@ -26,6 +26,7 @@ import { InMemoryExpensesUnitOfWork, InMemoryTransactionGateway } from '../fakes
 import { InMemoryFamilyGateway, InMemoryMembershipGateway } from '../fakes/in-memory-family-gateways';
 import { InMemoryMonthBudgetGateway } from '../fakes/in-memory-month-budget-gateways';
 import { InMemoryPlanUnitOfWork } from '../fakes/in-memory-plan-gateway';
+import { InMemoryCaptureGateway } from '../fakes/in-memory-capture-gateways';
 import { SequentialIds } from '../fakes/sequential-ids';
 
 const me: Actor = { userId: 'u1', familyId: 'f1', role: 'admin' };
@@ -67,7 +68,7 @@ beforeEach(async () => {
   edit = new EditExpenseUseCase(uow, ledger, planUow.plan, memberships, ensureMonth, clock);
   remove = new DeleteExpenseUseCase(uow, ledger, clock);
   resolve = new ResolveDuplicateUseCase(uow, new SequentialIds('evidence'), clock);
-  inbox = new ListInboxUseCase(uow.duplicates, ledger);
+  inbox = new ListInboxUseCase(uow.duplicates, ledger, new InMemoryCaptureGateway());
   summary = new GetMonthSummaryUseCase(ensureMonth, ledger.actuals(), planUow.plan);
 });
 
@@ -141,7 +142,7 @@ describe('RecordExpenseUseCase with duplicate checks', () => {
     const second = await record.execute(spend(spouse, 2, { txnDate: date('2026-10-08') }));
     expect(second.transaction.status).toBe('pending');
     expect(second.duplicate).toMatchObject({ other: { id: uuid(1) } });
-    const [entry] = await inbox.execute({ actor: me });
+    const [entry] = (await inbox.execute({ actor: me })).duplicates;
     expect(entry).toMatchObject({ matchId: second.duplicate!.matchId, pending: { id: uuid(2) }, other: { id: uuid(1) }, reasons: ['other_person'] });
   });
 
@@ -159,14 +160,14 @@ describe('RecordExpenseUseCase with duplicate checks', () => {
     await record.execute(spend(me, 1, { ...veg, txnDate: date('2026-10-06') }));
     const second = await record.execute(spend(spouse, 2, { ...veg, txnDate: date('2026-10-13') }));
     expect(second.duplicate).toBeNull();
-    expect(await inbox.execute({ actor: me })).toEqual([]);
+    expect((await inbox.execute({ actor: me })).duplicates).toEqual([]);
   });
 
   it('a resend of the same id returns created:false and creates no match (Review Focus 2)', async () => {
     await record.execute(spend(me, 1));
     const again = await record.execute(spend(me, 1));
     expect(again).toMatchObject({ created: false, duplicate: null });
-    expect(await inbox.execute({ actor: me })).toEqual([]);
+    expect((await inbox.execute({ actor: me })).duplicates).toEqual([]);
   });
 
   it('a pending expense is excluded from actuals until answered', async () => {
@@ -185,7 +186,7 @@ describe('ResolveDuplicateUseCase', () => {
     expect(await groceries()).toBe(94_500);
     expect(ledger.rows.get(uuid(2))!.mergedInto).toBe(uuid(1));
     expect(uow.evidence.forTransaction(uuid(1))).toMatchObject([{ kind: 'merged_entry', extracted: { id: uuid(2), amountMinor: 94_500 } }]);
-    expect(await inbox.execute({ actor: me })).toEqual([]);
+    expect((await inbox.execute({ actor: me })).duplicates).toEqual([]);
     expect(uow.activity.all().at(-1)).toMatchObject({ action: 'duplicate.same', actorId: 'u2' });
   });
 
@@ -240,7 +241,7 @@ describe('a duplicate question that goes stale (Review Focus 5)', () => {
     await record.execute(spend(me, 1));
     await record.execute(spend(spouse, 2));
     await remove.execute({ actor: me, id: uuid(1) });
-    expect(await inbox.execute({ actor: me })).toEqual([]);
+    expect((await inbox.execute({ actor: me })).duplicates).toEqual([]);
     expect(ledger.rows.get(uuid(2))!.status).toBe('confirmed');
     expect(await groceries()).toBe(94_500);
   });
@@ -249,7 +250,7 @@ describe('a duplicate question that goes stale (Review Focus 5)', () => {
     await record.execute(spend(me, 1));
     await record.execute(spend(spouse, 2));
     await edit.execute({ actor: spouse, id: uuid(2), changes: { amountMinor: 95_000 } });
-    expect(await inbox.execute({ actor: me })).toEqual([]);
+    expect((await inbox.execute({ actor: me })).duplicates).toEqual([]);
     expect(ledger.rows.get(uuid(2))!.status).toBe('confirmed');
     expect(await groceries()).toBe(189_500);
   });
@@ -259,7 +260,7 @@ describe('a duplicate question that goes stale (Review Focus 5)', () => {
     await record.execute(spend(spouse, 2));
     await remove.execute({ actor: spouse, id: uuid(2) });
     await new RestoreExpenseUseCase(uow, ledger, clock).execute({ actor: spouse, id: uuid(2) });
-    expect(await inbox.execute({ actor: me })).toEqual([]);
+    expect((await inbox.execute({ actor: me })).duplicates).toEqual([]);
     expect(ledger.rows.get(uuid(2))!.status).toBe('confirmed');
     expect(await groceries()).toBe(189_000);
   });
@@ -268,6 +269,6 @@ describe('a duplicate question that goes stale (Review Focus 5)', () => {
     await record.execute(spend(me, 1));
     await record.execute(spend(spouse, 2));
     await edit.execute({ actor: spouse, id: uuid(2), changes: { note: 'milk too' } });
-    expect(await inbox.execute({ actor: me })).toHaveLength(1);
+    expect((await inbox.execute({ actor: me })).duplicates).toHaveLength(1);
   });
 });

@@ -3,7 +3,7 @@ import type { TransactionGateway } from '../../expenses';
 import type { FamilyGateway } from '../../family';
 import type { PlanGateway } from '../../plan';
 import type { GetChecklistUseCase } from '../../pot';
-import { addMonths, assertCan, type Period, samePeriod } from '../../shared';
+import { addMonths, assertCan, type Period, periodOf, samePeriod } from '../../shared';
 import { type GetYearPlanUseCase, YearPlanNotFoundError } from '../../year-plan';
 import type { MonthBudgetGateway } from '../ports';
 import { type ChecklistAnswer, type GetMonthReviewCommand, type MonthReview, overStreaks, REVIEW_TOP, STREAK_MONTHS } from '../review';
@@ -64,7 +64,11 @@ export class GetMonthReviewUseCase {
         answer: answer(s.status, s.confirmedMinor, s.plannedMinor),
         amountMinor: s.confirmedMinor,
       })),
-      inboxCount: inbox.filter((e) => samePeriod(e.pending.period, period)).length,
+      // Both kinds of waiting item count: a duplicate question about this month, and a spoken note holding an
+      // entry dated in it. Either one means the month's totals are not final yet.
+      inboxCount:
+        inbox.duplicates.filter((e) => samePeriod(e.pending.period, period)).length +
+        inbox.captures.filter((c) => c.entries.some((e) => samePeriod(periodOf(e.txnDate), period))).length,
       streaks: overStreaks(await this.history(actor, period), STREAK_MONTHS, 100 * 10 ** (family?.minorUnit ?? 2)),
     };
   }

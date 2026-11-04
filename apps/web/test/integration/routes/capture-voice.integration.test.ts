@@ -2,9 +2,10 @@ import { usage } from '@nestwise/db';
 import { and, eq } from 'drizzle-orm';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { POST as capture } from '../../../app/api/v1/capture/voice/route';
+import { GET as inbox } from '../../../app/api/v1/inbox/route';
 import { DrizzleCaptureGateway } from '@/adapters/capture/drizzle-capture-gateway';
 import { useTestDb } from '../setup';
-import { adminWithPlan } from '../support/api';
+import { adminWithPlan, request } from '../support/api';
 
 const db = useTestDb();
 
@@ -197,6 +198,27 @@ describe('POST /api/v1/capture/voice', () => {
 
     expect(second.status).toBe(409);
     expect(((await second.json()) as { error: { message: string } }).error.message).toMatch(/type/i);
+  });
+
+  it('shows the waiting note in the Inbox: the speaker can act on it, the other adult cannot', async () => {
+    const { token, itemId, join } = await adminWithPlan(db());
+    const spouse = await join('admin');
+    stubServices({ rows: [row({ item_id: itemId('groceries') })] });
+    const { batch } = (await (await capture(recording(token))).json()) as { batch: { id: string } };
+
+    const inboxFor = async (who: string) =>
+      (await (await inbox(request('GET', '/api/v1/inbox', who))).json()) as {
+        entries: unknown[];
+        voiceNotes: { batchId: string; mine: boolean; transcript: string; entryCount: number }[];
+      };
+
+    const mine = await inboxFor(token);
+    expect(mine.entries).toEqual([]);
+    expect(mine.voiceNotes).toHaveLength(1);
+    expect(mine.voiceNotes[0]).toMatchObject({ batchId: batch.id, mine: true, transcript: TRANSCRIPT, entryCount: 1 });
+
+    const theirs = await inboxFor(spouse);
+    expect(theirs.voiceNotes[0]).toMatchObject({ batchId: batch.id, mine: false });
   });
 
   it('never caps a family listed as uncapped', async () => {

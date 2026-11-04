@@ -276,7 +276,10 @@
     "title": "Inbox",
     "explain": "These expenses look like repeats. They don’t count until someone answers.",
     "empty": "Nothing waiting.",
-    "waiting": "{mine, select, me {You} other {Someone in your family}} added {amount} on {day}"
+    "waiting": "{mine, select, me {You} other {Someone in your family}} added {amount} on {day}",
+    "voiceWaiting": "{mine, select, me {Your voice note} other {A voice note from your family}}: {count, plural, one {# expense} other {# expenses}} to check",
+    "voiceCheck": "Check it now",
+    "voiceTheirs": "Only the person who recorded it can confirm it."
   },
   "settings": {
     "familyTitle": "Family",

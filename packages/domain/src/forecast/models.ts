@@ -114,7 +114,7 @@ export interface ForecastView extends Forecast {
   readonly savingsPlanMinor: number;
 }
 
-export type HomeCard = 'checklist' | 'undated' | 'month_review' | 'next_year' | 'year_end';
+export type HomeCard = 'checklist' | 'undated' | 'capture' | 'month_review' | 'next_year' | 'year_end';
 
 export interface HomeSummary {
   readonly pot: {
