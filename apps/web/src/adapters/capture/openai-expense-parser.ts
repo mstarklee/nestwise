@@ -36,7 +36,7 @@ const unreadable = () => new CaptureNotUnderstoodError("Couldn't read that recor
 export class OpenAiExpenseParser implements ExpenseParser {
   constructor(
     private readonly post: PostJson,
-    private readonly model: string,
+    readonly model: string,
   ) {}
 
   async parse(transcript: string, context: ParseContext): Promise<readonly ParsedEntry[]> {

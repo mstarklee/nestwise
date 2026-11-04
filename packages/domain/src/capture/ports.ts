@@ -1,4 +1,7 @@
+import type { FamilyGateway } from '../family';
+import type { PlanGateway } from '../plan';
 import type { Period } from '../shared';
+import type { YearPaidGateway, YearPlanGateway } from '../year-plan';
 import type { CaptureBatch, ParsedEntry, ParseContext } from './models';
 
 /**
@@ -17,6 +20,8 @@ export interface SpeechToText {
 
 /** Turning a transcript into entries, given the family's own lists. */
 export interface ExpenseParser {
+  /** Recorded on the batch, so a later look at a wrong entry shows which model read it. */
+  readonly model: string;
   parse(transcript: string, context: ParseContext): Promise<readonly ParsedEntry[]>;
 }
 
@@ -34,4 +39,17 @@ export interface CaptureGateway {
 export interface UsageGateway {
   countThisMonth(familyId: string, period: Period): Promise<{ readonly voiceCount: number; readonly voiceSeconds: number }>;
   record(familyId: string, period: Period, seconds: number): Promise<void>;
+}
+
+/**
+ * Everything a capture reads or writes. Bundled, as `ExpensesGateways` is, because assembling the parse context
+ * needs the plan, the year plan and the family, and nine positional constructor arguments reads badly.
+ */
+export interface CaptureGateways {
+  readonly captures: CaptureGateway;
+  readonly usage: UsageGateway;
+  readonly plan: PlanGateway;
+  readonly yearPlans: YearPlanGateway;
+  readonly yearPaid: YearPaidGateway;
+  readonly families: FamilyGateway;
 }
