@@ -1,12 +1,13 @@
 import 'server-only';
 import type { Db } from '@nestwise/db';
-import { CaptureVoiceUseCase } from '@nestwise/domain/capture';
+import { CaptureVoiceUseCase, ConfirmVoiceEntriesUseCase } from '@nestwise/domain/capture';
 import { DrizzleCaptureGateway } from '../adapters/capture/drizzle-capture-gateway';
 import { DrizzleUsageGateway } from '../adapters/capture/drizzle-usage-gateway';
 import { makePostJson, OpenAiExpenseParser } from '../adapters/capture/openai-expense-parser';
 import { OpenAiSpeechToText } from '../adapters/capture/openai-speech-to-text';
 import { makePostForm } from '../adapters/capture/post-form';
 import { SarvamSpeechToText } from '../adapters/capture/sarvam-speech-to-text';
+import { DrizzleEvidenceGateway } from '../adapters/duplicates/drizzle-evidence-gateway';
 import { DrizzleFamilyGateway } from '../adapters/family/drizzle-family-gateway';
 import { DrizzlePlanGateway } from '../adapters/plan/drizzle-plan-gateway';
 import { systemClock } from '../adapters/shared/system-clock';
@@ -15,6 +16,7 @@ import { DrizzleYearPaidGateway } from '../adapters/year-plan/drizzle-year-paid-
 import { DrizzleYearPlanGateway } from '../adapters/year-plan/drizzle-year-plan-gateway';
 import { readProvider } from '../capture/clip-limits';
 import { getDb } from './db';
+import { makeRecordExpenseUseCase } from './expenses';
 import { makeEnsureMiscellaneousItemUseCase } from './plan';
 
 type Env = Readonly<Record<string, string | undefined>>;
@@ -55,4 +57,18 @@ export const makeCaptureVoiceUseCase = (familyId: string, db: Db = getDb()) =>
     systemClock,
     uuidIds,
     voiceCapFor(familyId),
+  );
+
+export const makeConfirmVoiceEntriesUseCase = (db: Db = getDb()) =>
+  new ConfirmVoiceEntriesUseCase(
+    {
+      captures: new DrizzleCaptureGateway(db),
+      yearPlans: new DrizzleYearPlanGateway(db),
+      yearPaid: new DrizzleYearPaidGateway(db),
+      evidence: new DrizzleEvidenceGateway(db),
+      families: new DrizzleFamilyGateway(db),
+    },
+    makeRecordExpenseUseCase(db),
+    systemClock,
+    uuidIds,
   );

@@ -49,6 +49,7 @@ export class ResolveDuplicateUseCase {
           familyId,
           transactionId: keeper.id,
           kind: 'merged_entry',
+          transcript: null,
           extracted: merged,
           createdBy: command.actor.userId,
           createdAt: now,

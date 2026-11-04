@@ -23,3 +23,13 @@ export class NotYourBatchError extends CaptureError {
 export class CaptureBatchNotFoundError extends CaptureError {
   readonly category = 'not_found' as const;
 }
+
+/** Everything owed on the bill has already been paid; paying again would count it twice (design §6). */
+export class BillAlreadyPaidError extends CaptureError {
+  readonly category = 'conflict' as const;
+}
+
+/** The bill is closed, cancelled, from another year's plan, or was not named at all. */
+export class BillNotPayableError extends CaptureError {
+  readonly category = 'invalid' as const;
+}

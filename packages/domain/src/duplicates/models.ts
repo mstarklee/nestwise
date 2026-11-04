@@ -27,6 +27,8 @@ export interface Evidence {
   readonly familyId: string;
   readonly transactionId: string | null;
   readonly kind: EvidenceKind;
+  /** What was said, for a voice proof. The audio itself is never kept (design §9). */
+  readonly transcript: string | null;
   readonly extracted: unknown;
   readonly createdBy: string;
   readonly createdAt: Date;

@@ -63,6 +63,12 @@ export interface RecordExpenseCommand {
   readonly paidBy?: string | null;
   /** Typed unless a voice or receipt flow (Stages 2 and 3) confirms it. Not taken from the API. */
   readonly captureMethod?: CaptureMethod;
+  /**
+   * Expenses already known to be separate purchases, so no "Same purchase?" question is raised against them. Voice
+   * uses it for the other rows of one recording: the speaker said them in one breath and has just confirmed them as
+   * separate, so asking would be noise. Not taken from the API.
+   */
+  readonly knownDistinctIds?: readonly string[];
 }
 
 export interface RecordExpenseResult {
