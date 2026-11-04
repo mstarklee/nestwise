@@ -495,9 +495,14 @@ From the FRD (AC-01 to AC-18) and the sample data:
 ## 9. Open items (not blocking Stage 1)
 
 - **Visual design.** It's parked. A design pass with mockups happens before Stage 1 screens are polished, and until then the screens are plain and functional.
+  - *Update 2026-11-03:* the design pass now comes after Voice and before Photo receipts.
+  - The aim is an app-like feel on phone, tablet and desktop: budgets and upcoming bills first, adding and editing expenses with little effort, and page changes that feel like a mobile app.
+  - You noted a few Home page display items to look at then.
+- **Sign-in (update 2026-11-02).** Sign-in is our own email + password, which replaces §6.1's email codes and Google. Google may come later (TRD §14.4).
+- **AI provider (update 2026-11-03).** The AI provider is OpenAI (TRD §14.3).
 - **Fourth birthday.** The item is named "Fourth family birthday" and can be renamed.
 - **Paid hosting.** A decision on paid hosting plans is needed before Stage 4.
-- **Speech service.** Which speech-to-text service handles Tamil best is decided by the Stage 2 test (see TRD).
+- **Speech service.** Which speech-to-text service handles Tamil best is decided by the Stage 2 test (see TRD). It starts with OpenAI's.
 
 ## 10. FRD traceability
 

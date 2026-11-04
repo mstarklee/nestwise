@@ -7,9 +7,12 @@ owner's own family (two adults, both admins, mainly on iPhone) and will open to 
 
 | File | What it is |
 | --- | --- |
+| `docs/PROGRESS.md` | Where the project stands, in plain words: what is built and live, what waits on the owner, what is next |
 | `docs/NestWise_PRD.md` | What to build and why. §5 has the money model and worked numbers; §7 has the acceptance tests; §8 lists every decision |
 | `docs/NestWise_TRD.md` | How to build it: stack, data model, algorithms, security, auth, PWA, notifications, stages |
 | `docs/superpowers/plans/2026-11-01-nestwise-stage-0-and-1a.md` | The task-by-task build plan: Stage 0 iPhone spike, then Stage 1a tasks 1–15 |
+| `docs/superpowers/specs/2026-11-03-nestwise-stage-1b-design.md`, `docs/superpowers/plans/2026-11-03-nestwise-stage-1b.md` | The approved Stage 1b design and its build plan |
+| `docs/RUNBOOK.md` | Settings, deploying, iPhone setup, the acceptance run, backups, running locally |
 | `docs/NestWise_Sample_Budget_and_Expense_Data.md` | The family's real plan amounts plus **fictional** test transactions |
 | `docs/Family_Budget_Expense_Forecasting_FRD_v1_1.md` | The original FRD |
 
@@ -53,7 +56,10 @@ skills differ on code structure, the skills win.
   prefers numbered questions they can answer by number.
 - **Commits.** Commit only when the owner asks.
 
-## Status (2026-11-03)
+## Status (2026-11-04)
+
+The full picture is in `docs/PROGRESS.md`.
+
 
 - Live at https://nestwise-alpha.vercel.app:
   - Stage 1a (core money model)

@@ -678,18 +678,35 @@ fakes (no mocking library):**
      - the Google sign-in redirect URLs are re-registered;
      - the old address redirects to the new one.
      - No data is lost, because it all lives on the server.
-3. **AI account (assumed):** your key is for **Anthropic (Claude)**. If it turns out to be OpenAI or Google, receipt and parsing calls switch to that provider behind the same adapter.
+3. **AI account (yours, 2026-11-03): OpenAI.** The key is `OPENAI_API_KEY`. Voice parsing (Stage 2) and receipt reading (Stage 3) use OpenAI behind the same adapters. This replaces the earlier assumption of Anthropic (Claude).
+4. **Sign-in (yours, 2026-11-02): our own email + password.**
+   - Users and sessions live in our own tables. Passwords are stored only as scrypt hashes. A session is a random token in an HttpOnly cookie, or a Bearer header for a future native app.
+   - There is no Supabase Auth, no email codes and no Supabase keys; Supabase is only the Postgres host. Google sign-in may come later.
+   - This replaces the email-code and Google sign-in in §7 and the PRD's §6.1.
+5. **Stage 0 result (2026-11-02):**
+   - On your iPhone, in installed mode, these all passed: sign-in, a lock-screen push, and an offline entry that synced once.
+   - Google was not tested (your choice).
+   - Decision: keep the Next.js PWA; no move to Expo.
+6. **Address (2026-11-03):** the app lives at `https://nestwise-alpha.vercel.app`, Vercel project `nestwise`.
+7. **Deploys migrate first (yours, 2026-11-03).**
+   - A production deploy runs `migrate:deploy`, then the build.
+   - Migrations use `PROD_DIRECT_DATABASE_URL`, which is the Supabase session pooler on port 5432; the IPv6 direct host was unreachable from Vercel.
+   - Only `VERCEL_ENV=production` migrates.
+8. **Build order after Stage 1b (yours, 2026-11-03):** Voice, then a UI design pass (the app-like feel on phone, tablet and desktop), then Photo receipts.
 
 ## 15. Stages and exit criteria
 
-| Stage | Contents | Done when |
-|---|---|---|
-| **0 — iPhone spike** (1–2 days, throwaway) | Minimal installed PWA on Vercel: email-code sign-in, Google sign-in, one push notification, an offline outbox entry | On **your iPhone**, in installed mode: both sign-ins work (or the Google limitation is understood), a push arrives, and an offline entry syncs once without a duplicate. **If sign-in or notifications prove unreliable, decide here whether the iPhone app moves to Expo (React Native) before screens are built.** |
-| **1a — Core plan** | Sign-in, setup + plan import, templates, month budgets, year plans, pot + checklist, typed entry (split/refund), forecast, Home, checklist and bill reminders | PRD §7 tests 1–9, 12–14, 16–18 pass in CI; your family is using it daily |
-| **1b — Core complete** | Offline entry, duplicates + Inbox, activity screen, spending alerts, month-end review, year-end review | PRD §7 tests 10, 11, 19 pass; one full month used and the month-end review matches reality |
-| **2 — Voice** | Provider test → voice capture + review | Quality gate met on your 30+ recordings; multiple expenses from one recording (AC-11) |
-| **3 — Receipts** | Photo capture + review | Totals ≥ 90% right on 20+ of your receipts including handwritten; correction flow works (AC-12) |
-| **4 — Public** | Own domain + Resend email (address move, §14), open signup, starter template, caps, export/delete, privacy and terms pages, Google OAuth brand verification, hourly local-time reminders, paid plans | A stranger can sign up, create a family and use everything; another family's data is unreachable; costs are capped |
+Status on 2026-11-04 is in the last column; `docs/PROGRESS.md` has the plain-language version.
+
+| Stage | Contents | Done when | Status (2026-11-04) |
+|---|---|---|---|
+| **0 — iPhone spike** (1–2 days, throwaway) | Minimal installed PWA on Vercel: email-code sign-in, Google sign-in, one push notification, an offline outbox entry | On **your iPhone**, in installed mode: both sign-ins work (or the Google limitation is understood), a push arrives, and an offline entry syncs once without a duplicate. **If sign-in or notifications prove unreliable, decide here whether the iPhone app moves to Expo (React Native) before screens are built.** | **Done** 2026-11-02, with email + password instead of email codes (§14.4); Google not tested; stay on the PWA (§14.5) |
+| **1a — Core plan** | Sign-in, setup + plan import, templates, month budgets, year plans, pot + checklist, typed entry (split/refund), forecast, Home, checklist and bill reminders | PRD §7 tests 1–9, 12–14, 16–18 pass in CI; your family is using it daily | **Built and live** 2026-11-03; the tests pass; daily use waits on the iPhone setup |
+| **1b — Core complete** | Offline entry, duplicates + Inbox, activity screen, spending alerts, month-end review, year-end review | PRD §7 tests 10, 11, 19 pass; one full month used and the month-end review matches reality | **Built and live** 2026-11-03; the tests pass, after an independent review whose 5 serious findings were fixed; the iPhone checks and a full month of use are still to come |
+| **2 — Voice** | Provider test → voice capture + review | Quality gate met on your 30+ recordings; multiple expenses from one recording (AC-11) | **Next** (OpenAI, §14.3) |
+| **Design** (added 2026-11-03) | The app-like look and transitions on phone, tablet and desktop | You approve the screens | After Voice |
+| **3 — Receipts** | Photo capture + review | Totals ≥ 90% right on 20+ of your receipts including handwritten; correction flow works (AC-12) | After the design |
+| **4 — Public** | Own domain + Resend email (address move, §14), open signup, starter template, caps, export/delete, privacy and terms pages, Google OAuth brand verification, hourly local-time reminders, paid plans | A stranger can sign up, create a family and use everything; another family's data is unreachable; costs are capped | Later |
 
 ---
 
