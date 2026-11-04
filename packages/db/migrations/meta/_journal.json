@@ -36,6 +36,13 @@
       "when": 1793701197631,
       "tag": "0004_stage_1b",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793825887079,
+      "tag": "0005_stage_2_capture",
+      "breakpoints": true
     }
   ]
 }
