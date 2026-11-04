@@ -8,6 +8,15 @@ const RESPONSES_URL = 'https://api.openai.com/v1/responses';
 /** The one HTTP call this adapter makes, injected so tests need no key and no network. */
 export type PostJson = (url: string, request: { headers: Readonly<Record<string, string>>; body: string }) => Promise<unknown>;
 
+/** Builds the real caller. Keeps the key here, so the adapter itself never sees one. */
+export function makePostJson(headers: Readonly<Record<string, string>>): PostJson {
+  return async (url, request) => {
+    const response = await fetch(url, { method: 'POST', headers: { ...headers, ...request.headers }, body: request.body });
+    if (!response.ok) throw new Error(`parse service replied ${response.status}`);
+    return response.json();
+  };
+}
+
 type Row = {
   amount_minor: unknown;
   item_id: unknown;
