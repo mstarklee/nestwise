@@ -1,23 +1,26 @@
 'use client';
 
-import { ViewTransition, type ReactNode } from 'react';
+import { useLayoutEffect, useState, type ReactNode } from 'react';
+import { DIRECTION_KEY } from '@/components/nav-link';
+
+const CLASS = { forward: 'nw-enter-forward', back: 'nw-enter-back', tab: 'nw-enter-tab' } as const;
 
 /**
- * Each screen enters and leaves with the motion its link asked for: deeper slides in, Back slides out, tabs fade.
- *
- * OFF by default: in the Playwright WebKit used for the browser test, this wrapper made the page crash when leaving the
- * voice review for Home. It has not been proven safe on a real iPhone yet, so screens just change. Set
- * NEXT_PUBLIC_PAGE_SLIDES=on (Vercel env) after checking on the phone to turn the slides on.
+ * Page motion without view transitions (they crashed the WebKit used for the browser test): the screen that has just
+ * opened slides in from the right when the person went deeper, from the left on Back, and fades in for a tab. The link
+ * that was tapped leaves its direction in sessionStorage; this reads and clears it. No motion on a first load or when
+ * the phone's Reduce Motion is on (globals.css).
  */
 export default function Template({ children }: { children: ReactNode }) {
-  if (process.env.NEXT_PUBLIC_PAGE_SLIDES !== 'on') return <>{children}</>;
-  return (
-    <ViewTransition
-      default="none"
-      enter={{ forward: 'nw-slide-in', back: 'nw-back-in', tab: 'nw-fade-in', default: 'none' }}
-      exit={{ forward: 'nw-slide-out', back: 'nw-back-out', tab: 'nw-fade-out', default: 'none' }}
-    >
-      {children}
-    </ViewTransition>
-  );
+  const [direction, setDirection] = useState<keyof typeof CLASS | null>(null);
+  useLayoutEffect(() => {
+    try {
+      const d = sessionStorage.getItem(DIRECTION_KEY);
+      sessionStorage.removeItem(DIRECTION_KEY);
+      if (d === 'forward' || d === 'back' || d === 'tab') setDirection(d);
+    } catch {
+      /* no storage: the screen simply appears */
+    }
+  }, []);
+  return <div className={direction ? CLASS[direction] : undefined}>{children}</div>;
 }

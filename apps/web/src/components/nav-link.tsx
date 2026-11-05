@@ -4,6 +4,16 @@ import Link from 'next/link';
 import type { ComponentProps, MouseEvent } from 'react';
 
 export const DEPTH_KEY = 'nw-depth';
+/** Which way the next screen should move in: set by the link that was tapped, read by (app)/template.tsx. */
+export const DIRECTION_KEY = 'nw-direction';
+
+export function setDirection(direction: 'forward' | 'back' | 'tab') {
+  try {
+    sessionStorage.setItem(DIRECTION_KEY, direction);
+  } catch {
+    /* no storage */
+  }
+}
 
 /** How many screens deep the app's own history is. Back uses it to tell "go back" from "no earlier screen of ours". */
 export function readDepth(): number {
@@ -26,6 +36,7 @@ export function NavLink({ direction, onClick, ...props }: ComponentProps<typeof 
       e.preventDefault();
       return;
     }
+    setDirection(direction);
   };
   return <Link {...props} transitionTypes={[direction]} onClick={handle} />;
 }

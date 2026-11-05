@@ -23,6 +23,7 @@
 }
 
 body {
+  overflow-x: clip; /* the sliding screen starts off to the side */
   font-family: var(--font-body);
   font-size: 15px;
   line-height: 1.45;
@@ -60,25 +61,10 @@ h3 {
   outline-color: var(--color-gold);
 }
 
-/* Page slides (design spec §4.4), named by (app)/template.tsx. Browsers without view transitions simply change screens. */
-::view-transition-new(.nw-slide-in) {
-  animation: 260ms ease both slide-in-right;
-}
-::view-transition-old(.nw-slide-out) {
-  animation: 260ms ease both slide-out-left;
-}
-::view-transition-new(.nw-back-in) {
-  animation: 260ms ease both slide-in-left;
-}
-::view-transition-old(.nw-back-out) {
-  animation: 260ms ease both slide-out-right;
-}
-::view-transition-new(.nw-fade-in) {
-  animation: 120ms ease both fade-in;
-}
-::view-transition-old(.nw-fade-out) {
-  animation: 120ms ease both fade-out;
-}
+/* Page motion (design spec 4.4): the new screen slides in; see (app)/template.tsx. */
+.nw-enter-forward { animation: 260ms ease both slide-in-right; }
+.nw-enter-back { animation: 260ms ease both slide-in-left; }
+.nw-enter-tab { animation: 120ms ease both fade-in; }
 @keyframes fade-in {
   from { opacity: 0; }
 }

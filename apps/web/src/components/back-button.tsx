@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { backTarget } from '@/client/nav';
 import { Icon } from './icon';
-import { readDepth } from './nav-link';
+import { readDepth, setDirection } from './nav-link';
 
 /**
  * Round Back button. When the app's own history has an earlier screen it goes back there; otherwise (a reminder opened
@@ -24,6 +24,7 @@ export function BackButton() {
       aria-label={t('back')}
       className="on-peacock flex size-11 shrink-0 items-center justify-center rounded-full bg-white/15 text-white transition-transform active:scale-[.97] motion-reduce:transform-none"
       onClick={(e) => {
+        setDirection('back');
         if (readDepth() > 0) {
           e.preventDefault();
           startTransition(() => {
