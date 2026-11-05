@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { Suspense } from 'react';
 import { formatDay, formatMoney } from '@/client/format';
@@ -21,14 +22,29 @@ async function Inbox() {
   const t = await getTranslations('inbox');
   const money = moneyOf(family);
   const exact = (minor: number) => formatMoney(minor, money.currency, money.minorUnit, money.locale);
-  const entries = await makeListInboxUseCase().execute({ actor });
+  const { duplicates, captures } = await makeListInboxUseCase().execute({ actor });
 
   return (
     <div className="space-y-4 py-4">
       <h1 className="text-xl font-semibold">{t('title')}</h1>
       <p className="text-sm text-zinc-600">{t('explain')}</p>
-      {entries.length === 0 && <Card>{t('empty')}</Card>}
-      {entries.map((entry) => (
+      {duplicates.length === 0 && captures.length === 0 && <Card>{t('empty')}</Card>}
+
+      {captures.map((note) => (
+        <Card key={note.batchId} className="space-y-2">
+          <p className="text-sm font-medium">{t('voiceWaiting', { count: note.entries.filter((e) => !e.dropped).length, mine: note.mine ? 'me' : 'family' })}</p>
+          <p className="text-sm text-zinc-600">“{note.transcript}”</p>
+          {note.mine ? (
+            <Link href={`/capture/${note.batchId}`} className="block text-sm text-green-900 underline">
+              {t('voiceCheck')}
+            </Link>
+          ) : (
+            <p className="text-xs text-zinc-500">{t('voiceTheirs')}</p>
+          )}
+        </Card>
+      ))}
+
+      {duplicates.map((entry) => (
         <Card key={entry.matchId} className="space-y-2">
           <p className="text-sm font-medium">
             {t('waiting', { amount: exact(entry.pending.amountMinor), day: formatDay(entry.pending.txnDate, money.locale), mine: entry.pending.enteredBy === actor.userId ? 'me' : 'family' })}

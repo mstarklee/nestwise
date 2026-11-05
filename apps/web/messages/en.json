@@ -110,7 +110,9 @@
     "yearEnd": "Some {year} bills are still open.",
     "openYearEnd": "Answer them",
     "openReview": "See how it went",
-    "openInbox": "Open the Inbox"
+    "openInbox": "Open the Inbox",
+    "speakPrompt": "Had an expense? Say it instead of typing it.",
+    "speak": "Speak an expense"
   },
   "checklist": {
     "title": "This month’s checklist",
@@ -276,7 +278,10 @@
     "title": "Inbox",
     "explain": "These expenses look like repeats. They don’t count until someone answers.",
     "empty": "Nothing waiting.",
-    "waiting": "{mine, select, me {You} other {Someone in your family}} added {amount} on {day}"
+    "waiting": "{mine, select, me {You} other {Someone in your family}} added {amount} on {day}",
+    "voiceWaiting": "{mine, select, me {Your voice note} other {A voice note from your family}}: {count, plural, one {# expense} other {# expenses}} to check",
+    "voiceCheck": "Check it now",
+    "voiceTheirs": "Only the person who recorded it can confirm it."
   },
   "settings": {
     "familyTitle": "Family",
@@ -305,7 +310,11 @@
     "inviteOnce": "Copy it now; it is shown only once.",
     "signedInAs": "Signed in as",
     "install": "Install on iPhone and turn on reminders",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "voiceTitle": "Voice notes this month",
+    "voiceUsed": "{used} of {cap} used",
+    "voiceUsedNoLimit": "{used} used · no limit on this family",
+    "voiceExplain": "At the limit, voice stops and you can still type an expense. Recordings themselves are never kept."
   },
   "install": {
     "title": "Install NestWise",
@@ -391,5 +400,42 @@
       "title": "Items with no month yet",
       "body": "{count, plural, one {# item} other {# items}} ({total}) have no month yet."
     }
+  },
+  "voice": {
+    "title": "Add by voice",
+    "explain": "Tap, then say your expenses in one go — Tamil, English or both. Up to {seconds} seconds.",
+    "example": "For example: \"KPN grocery 250, chicken boneless 500, bike insurance 1500 paid\"",
+    "start": "Tap to speak",
+    "listening": "Listening…",
+    "stop": "I'm done",
+    "stopsItself": "It stops on its own after {seconds} seconds, or when you go quiet.",
+    "working": "Working out what you said…",
+    "needsSignal": "Voice needs a connection. You can still type the expense.",
+    "typeInstead": "Type it instead",
+    "noMic": "We couldn't reach your microphone. Check that NestWise is allowed to use it.",
+    "nothingHeard": "We couldn't hear anything in that recording.",
+    "reviewTitle": "{count, plural, one {Check this one} other {Check these #}}",
+    "reviewExplain": "Nothing is counted until you add it. Change anything that looks wrong.",
+    "youSaid": "You said",
+    "spending": "Spending this month",
+    "bills": "Yearly bills",
+    "amount": "Amount",
+    "amountMissing": "Not heard",
+    "item": "Item",
+    "bill": "Yearly bill",
+    "pickItem": "Pick an item",
+    "pickBill": "Pick a bill",
+    "remove": "Remove",
+    "check": "Please check this one.",
+    "billEffect": "Marks it paid · pot {before} → {after}",
+    "billShort": "{left} will still show as owed",
+    "notYours": "Only the person who recorded this can add it.",
+    "allRemoved": "You have removed every row. Nothing will be added.",
+    "addAll": "{count, plural, one {Add it} other {Add all #}}",
+    "split": "{expenses, plural, =0 {} one {# expense {expenseTotal}} other {# expenses {expenseTotal}}}{bills, plural, =0 {} one { · # bill {billTotal}} other { · # bills {billTotal}}}",
+    "blocked": "{count, plural, one {# row needs an amount and an item} other {# rows need an amount and an item}}",
+    "date": "Date",
+    "discard": "Discard this voice note",
+    "viewerCannot": "A Viewer can look at the family’s money but not add to it, so voice is not available."
   }
 }

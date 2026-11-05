@@ -30,8 +30,8 @@
 | Push | **Web Push (VAPID)** via `web-push` | Works on iPhone 16.4+ once the app is on the home screen |
 | Email | **Gmail SMTP** (your Gmail + an app password) for Stages 1–3; **Resend** on your own domain before Stage 4 | Sign-in codes and backup reminders without needing a domain yet |
 | Scheduled jobs | **Vercel Cron**, daily | Hobby allows only daily jobs, and that's enough for India-only Stages 1–3 |
-| Receipt & voice understanding | **Anthropic Claude API** (`@anthropic-ai/sdk`), model from env, default `claude-opus-5-5` | Reads images including handwriting, and returns structured JSON |
-| Speech-to-text (Tamil/English) | **Pluggable adapter**, chosen in a Stage 2 test between **Sarvam Saaras v3**, **Google Chirp** and **OpenAI gpt-4o-transcribe** | The Claude API does not take audio input; no independent Tamil-English benchmark exists |
+| Receipt & voice understanding | **OpenAI** (§14.3 decision 3), model from `AI_MODEL`, default `gpt-6.1-terra` | Structured JSON out; reads images including handwriting |
+| Speech-to-text (Tamil/English) | **Sarvam Saaras** (`saaras:v4`), chosen 2026-11-05 on the owner's own recordings, behind the pluggable `SpeechToText` port | Cleaner Tamil than OpenAI `gpt-transcribe` on the same clips (§9). The port keeps the switch to a one-line env change |
 | Tests | **Vitest** (unit/integration), **Playwright** (WebKit, iPhone profile) | iPhone Safari is the main target |
 | Package manager | **pnpm** | |
 | Code layout | **pnpm monorepo**: `apps/web` (Next.js), `packages/domain` (business rules), `packages/api-contract` (API shapes), `packages/db` (schema) | A future native app imports the same packages and calls the same API |
@@ -461,37 +461,79 @@ The daily job is Vercel Cron `/api/cron/daily`, authenticated with `CRON_SECRET`
 
 ## 9. Voice capture (Stage 2)
 
+The design that governs this stage is `docs/superpowers/specs/2026-11-04-nestwise-stage-2-voice-design.md` (approved
+2026-11-05). Where this section and that design differ, the design wins.
+
 **Client:**
 
-- Press and hold to record with `MediaRecorder`, max 60 s. iPhone produces `audio/mp4`; about 0.5 MB per minute at 64 kbps.
-- The audio is sent as `multipart/form-data` to `/api/v1/capture/voice`. Vercel's 4.5 MB request limit is not a concern at this size.
+- **Tap to start, tap to stop** with `MediaRecorder`; it also stops itself at the limit and after a few seconds of
+  silence. iPhone produces `audio/mp4`; about 0.5 MB per minute at 64 kbps.
+- **The limit follows the chosen service: 60 s on OpenAI, 30 s on Sarvam**, whose quick endpoint stops there.
+  **Sarvam was chosen, so the limit in force is 30 seconds.** Going back to 60 on Sarvam means splitting a long clip
+  at a silence gap and stitching the text — built only if the owner asks for it (plan Task 14).
+  `maxClipSeconds()` in `apps/web/src/capture/clip-limits.ts` is the one place that number lives, and the browser and
+  the route both read it.
+- The audio and the recorded duration are sent as `multipart/form-data` to `/api/v1/capture/voice`. Vercel's 4.5 MB
+  request limit is not a concern at this size.
 
 **Server, in order:**
 
-1. `requireActor`, then the capture use case checks the role (member+), the cap and the rate limit.
-2. Transcribe: `SpeechToText.transcribe(audio, mime, { languages: ['ta-IN','en-IN'] }) → { text }`.
-   - The adapter is chosen by `STT_PROVIDER`.
-   - The audio buffer is discarded after this call.
-3. **Parse** with Claude:
-   - The system prompt holds the family's live item list (id, name, group, kind), today's date, the currency and its minor unit.
-   - Rules: interpret Tamil number words (*nooru* = 100, *aayiram* = 1,000, *irunooru* = 200) and handle Tamil script or romanised Tamil.
-   - Several expenses per recording are allowed.
-   - Never invent an amount. If an expense isn't clear, return it with `amount_minor: null` and low confidence.
-   - Output uses **structured outputs** (`output_config.format`, JSON schema): `{ expenses: [{ amount_minor|null, item_id|null, date (YYYY-MM-DD), merchant|null, note, confidence: { amount: 0–1, item: 0–1 } }] }`.
-4. Create `pending` transactions with `capture_method = voice`, plus an evidence row holding the transcript.
-5. Return them for the review screen.
+1. `requireActor`; the route checks the clip length against `maxClipSeconds()` (the only place a duration is known
+   before the audio is decoded), then the capture use case checks `record_expense` and the monthly cap. **There is no
+   per-minute rate limit** — the cap bounds the spend, and a limiter is deferred to Stage 4.
+2. Transcribe: `SpeechToText.transcribe(audio, mime, { languages: ['ta','en'] }) → { text, model, seconds }`.
+   - The adapter is chosen by `STT_PROVIDER`; the key is `STT_API_KEY`.
+   - OpenAI takes `languages` as a list, so Tamil *and* English are declared together. Saaras takes a single
+     `language_code`, so a multi-language request is sent as `unknown` and left to it to detect.
+   - The audio buffer is not referenced again after this call.
+3. **Parse** with OpenAI (§10.2):
+   - The system prompt holds the family's live item list (id, name, group) and this year's **open** bill lines, today's
+     date, the currency and its minor unit. A bill already done or cancelled is left out, so voice cannot pay it twice.
+   - Rules: interpret Tamil number words (*nooru* = 100, *irunooru* = 200, *aayiram* = 1,000), Tamil script or
+     romanised. A quantity is never the amount. A spoken count ("three entries") is a hint, not a rule.
+   - Several expenses per recording are allowed, and a bill payment is one of the kinds.
+   - Never invent an amount or a date. If an expense isn't clear, return it with `amount_minor: null` and low
+     confidence. An id the family does not have is dropped and its confidence zeroed.
+   - Output uses **OpenAI structured outputs** (`text.format` = `{ type: 'json_schema', strict: true }`):
+     `{ expenses: [{ amount_minor|null, item_id|null, year_line_id|null, kind, date, merchant|null, note, heard, confidence: { amount, item } }] }`.
+4. Write the batch to the **staging store** (`capture_batches` / `capture_entries`) — **not** `pending` transactions.
+   An entry whose amount was not heard cannot be a transaction at all (`transactions.amount_minor` is
+   `NOT NULL CHECK > 0`), and `status = 'pending'` already means "waiting for a duplicate answer" in Stage 1b.
+5. Return it for the review screen. Real transactions are written at **confirm**, through `RecordExpenseUseCase`, with
+   one `evidence` row of kind `voice` per transaction carrying the transcript.
 
 Any entry with a null or low-confidence field gets that field highlighted, and nothing is confirmed without a tap.
+**Only the person who recorded a batch may confirm it**; the other adult sees it waiting in the Inbox.
+
+**A bill payment** is an allocation against the yearly item carrying its `plan_year`. It is never a write to the
+line's state: `MarkYearLineDoneUseCase` zeroes whatever is still owed, which on a short payment would drop the
+remainder out of the forecast.
 
 **Choosing the provider (Stage 2, step 1):**
 
-- **Recordings.** You and your spouse record **≥ 30** real expense notes: kitchen, market, car, mixed Tamil/English, numbers said both ways.
+- **Recordings.** You and your spouse record a handful first (5–6), then **≥ 30** real expense notes: kitchen, market,
+  car, mixed Tamil/English, numbers said both ways, and one over 30 s.
 - **Expected results** are written down by hand.
-- **Running the test.** `scripts/voice-eval.ts` runs each candidate (Sarvam Saaras v3, Google Chirp, OpenAI gpt-4o-transcribe) through the full pipeline and reports how often the amount and the item are right.
-- **Pass mark** (PRD): amount ≥ 90%, item ≥ 80%. Pick the best passing provider; if accuracy is close, pick on cost.
-- **Privacy.** The recordings are personal: they are kept **outside git**, in a local folder or private storage.
-- **Sarvam's Saarika v2.5 is being deprecated.** Target Saaras v3.
-- **Accounts.** Before the test, you create trial accounts with the three providers and put their keys in the env. I can't create accounts on your behalf.
+- **Running the test.** `pnpm voice-eval --audio <folder outside the repo>` runs both candidates through the full
+  pipeline — and both parse models over each transcript — and reports how often the amount and the item are right,
+  with the cost. See `scripts/voice-eval.README.md`.
+- **Pass mark** (PRD): amount ≥ 90%, item ≥ 80%. It is Stage 2's **exit criterion**, not a stop in the middle of the
+  build: the eval needs the adapters and the prompt to exist, and the 30+ set needs both adults.
+- **Privacy.** The recordings are personal: they are kept **outside git**, in a local folder. The script refuses a
+  path inside the repository.
+- **Candidates: OpenAI and Sarvam.** Google Chirp was dropped by the owner (2026-11-05) rather than open a third
+  account. If both miss the gate on Tamil, look at ElevenLabs Scribe and Google Chirp before building further.
+- **Result (2026-11-05), on four of the owner's recordings:** amounts **11/11 on both** services; Tamil number words
+  read correctly by both. Sarvam's raw Tamil was consistently cleaner (number-word spelling, "KPN" as an acronym,
+  word endings, amounts normalised to digits), so **Sarvam was chosen**. The remaining single item miss moved between
+  rows run to run and landed on "snacks", which has no home in the family's plan — model variability on an ambiguous
+  category, not a hearing problem. **The noisy and long clips were never recorded**, so the services were not
+  separated under the hardest conditions.
+- **Key resolution.** `speechKeyFor` prefers a service's own name (`SARVAM_API_KEY`, `OPENAI_API_KEY`) over the shared
+  `STT_API_KEY`, so the key the owner pasted under a service's name is found without copying it twice, and one
+  service's key can never be sent to the other.
+- **Accounts.** `OPENAI_API_KEY` lives in the repo-root `.env.local`; `SARVAM_API_KEY` in `apps/web/.env.local`. The
+  eval loads both. I can't create accounts on your behalf.
 
 ---
 
@@ -514,27 +556,48 @@ Any entry with a null or low-confidence field gets that field highlighted, and n
   - Fields below 0.8 confidence are highlighted.
   - If the photo isn't readable, the screen asks for the amount instead.
 
-### 10.2 Claude settings
+### 10.2 OpenAI settings
 
-- **Model:** `AI_MODEL`, default `claude-opus-5-5`.
-- **Effort:** `AI_EFFORT`, default `low` for these extraction calls. Opus 5.5 always thinks, and effort is the control.
-- **Refusals:** handle `stop_reason: "refusal"`, and enable the API's server-side fallback (`fallbacks: "default"` with the `server-side-fallback-2026-07-01` beta). Treat a refusal as "couldn't read — enter manually".
-- **Output:** use `client.messages.parse()` with a Zod schema. Keep the system prompt and item list as a stable prefix so prompt caching applies.
-- **Code calls** follow the current Anthropic TypeScript SDK docs at build time.
+Replaces the Anthropic settings this section used to describe (§14.3 decision 3).
+
+- **Endpoint:** `POST https://api.openai.com/v1/responses`.
+- **Model:** `AI_MODEL`, default **`gpt-6.1-terra`** ($1.00 / $5.00 per million tokens — flagship-tier at a tenth of
+  the flagship price). `gpt-6-luna` is the cheap alternative and `scripts/voice-eval.ts` reports both, so the choice
+  is made on the family's own recordings rather than on a guess.
+- **Output:** **structured outputs** — `text.format` = `{ type: 'json_schema', name, schema, strict: true }`, with
+  `additionalProperties: false` and every key in `required`. The JSON arrives as a string in the `output_text` content
+  part of the `message` output item, and is parsed by us.
+- **Refusals and cut-offs:** a `refusal` content part, or `status: 'incomplete'` (reason in `incomplete_details`), both
+  mean "couldn't read it — type it instead". So does an unparseable body. The error message never carries the
+  transcript or the audio.
+- **Caching:** keep the system prompt and the item list as a stable prefix, so OpenAI's prompt caching applies (the
+  cached-input rate is a tenth of fresh input).
+- **Speech-to-text** is a separate call, `POST /v1/audio/transcriptions` with `model=gpt-transcribe` (§9). The 4o
+  transcription models and `whisper-1` are deprecated, shutting down 26 February 2027 — do not build on them.
+- **`AI_EFFORT`** is carried in the env for Stage 3's use; the voice parse does not set it.
+- **Code calls** follow the current OpenAI API docs at build time. Model names move fast: the ones above were checked
+  on 2026-11-05.
 
 ### 10.3 Cost (rough, for planning)
 
-At $4 / $20 per million input/output tokens for `claude-opus-5-5`:
+Checked against OpenAI's pricing page on 2026-11-05. `gpt-6.1-terra` is $1.00 / $5.00 per million input/output
+tokens; `gpt-6-luna` is $0.10 / $0.50.
 
-- **A receipt** is ≈ 3k input + ≤ 1k output tokens, so ≈ **$0.02–0.03**.
-- **A voice parse** is ≈ 1.5k input + 0.5k output, so ≈ **$0.015**. Speech-to-text is extra, a few cents per minute depending on the provider.
-- **Your family**, at ~150 receipts + ~150 voice notes a month, comes to **≈ $5–10 / month**.
-- **Cheaper model option.** `claude-haiku-5-5` ($0.10 / $0.50) would cost about 1/40th. **That's your decision, not mine.** It's a one-line env change, and should be made only after the Stage 3 accuracy test shows it reads your receipts well enough.
+- **A voice parse** is ≈ 1.5k input + 0.5k output, so ≈ **$0.004** on `gpt-6.1-terra`, ≈ **$0.0004** on `gpt-6-luna`.
+- **Speech-to-text** is ≈ **$0.0045/minute** on OpenAI and ≈ **₹0.49/minute** on Sarvam — within pennies of each
+  other, so accuracy decides the provider and cost does not.
+- **A receipt** is ≈ 3k input + ≤ 1k output, so ≈ **$0.008** on `gpt-6.1-terra`.
+- **Your family**, at ~150 receipts + ~150 voice notes a month, comes to **well under $2 / month** — about ₹150.
+  Voice alone is under a dollar.
+- **Cheaper model option.** `gpt-6-luna` costs about a tenth. **That's your decision, not mine.** It's a one-line env
+  change, and `scripts/voice-eval.ts` reports both models side by side so it can be made on evidence.
+
+*Superseded:* this section previously assumed `claude-opus-5-5` and quoted $5–10 / month.
 
 ### 10.4 Caps (Stage 4)
 
 - **Starting numbers** (env-configurable):
-  - `CAP_VOICE_PER_MONTH = 100` recordings (max 60 s each)
+  - `CAP_VOICE_PER_MONTH = 400` recordings (max 60 s on OpenAI, 30 s on Sarvam — see §9)
   - `CAP_RECEIPTS_PER_MONTH = 60`
 - **Your family** is exempt via `UNCAPPED_FAMILY_IDS`.
 - **Visibility and fallback.** Usage shows in Settings. At the cap, voice and photo buttons explain the limit, and typed entry keeps working.
@@ -627,9 +690,10 @@ fakes (no mocking library):**
 | `SUPABASE_SERVICE_ROLE_KEY` (or secret key) | server only: storage signing, admin auth ops |
 | `DATABASE_URL` | pooler (transaction mode); Drizzle with `prepare: false` |
 | `DIRECT_DATABASE_URL` | migrations |
-| `ANTHROPIC_API_KEY` | **you add this** |
-| `AI_MODEL` (default `claude-opus-5-5`), `AI_EFFORT` (default `low`) | |
+| `OPENAI_API_KEY` | **you add this** (§14.3 decision 3) |
+| `AI_MODEL` (default `gpt-6.1-terra`), `AI_EFFORT` | |
 | `STT_PROVIDER`, `STT_API_KEY` | Stage 2, after the test |
+| `SARVAM_API_KEY`, `SARVAM_STT_MODEL` | Stage 2 comparison only; local, never production |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | push |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` (Gmail app password), `EMAIL_FROM` | email for Stages 1–3. Before Stage 4, `RESEND_API_KEY` replaces the SMTP settings. |
 | `CRON_SECRET` | protects `/api/cron/daily` |
@@ -661,7 +725,7 @@ fakes (no mocking library):**
 
 **Running cost:**
 
-- **Stages 1–3: ~$0 for hosting**, plus AI usage of ~$5–10 a month, with no domain until Stage 4 (then ≈ ₹800–1,000 a year).
+- **Stages 1–3: ~$0 for hosting**, plus AI usage of **well under $2 a month** (§10.3, checked 2026-11-05), with no domain until Stage 4 (then ≈ ₹800–1,000 a year).
 - **Stage 4:** likely Supabase Pro ($25/mo) and possibly Vercel Pro ($20/mo), plus capped AI.
 
 ---

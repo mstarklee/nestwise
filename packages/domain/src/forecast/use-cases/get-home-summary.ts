@@ -1,3 +1,4 @@
+import type { CaptureGateway } from '../../capture/ports';
 import type { GetMonthSummaryUseCase, MonthStatusGateway } from '../../month-budget';
 import type { GetChecklistUseCase } from '../../pot';
 import { addMonths, assertCan } from '../../shared';
@@ -18,24 +19,27 @@ export class GetHomeSummaryUseCase {
     private readonly months: MonthStatusGateway,
     private readonly yearPlans: YearPlanGateway,
     private readonly yearEnd: GetYearEndReviewUseCase,
+    private readonly captures: CaptureGateway,
   ) {}
 
   async execute(command: ForecastCommand): Promise<HomeSummary> {
     assertCan(command.actor, 'read');
     const forecast = await this.forecast.execute(command);
     const current = forecast.months[0]!.period;
-    const [checklist, month, lastMonth, nextYear, lastYear] = await Promise.all([
+    const [checklist, month, lastMonth, nextYear, lastYear, waitingNotes] = await Promise.all([
       this.checklist.execute({ actor: command.actor, period: current }),
       this.monthSummary.execute({ actor: command.actor, period: current }),
       this.months.statusOf(command.actor.familyId, addMonths(current, -1)),
       current.month === 12 ? this.yearPlans.findByYear(command.actor.familyId, current.year + 1) : undefined,
       this.yearEnd.execute({ actor: command.actor, year: current.year - 1 }),
+      this.captures.listWaiting(command.actor.familyId),
     ]);
 
     const red = forecast.months.find((m) => m.endMinor < 0);
     const cards: HomeCard[] = [];
     if (checklist.pot.status === 'pending' || checklist.savings.some((s) => s.status === 'pending')) cards.push('checklist');
     if (forecast.undated.some((u) => u.count > 0)) cards.push('undated');
+    if (waitingNotes.length > 0) cards.push('capture');
     if (lastMonth === 'active') cards.push('month_review');
     if (nextYear && nextYear.nextYearReviewedAt === null) cards.push('next_year');
     if (lastYear.lines.length > 0) cards.push('year_end');

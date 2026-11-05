@@ -12,6 +12,7 @@ export class DrizzleEvidenceGateway implements EvidenceGateway {
       familyId: proof.familyId,
       transactionId: proof.transactionId,
       kind: proof.kind,
+      transcript: proof.transcript,
       // A merged-entry snapshot is the whole expense as it was; JSON keeps its dates as ISO strings.
       extracted: JSON.parse(JSON.stringify(proof.extracted)) as unknown,
       createdBy: proof.createdBy,

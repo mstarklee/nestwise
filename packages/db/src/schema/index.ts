@@ -1,6 +1,7 @@
 export * from './app-schema';
 export * from './auth';
 export * from './budgets';
+export * from './capture';
 export * from './families';
 export * from './history';
 export * from './money';

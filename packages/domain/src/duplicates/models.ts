@@ -1,3 +1,4 @@
+import type { CaptureEntry } from '../capture/models';
 import type { Transaction } from '../expenses';
 import type { Actor } from '../shared';
 
@@ -27,6 +28,8 @@ export interface Evidence {
   readonly familyId: string;
   readonly transactionId: string | null;
   readonly kind: EvidenceKind;
+  /** What was said, for a voice proof. The audio itself is never kept (design §9). */
+  readonly transcript: string | null;
   readonly extracted: unknown;
   readonly createdBy: string;
   readonly createdAt: Date;
@@ -51,4 +54,26 @@ export interface InboxEntry {
   readonly pending: Transaction;
   readonly other: Transaction;
   readonly reasons: readonly DuplicateReason[];
+}
+
+/**
+ * A spoken note still waiting to be checked (design §8). `mine` is false for the other adult: they can see that it
+ * is waiting, and whose it is, but only its speaker may confirm it.
+ */
+export interface WaitingCapture {
+  readonly batchId: string;
+  readonly createdBy: string;
+  readonly mine: boolean;
+  readonly transcript: string;
+  readonly entries: readonly CaptureEntry[];
+  readonly createdAt: Date;
+}
+
+/**
+ * Everything waiting for a human yes (PRD §4), kept as two lists rather than one mixed one: a duplicate question
+ * and a spoken note look different on screen, and only one of them is the viewer's to answer.
+ */
+export interface Inbox {
+  readonly duplicates: readonly InboxEntry[];
+  readonly captures: readonly WaitingCapture[];
 }

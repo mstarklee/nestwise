@@ -7,5 +7,6 @@ export * from './pot';
 export * from './expenses';
 export * from './duplicates';
 export * from './activity';
+export * from './capture';
 export * from './forecast';
 export * from './reminders';

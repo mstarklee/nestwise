@@ -1,4 +1,4 @@
-import { findDuplicateCandidates } from '../../duplicates/rules';
+import { findDuplicateCandidates, pairKey } from '../../duplicates/rules';
 import type { FamilyGateway, MembershipGateway } from '../../family';
 import type { EnsureMonthBudgetUseCase } from '../../month-budget';
 import type { PlanGateway } from '../../plan';
@@ -72,7 +72,9 @@ export class RecordExpenseUseCase {
 
     return this.uow.run(async ({ transactions, activity, duplicates, months }) => {
       const near = await transactions.listNear(familyId, txnDate, transaction.amountMinor, kind);
-      const candidates = findDuplicateCandidates(transaction, near, await duplicates.differentPairsFor(familyId, transaction.id));
+      const answeredDifferent = new Set(await duplicates.differentPairsFor(familyId, transaction.id));
+      for (const siblingId of command.knownDistinctIds ?? []) answeredDifferent.add(pairKey(transaction.id, siblingId));
+      const candidates = findDuplicateCandidates(transaction, near, answeredDifferent);
       const first = [...candidates].sort((x, y) => x.other.createdAt.getTime() - y.other.createdAt.getTime() || x.other.id.localeCompare(y.other.id))[0];
       const saved: Transaction = first ? { ...transaction, status: 'pending' } : transaction;
       if (!(await transactions.insert(saved))) {

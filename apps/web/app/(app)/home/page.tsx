@@ -23,6 +23,7 @@ async function Home() {
   const t = await getTranslations('home');
   const tStatus = await getTranslations('status');
   const [home, inbox] = await Promise.all([makeGetHomeSummaryUseCase().execute({ actor }), makeListInboxUseCase().execute({ actor })]);
+  const waitingCount = inbox.duplicates.length + inbox.captures.length;
   const { checklist } = home;
   const money = moneyOf(family);
   const rounded = (minor: number) => formatMoneyRounded(minor, money.currency, money.minorUnit, money.locale);
@@ -80,11 +81,20 @@ async function Home() {
         </Card>
       )}
 
-      {inbox.length > 0 && (
+      {waitingCount > 0 && (
         <Card>
-          <p className="text-sm">{t('inboxCount', { count: inbox.length })}</p>
+          <p className="text-sm">{t('inboxCount', { count: waitingCount })}</p>
           <Link href="/inbox" className="mt-1 block text-sm text-green-900 underline">
             {t('openInbox')}
+          </Link>
+        </Card>
+      )}
+
+      {actor.role !== 'viewer' && (
+        <Card>
+          <p className="text-sm">{t('speakPrompt')}</p>
+          <Link href="/capture" className="mt-1 block text-sm font-medium text-green-900 underline" data-testid="home-voice">
+            {t('speak')}
           </Link>
         </Card>
       )}

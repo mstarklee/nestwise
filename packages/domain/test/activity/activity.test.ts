@@ -88,7 +88,7 @@ describe('ListLedgerUseCase', () => {
     ]) {
       await transactions.insert(x);
     }
-    await uow.evidence.add({ id: 'p1', familyId: 'f1', transactionId: 'a', kind: 'merged_entry', extracted: {}, createdBy: 'u1', createdAt: new Date() });
+    await uow.evidence.add({ id: 'p1', familyId: 'f1', transactionId: 'a', kind: 'merged_entry', transcript: null, extracted: {}, createdBy: 'u1', createdAt: new Date() });
     return new ListLedgerUseCase(transactions, uow.evidence);
   }
 

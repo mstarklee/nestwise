@@ -3,6 +3,7 @@ import type { Db } from '@nestwise/db';
 import {
   AddItemUseCase,
   ArchiveItemUseCase,
+  EnsureMiscellaneousItemUseCase,
   GetTemplatesUseCase,
   ImportPlanUseCase,
   ReorderItemsUseCase,
@@ -30,3 +31,7 @@ export const makeArchiveItemUseCase = (db: Db = getDb()) =>
 
 export const makeReorderItemsUseCase = (db: Db = getDb()) =>
   new ReorderItemsUseCase(new DrizzlePlanUnitOfWork(db), new DrizzlePlanGateway(db), systemClock);
+
+/** Called only from voice capture, which has already checked the role; never give this one a route of its own. */
+export const makeEnsureMiscellaneousItemUseCase = (db: Db = getDb()) =>
+  new EnsureMiscellaneousItemUseCase(new DrizzlePlanUnitOfWork(db), new DrizzlePlanGateway(db), uuidIds, systemClock);

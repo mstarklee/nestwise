@@ -2,6 +2,7 @@ import 'server-only';
 import type { Db } from '@nestwise/db';
 import { GetForecastUseCase, GetHomeSummaryUseCase } from '@nestwise/domain/forecast';
 import type { Clock } from '@nestwise/domain/shared';
+import { DrizzleCaptureGateway } from '../adapters/capture/drizzle-capture-gateway';
 import { DrizzleFamilyGateway } from '../adapters/family/drizzle-family-gateway';
 import { DrizzleMonthBudgetGateway } from '../adapters/month-budget/drizzle-month-budget-gateway';
 import { DrizzlePlanGateway } from '../adapters/plan/drizzle-plan-gateway';
@@ -33,4 +34,5 @@ export const makeGetHomeSummaryUseCase = (db: Db = getDb()) =>
     new DrizzleMonthBudgetGateway(db),
     new DrizzleYearPlanGateway(db),
     makeGetYearEndReviewUseCase(db),
+    new DrizzleCaptureGateway(db),
   );

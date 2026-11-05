@@ -14,7 +14,8 @@
     "migrate": "pnpm --filter @nestwise/db migrate",
     "e2e": "pnpm --filter web e2e",
     "import-plan": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/import-plan.ts",
-    "seed:dev": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/seed-dev.ts"
+    "seed:dev": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/seed-dev.ts",
+    "voice-eval": "node --env-file-if-exists=.env.local --env-file-if-exists=apps/web/.env.local --conditions=react-server --import tsx scripts/voice-eval.ts"
   },
   "devDependencies": {
     "@nestwise/db": "workspace:*",

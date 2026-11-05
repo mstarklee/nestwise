@@ -380,10 +380,21 @@ iPhone has no automatic "install" button for web apps. So:
 
 ### Stage 2 — Voice (FR-039, AC-11)
 
-- **Recording:** press and hold to record, up to 60 seconds, in Tamil, English or both mixed.
+- **Recording:** **tap to start, tap to stop** (owner, 2026-11-05 — a four-item note takes about 15 seconds, too long
+  to hold a thumb down while carrying shopping). It stops itself at the limit and after a few seconds of silence.
+  Tamil, English or both mixed.
+  - **Up to 30 seconds.** Sarvam was chosen as the speech service on 2026-11-05, and its quick endpoint stops there.
+    (OpenAI would have allowed 60.) A four-item note takes about 15 seconds, so 30 covers roughly eight items.
   - Example: *"pazham 200, kaaikari 300, tea 23, petrol 300"*.
 - **Several expenses per recording.** Each becomes a proposed entry (amount, item, date) on a review screen. The user fixes anything wrong and confirms them in one go.
-- **Nothing counts until confirmed.**
+- **A yearly bill can be ticked off by voice** (owner, 2026-11-05): *"bike insurance 1500 paid"* records the payment
+  against that bill, which moves the pot and the 12-month forecast. The row shows the pot before and after, and a
+  short payment leaves the rest owed.
+- **Savings and the pot deposit are not done by voice** (owner, 2026-11-05): they already take one tap on the
+  1st-of-month checklist.
+- **Nothing counts until confirmed**, and **only the person who recorded a note may confirm it** (owner, 2026-11-05).
+  The other adult sees it waiting in the Inbox.
+- **Voice needs a signal.** With none, the button says so and offers typing; no recordings are stored for later.
 - **The audio is deleted once it's been transcribed.** The text is kept as proof.
 - **Quality gate before polishing.**
   - First test on at least 30 real recordings from both of you, in real places: kitchen, market, car, with background noise.
@@ -502,7 +513,10 @@ From the FRD (AC-01 to AC-18) and the sample data:
 - **AI provider (update 2026-11-03).** The AI provider is OpenAI (TRD §14.3).
 - **Fourth birthday.** The item is named "Fourth family birthday" and can be renamed.
 - **Paid hosting.** A decision on paid hosting plans is needed before Stage 4.
-- **Speech service.** Which speech-to-text service handles Tamil best is decided by the Stage 2 test (see TRD). It starts with OpenAI's.
+- ~~**Speech service.**~~ **Settled (owner, 2026-11-05): Sarvam Saaras.** Four of the family's own recordings went
+  through both candidates. Both got 11/11 on amounts and read Tamil number words correctly; Sarvam's Tamil was
+  consistently cleaner, so it was chosen on hearing quality, accepting a 30-second recording limit instead of 60.
+  Google Chirp was dropped rather than open a third trial account. Switching is a one-line env change (TRD §9).
 
 ## 10. FRD traceability
 

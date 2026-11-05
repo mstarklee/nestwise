@@ -3,6 +3,7 @@ export * from './models';
 export * from './ports';
 export { AddItemUseCase } from './use-cases/add-item';
 export { ArchiveItemUseCase } from './use-cases/archive-item';
+export { EnsureMiscellaneousItemUseCase, MISCELLANEOUS_NAME, MISCELLANEOUS_SEED_KEY } from './use-cases/ensure-miscellaneous-item';
 export { GetTemplatesUseCase } from './use-cases/get-templates';
 export { ImportPlanUseCase } from './use-cases/import-plan';
 export { ReorderItemsUseCase } from './use-cases/reorder-items';
