@@ -1,0 +1,14 @@
+node_modules
+**/node_modules
+.next
+.next-*
+**/.next
+**/.next-*
+**/test-results
+**/playwright-report
+spikes
+.superpowers
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
