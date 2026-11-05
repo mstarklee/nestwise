@@ -24,7 +24,7 @@ function useAction() {
     }
   }
   const alert = error && (
-    <p role="alert" className="text-sm text-red-700">
+    <p role="alert" className="text-[13.5px] font-semibold text-rani">
       {error}
     </p>
   );
@@ -36,7 +36,7 @@ export function CloseMonthButton({ ym, label }: { ym: string; label: string }) {
   const { busy, run, alert } = useAction();
   return (
     <div className="space-y-2">
-      <Button className="w-full" disabled={busy} onClick={() => run(() => api('POST', `/api/v1/months/${ym}/close`))}>
+      <Button size="lg" className="w-full" disabled={busy} onClick={() => run(() => api('POST', `/api/v1/months/${ym}/close`))}>
         {label}
       </Button>
       {alert}

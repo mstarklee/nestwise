@@ -1,4 +1,5 @@
 import { useTranslations } from 'next-intl';
+import { DetailHeader } from '@/components/screen-header';
 import { Card, CardTitle } from '@/components/ui/card';
 import { RemindersButton } from './reminders-button';
 
@@ -6,11 +7,11 @@ import { RemindersButton } from './reminders-button';
 export default function InstallPage() {
   const t = useTranslations('install');
   return (
-    <div className="space-y-4 py-4">
-      <h1 className="text-xl font-semibold">{t('title')}</h1>
+    <div className="mx-auto max-w-xl space-y-4">
+      <DetailHeader title={t('title')} />
       <Card>
         <CardTitle>{t('stepsTitle')}</CardTitle>
-        <ol className="list-decimal space-y-1 pl-5 text-sm">
+        <ol className="list-decimal space-y-2 pl-5 text-[15px]">
           <li>{t('step1')}</li>
           <li>{t('step2')}</li>
           <li>{t('step3')}</li>
@@ -19,7 +20,7 @@ export default function InstallPage() {
       </Card>
       <Card>
         <CardTitle>{t('remindersTitle')}</CardTitle>
-        <p className="mb-2 text-sm text-zinc-600">{t('remindersIntro')}</p>
+        <p className="mb-3 text-[14px] text-muted">{t('remindersIntro')}</p>
         <RemindersButton />
       </Card>
     </div>

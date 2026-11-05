@@ -28,14 +28,14 @@ export function OutboxFailures({ money, userId }: { money: Money; userId: string
   return (
     <Card id="outbox" className="space-y-2">
       <CardTitle>{t('failedTitle')}</CardTitle>
-      <p className="text-sm text-zinc-600">{t('failedExplain')}</p>
-      <ul className="divide-y divide-zinc-100">
+      <p className="text-[13.5px] text-muted">{t('failedExplain')}</p>
+      <ul className="divide-y divide-line">
         {failed.map((entry) => (
-          <li key={entry.id} className="flex items-center justify-between gap-2 py-2 text-sm">
+          <li key={entry.id} className="flex items-center justify-between gap-2 py-2 text-[13.5px]">
             <span>
               {formatMoney(Number(entry.body.amountMinor), money.currency, money.minorUnit, money.locale)}
-              {typeof entry.body.txnDate === 'string' && ` · ${formatDay(entry.body.txnDate, money.locale)}`}
-              <span className="block text-red-700">{errorText(new ApiError(entry.error?.status ?? 0, entry.error?.code ?? 'ServerError', ''))}</span>
+              {typeof entry.body.txnDate === 'string' && ` ${formatDay(entry.body.txnDate, money.locale)}`}
+              <span className="block text-rani">{errorText(new ApiError(entry.error?.status ?? 0, entry.error?.code ?? 'ServerError', ''))}</span>
             </span>
             <Button size="sm" variant="outline" onClick={() => void outbox(userId).discard(entry.id)}>
               {t('discard')}

@@ -1,7 +1,6 @@
 'use client';
 
 import { parseMinor, sumMinor } from '@nestwise/domain/shared';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { type FormEvent, useRef, useState } from 'react';
@@ -10,6 +9,8 @@ import { formatDay, formatMoney } from '@/client/format';
 import { newId } from '@/client/new-id';
 import { outbox } from '@/client/outbox';
 import { Button } from '@/components/ui/button';
+import { NavLink } from '@/components/nav-link';
+import { Sheet } from '@/components/sheet';
 import { DuplicateQuestion, type DuplicateQuestionProps } from '@/components/duplicate-question';
 import { Card } from '@/components/ui/card';
 import { Input, Label, Select } from '@/components/ui/input';
@@ -140,14 +141,29 @@ export function AddExpenseForm({ today, money, monthly, yearly, userId }: { toda
     </Select>
   );
 
+  const sign = new Intl.NumberFormat(money.locale, { style: 'currency', currency: money.currency }).formatToParts(0).find((p) => p.type === 'currency')?.value ?? '';
+
   return (
-    <form onSubmit={submit} className="space-y-4 py-4">
-      <h1 className="text-xl font-semibold">{t('title')}</h1>
-      <Card className="space-y-4">
-        <div>
-          <Label htmlFor="amount">{t('amount')}</Label>
-          <Input id="amount" name="amount" inputMode="decimal" autoComplete="off" required />
+    <form onSubmit={submit} className="space-y-4 pb-2">
+      <Card>
+        <Label htmlFor="amount">{t('amount')}</Label>
+        <div className="flex items-center gap-2">
+          <span aria-hidden="true" className="money text-[30px] font-bold text-muted">
+            {sign}
+          </span>
+          <Input
+            id="amount"
+            name="amount"
+            inputMode="decimal"
+            autoComplete="off"
+            required
+            placeholder={t('amountPlaceholder')}
+            className="money min-h-14 min-w-0 flex-1 rounded-chip bg-transparent px-0 text-[40px] font-extrabold leading-none focus:ring-0 focus-visible:outline-none"
+          />
         </div>
+      </Card>
+
+      <Card className="space-y-3">
         {parts.map((part, index) => (
           <div key={part.key} className="flex gap-2">
             <div className="flex-1">{itemSelect(part, index)}</div>
@@ -162,16 +178,20 @@ export function AddExpenseForm({ today, money, monthly, yearly, userId }: { toda
             )}
           </div>
         ))}
-        <Button type="button" size="sm" variant="ghost" onClick={() => setParts([...parts, { key: Date.now(), itemId: '', amount: '' }])}>
+        <Button type="button" size="sm" variant="ghost" className="-ml-3" onClick={() => setParts([...parts, { key: Date.now(), itemId: '', amount: '' }])}>
           {t('split')}
         </Button>
         <div>
           <Label htmlFor="date">{t('date')}</Label>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
             <Input id="date" name="date" type="date" defaultValue={today} required ref={dateInput} />
-            <Button type="button" size="sm" variant="outline" onClick={() => dateInput.current && (dateInput.current.value = dayBefore(today))}>
+            <button
+              type="button"
+              className="min-h-11 shrink-0 rounded-full bg-mist px-4 text-[13.5px] font-semibold text-peacock transition-transform active:scale-[.97] motion-reduce:transform-none"
+              onClick={() => dateInput.current && (dateInput.current.value = dayBefore(today))}
+            >
               {t('yesterday')}
-            </Button>
+            </button>
           </div>
         </div>
         <div>
@@ -182,37 +202,44 @@ export function AddExpenseForm({ today, money, monthly, yearly, userId }: { toda
           <Label htmlFor="note">{t('note')}</Label>
           <Input id="note" name="note" maxLength={200} />
         </div>
-        <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" name="refund" className="size-4" /> {t('refund')}
+        <label className="flex min-h-11 items-center gap-2 text-[13.5px] text-muted">
+          <input type="checkbox" name="refund" className="size-5 accent-peacock" /> {t('refund')}
         </label>
       </Card>
+
       {error && (
-        <p role="alert" className="text-sm text-red-700">
+        <p role="alert" className="rounded-chip bg-rani/10 px-3 py-2 text-[13.5px] font-semibold text-rani">
           {error}
         </p>
       )}
-      {saved && saved.onPhone && (
-        <p role="status" className="text-sm text-green-900">
-          {tOutbox('savedOnPhone', { amount: saved.amount })}
-        </p>
-      )}
-      {saved && !saved.onPhone && !saved.question && (
-        <p role="status" className="text-sm text-green-900">
-          {t('saved', { amount: saved.amount })}{' '}
-          <Link href={`/month/${saved.ym}`} className="underline">
-            {t('seeMonth')}
-          </Link>
-        </p>
-      )}
-      {saved?.question && (
-        <Card role="status" className="space-y-2">
-          <p className="text-sm text-green-900">{t('savedMaybeRepeat', { amount: saved.amount })}</p>
-          <DuplicateQuestion {...saved.question} onDone={() => setSaved({ ...saved, question: null })} />
-        </Card>
-      )}
-      <Button type="submit" className="w-full" disabled={busy}>
-        {t('save')}
-      </Button>
+
+      <div className="sticky bottom-[calc(96px+env(safe-area-inset-bottom))] z-10 space-y-2 lg:bottom-4">
+        {saved && saved.onPhone && (
+          <p role="status" className="rounded-chip bg-leaf px-4 py-3 text-[14px] font-semibold text-white">
+            {tOutbox('savedOnPhone', { amount: saved.amount })}
+          </p>
+        )}
+        {saved && !saved.onPhone && (
+          <p role="status" className="rounded-chip bg-leaf px-4 py-3 text-[14px] font-semibold text-white">
+            {t('saved', { amount: saved.amount })}{' '}
+            <NavLink href={`/month/${saved.ym}`} direction="forward" className="underline">
+              {t('seeMonth')}
+            </NavLink>
+          </p>
+        )}
+        <Button type="submit" size="lg" className="w-full shadow-card" disabled={busy}>
+          {t('save')}
+        </Button>
+      </div>
+
+      <Sheet open={saved?.question != null} onClose={() => saved && setSaved({ ...saved, question: null })} title={t('sameTitle')}>
+        {saved?.question && (
+          <div className="space-y-3">
+            <p className="text-[14px] text-muted">{t('savedMaybeRepeat', { amount: saved.amount })}</p>
+            <DuplicateQuestion {...saved.question} onDone={() => setSaved({ ...saved, question: null })} />
+          </div>
+        )}
+      </Sheet>
     </form>
   );
 }

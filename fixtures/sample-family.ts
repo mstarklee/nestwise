@@ -4,6 +4,7 @@
  * DEV AND TEST ONLY. The plan comes from sample-plan.ts (the family's real amounts); every transaction, payment and
  * piece of evidence below is FICTIONAL test data and must never be loaded into a production family.
  */
+import type { IsoDate } from '@nestwise/domain/shared';
 import { monthlyTemplate, rupees, savingsTemplate, yearlyTemplate } from './sample-plan';
 
 export type { SampleMonthlyItem, SampleSavingsItem, SampleYearlyItem } from './sample-plan';
@@ -136,6 +137,41 @@ const october2026ItemTable: readonly SampleItemRow[] = [
   row('ott', 1_000, 1_000, 0),
   row('spouse', 5_000, 5_000, 0),
 ];
+
+export interface ShowcaseRow {
+  readonly itemKey: string;
+  readonly date: IsoDate;
+  readonly amountMinor: number;
+  readonly merchant: string;
+}
+
+/**
+ * FICTIONAL. Spending in the CURRENT month for the design stage's local dev database only (seed:dev --showcase), so the
+ * screens show every case: Food over plan (Rs 26,300 of 24,000), Kids nearly used up (7,200 of 8,000), Housing exactly
+ * used (20,000 of 20,000) and Utilities fine (255 of 6,000). Never dated after `today`. Never goes into production data.
+ */
+export function showcaseRows(today: IsoDate): readonly ShowcaseRow[] {
+  const month = today.slice(0, 7);
+  const lastDay = Number(today.slice(8, 10));
+  const rows: readonly (readonly [string, number, string])[] = [
+    ['groceries', 1_000_000, 'FICTIONAL Corner Mart'],
+    ['fruits', 400_000, 'FICTIONAL Fruit Cart'],
+    ['vegetables', 380_000, 'FICTIONAL Veg Market'],
+    ['non_veg', 500_000, 'FICTIONAL Meat Shop'],
+    ['outside_food', 350_000, 'FICTIONAL Dosa Corner'],
+    ['kids_maintenance', 450_000, 'FICTIONAL Kids Store'],
+    ['football', 200_000, 'FICTIONAL Football Club'],
+    ['diapers', 70_000, 'FICTIONAL Pharmacy'],
+    ['rent', 2_000_000, 'FICTIONAL Landlord'],
+    ['electricity', 25_500, 'FICTIONAL Power Board'],
+  ];
+  return rows.map(([itemKey, amountMinor, merchant], i) => ({
+    itemKey,
+    amountMinor,
+    merchant,
+    date: `${month}-${String(Math.min(i + 1, lastDay)).padStart(2, '0')}` as IsoDate,
+  }));
+}
 
 export const sampleFamily = {
   name: 'Our Family',

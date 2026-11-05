@@ -24,7 +24,7 @@
 | File storage | **Supabase Storage** (private bucket) | Receipt photos (Stage 3) |
 | DB access | **Drizzle ORM** from server code only | Typed SQL; every query is family-scoped (§6) |
 | Validation | **Zod** at every server boundary | |
-| UI | **Tailwind CSS v4 + shadcn/ui** | Fast to build plain screens now, easy to restyle once design is decided |
+| UI | **Tailwind CSS v4 with NestWise's own tokens** | The "Silk and gold" look is defined once as theme tokens in `globals.css` (colours, fonts, corner sizes); the plain shadcn/ui placeholders are retired (design spec §4) |
 | i18n | **next-intl**, English catalogue only | "Add other languages later" means no hard-coded strings |
 | PWA / offline | **Serwist** service worker + **Dexie** (IndexedDB) outbox | Installable app; typed expenses queue while offline |
 | Push | **Web Push (VAPID)** via `web-push` | Works on iPhone 16.4+ once the app is on the home screen |
@@ -410,7 +410,8 @@ Pairs already marked `different` are excluded.
 - **Manifest:**
   - `display: standalone`
   - `start_url: /home`
-  - `theme_color` and `background_color`
+  - `theme_color` is peacock (`#00566E`) and `background_color` is mist (`#ECF3F4`)
+  - the iPhone status bar is `black-translucent`, so every screen runs under it; a peacock strip stays fixed behind the clock and battery (design spec §5.2, §5.4)
   - icons: 192, 512 and maskable, plus a 180px `apple-touch-icon`
 - **Layout and detection.**
   - Respect `env(safe-area-inset-*)` for the bottom navigation.
@@ -790,7 +791,7 @@ Status on 2026-11-04 is in the last column; `docs/PROGRESS.md` has the plain-lan
 
 ## 17. Left to the builder
 
-- Exact screen layouts and visuals (design is parked; build plain shadcn/ui screens first).
+- Exact screen layouts and visuals: decided in the approved design stage (`docs/superpowers/specs/2026-11-05-nestwise-design-look-and-feel-design.md`). Small spacing and size choices stay with the builder.
 - Component structure, client state handling, and whether to use TanStack Query.
 - Exact wording of messages, the error-monitoring tool, and lint configuration.
 - Whether local development uses the Supabase CLI with Docker or a cloud dev project.

@@ -55,7 +55,7 @@ export function OutboxSync({ userId }: { userId: string }) {
 
   if (waiting === 0 && failed === 0) return null;
   return (
-    <p className="text-center text-xs text-zinc-600" data-testid="outbox-status">
+    <p className="mx-auto my-2 w-fit rounded-full bg-white px-3 py-1 text-center text-[13.5px] font-semibold text-ink shadow-card" data-testid="outbox-status">
       {waiting > 0 &&
         (signedOut ? (
           <Link href="/sign-in" className="underline">
@@ -64,9 +64,9 @@ export function OutboxSync({ userId }: { userId: string }) {
         ) : (
           t('waiting', { count: waiting })
         ))}
-      {waiting > 0 && failed > 0 && ' · '}
+      {waiting > 0 && failed > 0 && ' '}
       {failed > 0 && (
-        <Link href="/add#outbox" className="text-red-700 underline">
+        <Link href="/add#outbox" className="text-rani underline">
           {t('failed', { count: failed })}
         </Link>
       )}

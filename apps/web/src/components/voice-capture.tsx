@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from '
 import { ApiError, API_OK } from '@/client/api-client';
 import { MicrophoneUnavailableError, type Recording, startRecording } from '@/client/microphone';
 import { RecordingClock, type StopReason } from '@/client/recording-clock';
+import { Icon } from '@/components/icon';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useErrorText } from '@/components/use-error-text';
@@ -130,7 +131,7 @@ export function VoiceCapture({ maxSeconds }: { maxSeconds: number }) {
   if (!online) {
     return (
       <Card className="space-y-3" data-testid="voice-offline">
-        <p className="text-sm">{t('needsSignal')}</p>
+        <p className="text-[15px]">{t('needsSignal')}</p>
         <Button onClick={() => router.push('/add')}>{t('typeInstead')}</Button>
       </Card>
     );
@@ -139,43 +140,62 @@ export function VoiceCapture({ maxSeconds }: { maxSeconds: number }) {
   return (
     <div className="space-y-4">
       {phase === 'ready' && (
-        <Card className="space-y-3">
-          <p className="text-sm">{t('explain', { seconds: maxSeconds })}</p>
-          <p className="text-xs text-zinc-500">{t('example')}</p>
-          <Button size="lg" className="w-full" onClick={begin} data-testid="voice-start">
-            {t('start')}
-          </Button>
+        <Card className="flex flex-col items-center space-y-4 py-6 text-center">
+          <p className="text-[15px]">{t('explain', { seconds: maxSeconds })}</p>
+          <button
+            type="button"
+            onClick={begin}
+            data-testid="voice-start"
+            className="grid size-32 place-items-center rounded-full bg-rani text-white shadow-card transition-transform active:scale-[.97] motion-reduce:transform-none"
+          >
+            <span className="grid justify-items-center gap-1 text-[15px] font-bold">
+              <Icon name="mic" className="size-10" />
+              {t('start')}
+            </span>
+          </button>
+          <p className="max-w-xs text-[13.5px] text-muted">{t('example')}</p>
         </Card>
       )}
 
       {phase === 'recording' && (
-        <Card className="space-y-4 text-center">
-          <p role="status" className="text-sm font-medium">
+        <Card className="flex flex-col items-center space-y-4 py-6 text-center">
+          <p role="status" className="text-[15px] font-semibold">
             {t('listening')}
           </p>
-          <p className="text-3xl font-semibold tabular-nums" data-testid="voice-timer">
+          <p className="money text-[40px] font-extrabold leading-none" data-testid="voice-timer">
             0:{String(Math.min(seconds, maxSeconds)).padStart(2, '0')}
           </p>
-          <div className="mx-auto h-2 w-40 overflow-hidden rounded-full bg-zinc-200" aria-hidden="true">
-            <div className="h-full bg-green-700 transition-[width] duration-75" style={{ width: `${Math.min(100, Math.round(level * 160))}%` }} />
+          <div className="relative grid size-32 place-items-center">
+            <span aria-hidden="true" className="animate-pulse-ring absolute inset-0 rounded-full bg-rani/40" />
+            <button
+              type="button"
+              onClick={() => void send('tapped')}
+              data-testid="voice-stop"
+              className="relative grid size-32 place-items-center rounded-full bg-rani text-white shadow-card transition-transform active:scale-[.97] motion-reduce:transform-none"
+            >
+              <span className="grid justify-items-center gap-1 text-[15px] font-bold">
+                <span aria-hidden="true" className="size-8 rounded-[8px] bg-white" />
+                {t('stop')}
+              </span>
+            </button>
           </div>
-          <p className="text-xs text-zinc-500">{t('stopsItself', { seconds: maxSeconds })}</p>
-          <Button size="lg" className="w-full" onClick={() => void send('tapped')} data-testid="voice-stop">
-            {t('stop')}
-          </Button>
+          <div className="h-2 w-40 overflow-hidden rounded-full bg-line" aria-hidden="true">
+            <div className="h-full bg-peacock transition-[width] duration-75" style={{ width: `${Math.min(100, Math.round(level * 160))}%` }} />
+          </div>
+          <p className="text-[13.5px] text-muted">{t('stopsItself', { seconds: maxSeconds })}</p>
         </Card>
       )}
 
       {phase === 'sending' && (
         <Card className="text-center">
-          <p role="status" className="text-sm">
+          <p role="status" className="text-[15px]">
             {t('working')}
           </p>
         </Card>
       )}
 
       {error && (
-        <p role="alert" className="text-sm text-red-700">
+        <p role="alert" className="rounded-chip bg-rani/10 px-3 py-2 text-[13.5px] font-semibold text-rani">
           {error}
         </p>
       )}

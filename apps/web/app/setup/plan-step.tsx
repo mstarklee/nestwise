@@ -29,8 +29,8 @@ export function PlanStep({ canImport }: { canImport: boolean }) {
   }
 
   return (
-    <div className="space-y-4 py-6">
-      <h1 className="text-2xl font-semibold">{t('planTitle')}</h1>
+    <div className="space-y-4">
+      <h1 className="text-[24px] font-bold">{t('planTitle')}</h1>
       <Card className="space-y-3">
         {canImport && (
           <>
@@ -40,14 +40,14 @@ export function PlanStep({ canImport }: { canImport: boolean }) {
             </Button>
           </>
         )}
-        <p className="text-zinc-600">{t('emptyIntro')}</p>
+        <p className="text-muted">{t('emptyIntro')}</p>
         {/* A button, not a link: a link would be loaded ahead of time. */}
         <Button variant="outline" className="w-full" disabled={busy} onClick={() => router.push('/setup?plan=empty')}>
           {t('emptyPlan')}
         </Button>
       </Card>
       {error && (
-        <p role="alert" className="text-sm text-red-700">
+        <p role="alert" className="text-[13.5px] font-semibold text-rani">
           {error}
         </p>
       )}

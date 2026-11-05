@@ -33,11 +33,11 @@ export function RemindersButton() {
 
   return (
     <div className="space-y-2">
-      <Button className="w-full" onClick={tap} disabled={busy}>
+      <Button size="lg" className="w-full" onClick={tap} disabled={busy}>
         {t('turnOnReminders')}
       </Button>
       {message && (
-        <p role="status" className="text-sm text-zinc-700">
+        <p role="status" className="text-[14px] font-semibold text-ink">
           {message}
         </p>
       )}

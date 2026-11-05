@@ -1,10 +1,10 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { api } from '@/client/api-client';
+import { NavLink } from '@/components/nav-link';
 import { Button } from '@/components/ui/button';
 import { useErrorText } from '@/components/use-error-text';
 
@@ -18,16 +18,17 @@ export function JoinButton({ token, alreadyInFamily }: { token: string; alreadyI
     return (
       <div className="space-y-4">
         <p>{t('already')}</p>
-        <Link href="/home" className="text-green-900 underline">
+        <NavLink href="/home" direction="tab" className="flex min-h-11 items-center justify-center rounded-action bg-peacock px-4 font-semibold text-white">
           {t('goHome')}
-        </Link>
+        </NavLink>
       </div>
     );
   }
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-semibold">{t('title')}</h1>
+      <h1 className="text-[24px] font-bold">{t('title')}</h1>
       <Button
+        size="lg"
         className="w-full"
         onClick={async () => {
           setError(null);
@@ -43,7 +44,7 @@ export function JoinButton({ token, alreadyInFamily }: { token: string; alreadyI
         {t('join')}
       </Button>
       {error && (
-        <p role="alert" className="text-sm text-red-700">
+        <p role="alert" className="text-[13.5px] font-semibold text-rani">
           {error}
         </p>
       )}

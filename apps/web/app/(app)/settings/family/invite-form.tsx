@@ -40,11 +40,11 @@ export function InviteForm() {
       {link && (
         <div>
           <Input readOnly value={link} aria-label={t('inviteLink')} onFocus={(e) => e.currentTarget.select()} />
-          <p className="mt-1 text-sm text-zinc-500">{t('inviteOnce')}</p>
+          <p className="mt-1 text-[13.5px] text-muted">{t('inviteOnce')}</p>
         </div>
       )}
       {error && (
-        <p role="alert" className="text-sm text-red-700">
+        <p role="alert" className="text-[13.5px] font-semibold text-rani">
           {error}
         </p>
       )}

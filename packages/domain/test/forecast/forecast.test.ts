@@ -132,7 +132,7 @@ describe('GetHomeSummaryUseCase', () => {
     expect(h.next3Months[0]!.lines).toMatchObject([{ name: 'Bike Insurance', remainingMinor: 150_000, status: 'due_soon' }]);
     expect(h.next3Months[1]!.lines).toEqual([]);
     expect(h.next3Months[2]!.lines).toMatchObject([{ name: 'Pongal', remainingMinor: 1_500_000, yearLineId: null }]);
-    expect(h.pot).toEqual({ balanceMinor: 0, safeToSpendNowMinor: 0, firstRed: null, fixPerMonthMinor: null });
+    expect(h.pot).toMatchObject({ balanceMinor: 0, safeToSpendNowMinor: 0, firstRed: null, fixPerMonthMinor: null });
   });
 
   it('home lists 13 undated 2027 items worth 1,57,000 once the 2027 plan exists', async () => {
@@ -217,6 +217,37 @@ describe('GetHomeSummaryUseCase', () => {
     // Food & Dining plans ₹24,000; groceries alone reach ₹25,000. Rent is exactly on plan.
     actuals.set('f1', NOV, new Map([[itemId('groceries'), 2_500_000], [itemId('rent'), 2_000_000]]));
     const h = await home.execute({ actor: admin });
-    expect(h.thisMonth).toEqual({ plannedMinor: 8_150_000, actualMinor: 4_500_000, groupsOver: ['Food & Dining'] });
+    expect(h.thisMonth).toMatchObject({ plannedMinor: 8_150_000, actualMinor: 4_500_000, groupsOver: ['Food & Dining'] });
+  });
+
+  it('home gives each of the next 3 months its end-of-month pot balance', async () => {
+    expect((await home.execute({ actor: admin })).next3Months.map((m) => m.endMinor)).toEqual(NOV_2026_END_BALANCES.slice(0, 3));
+  });
+
+  it('home gives the monthly set-aside and says every month is covered', async () => {
+    const [h, f] = [await home.execute({ actor: admin }), await forecast.execute({ actor: admin })];
+    expect(h.pot).toMatchObject({ setAsideMinor: f.months[1]!.inMinor, allCovered: true, topUpNowMinor: null });
+  });
+
+  it('home picks June 2027 as the biggest month ahead, from months 4–12', async () => {
+    const [h, f] = [await home.execute({ actor: admin }), await forecast.execute({ actor: admin })];
+    expect(h.biggestAhead).toMatchObject({
+      period: { year: 2027, month: 6 },
+      totalMinor: 12_000_000,
+      openingMinor: f.months[6]!.endMinor + f.months[7]!.inMinor,
+      shortOnTheWay: null,
+    });
+    expect(h.biggestAhead!.lines.map((l) => l.name)).toEqual(['Health Insurance — In-laws', 'Term Life Insurance']);
+  });
+
+  it('with a ₹20,000 set-aside the pot runs short in June 2027, and Home says so', async () => {
+    await families.save(familyRecord({ setAsideOverrideMinor: 2_000_000 }));
+    const [h, f] = [await home.execute({ actor: admin }), await forecast.execute({ actor: admin })];
+    expect(h.pot.allCovered).toBe(false);
+    expect(h.biggestAhead!.shortOnTheWay).toEqual({ period: { year: 2027, month: 6 }, shortfallMinor: -f.months[7]!.endMinor });
+  });
+
+  it('home lists this month’s groups with planned and actual', async () => {
+    expect((await home.execute({ actor: admin })).thisMonth.groups).toContainEqual({ groupName: 'Food & Dining', plannedMinor: 2_400_000, actualMinor: 0 });
   });
 });

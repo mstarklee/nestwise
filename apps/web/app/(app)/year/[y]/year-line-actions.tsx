@@ -42,9 +42,9 @@ export function YearLineActions({
   }
 
   return (
-    <div className="mt-2 flex flex-wrap items-center gap-2">
+    <div className="mt-2 flex flex-wrap items-center gap-2 pl-7">
       <Select
-        className="h-8 w-36 text-sm"
+        className="min-h-11 w-36 text-[15px]"
         aria-label={t('setMonth')}
         value={line.dueMonth ?? ''}
         disabled={busy}
@@ -70,7 +70,7 @@ export function YearLineActions({
         </Button>
       )}
       {error && (
-        <p role="alert" className="w-full text-sm text-red-700">
+        <p role="alert" className="w-full text-[13.5px] font-semibold text-rani">
           {error}
         </p>
       )}

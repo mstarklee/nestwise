@@ -56,9 +56,9 @@ export function FamilyForm({ currencies }: { currencies: readonly string[] }) {
   }
 
   return (
-    <form onSubmit={submit} className="space-y-4 py-6">
-      <h1 className="text-2xl font-semibold">{t('familyTitle')}</h1>
-      <p className="text-zinc-600">{t('familyIntro')}</p>
+    <form onSubmit={submit} className="space-y-4">
+      <h1 className="text-[24px] font-bold">{t('familyTitle')}</h1>
+      <p className="text-muted">{t('familyIntro')}</p>
       <Card className="space-y-4">
         <div>
           <Label htmlFor="name">{t('name')}</Label>
@@ -74,7 +74,7 @@ export function FamilyForm({ currencies }: { currencies: readonly string[] }) {
               </option>
             ))}
           </datalist>
-          <p className="mt-1 text-sm text-zinc-500">{t('currencyLocked')}</p>
+          <p className="mt-1 text-[13.5px] text-muted">{t('currencyLocked')}</p>
         </div>
         <div>
           <Label htmlFor="timeZone">{t('timeZone')}</Label>
@@ -92,15 +92,15 @@ export function FamilyForm({ currencies }: { currencies: readonly string[] }) {
         <div>
           <Label htmlFor="opening">{t('opening')}</Label>
           <Input id="opening" name="opening" inputMode="decimal" defaultValue="0" />
-          <p className="mt-1 text-sm text-zinc-500">{t('openingHint')}</p>
+          <p className="mt-1 text-[13.5px] text-muted">{t('openingHint')}</p>
         </div>
       </Card>
       {error && (
-        <p role="alert" className="text-sm text-red-700">
+        <p role="alert" className="text-[13.5px] font-semibold text-rani">
           {error}
         </p>
       )}
-      <Button type="submit" className="w-full" disabled={busy}>
+      <Button type="submit" size="lg" className="w-full" disabled={busy}>
         {t('createFamily')}
       </Button>
     </form>

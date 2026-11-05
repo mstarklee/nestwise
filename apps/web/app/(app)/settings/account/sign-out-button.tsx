@@ -11,7 +11,7 @@ export function SignOutButton() {
   return (
     <Button
       variant="outline"
-      className="w-full"
+      size="lg" className="w-full"
       onClick={async () => {
         await api('POST', '/api/v1/auth/signout').catch(() => undefined);
         router.replace('/sign-in');

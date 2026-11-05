@@ -11,7 +11,7 @@ The details live in the documents linked at the end.
 | **1a — Core plan** | The money model: plan, months, yearly bills, the pot, expenses, the forecast, reminders | **Built and live** (2–3 Nov). Waiting on your iPhone setup and a first month of daily use. |
 | **1b — Core complete** | No-signal adding, duplicate checks, month-end and year-end reviews, activity, spending alerts | **Built and live** (3 Nov). Waiting on your iPhone checks and one full month of use. |
 | **2 — Voice** | Add expenses by speaking (Tamil and English), and tick a yearly bill off by voice | **Part built** (5 Nov). The engine is done and tested: it listens, works out the expenses, holds them until you say yes, and can pay a yearly bill. **The speech service is chosen: Sarvam** after testing your own recordings, so a recording may run up to 30 seconds. The button and the review screen are built, and an independent review of the whole thing is done with its serious findings fixed. **Not done:** the full 30-recording check, and nothing is deployed yet. |
-| **Design** | The app-like look on phone, tablet and desktop (your design brief) | After Voice |
+| **Design** | The app-like look on phone, tablet and desktop (your design brief) | **Built** (5 Nov), not deployed. Every screen is in the "Silk and gold" look: a peacock-and-gold Home that shows whether the coming bills are covered, a floating bottom bar, page slides, and tablet and desktop layouts. You approved Home and Add on 5 Nov. You approved every screen on 5 Nov. **Waiting on you:** the go-ahead to commit and deploy, then a check on your iPhone. |
 | **3 — Photo receipts** | Add an expense from a receipt photo | After the design |
 | **4 — Public** | Own domain, open sign-up, privacy pages, paid plans | Later |
 
@@ -92,7 +92,6 @@ Tests 10, 11 and 19 also need your check on the iPhone (`docs/RUNBOOK.md` §5).
 
 ## Noted for later
 
-- **Home page display:** you noticed a few things on 3 Nov. We'll look at them in the design stage.
 - **Small issues from the Stage 1b review.** None of them affects any money total:
   - a bill carried two years running drops out of the forecast;
   - a server error is retried with no notice;

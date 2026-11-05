@@ -44,7 +44,7 @@ export function YearEndActions({ year, lineId, locale }: { year: number; lineId:
         </Button>
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <Select className="h-8 w-40 text-sm" aria-label={t('carryMonth', { next: year + 1 })} value={month} onChange={(e) => setMonth(e.target.value)} disabled={busy}>
+        <Select className="min-h-11 w-40 text-[15px]" aria-label={t('carryMonth', { next: year + 1 })} value={month} onChange={(e) => setMonth(e.target.value)} disabled={busy}>
           <option value="">{t('noMonth')}</option>
           {MONTHS.map((m) => (
             <option key={m} value={m}>
@@ -57,7 +57,7 @@ export function YearEndActions({ year, lineId, locale }: { year: number; lineId:
         </Button>
       </div>
       {error && (
-        <p role="alert" className="text-sm text-red-700">
+        <p role="alert" className="text-[13.5px] font-semibold text-rani">
           {error}
         </p>
       )}

@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NestWise Home mockup</title>
+<style>:root{--text-secondary:#5b6670}body{margin:0;padding:24px 16px;background:#f5f5f7;color:#1d1d1f;font-family:system-ui,sans-serif}</style>
+</head>
+<body>
+<!-- Approved by the owner on 2026-11-05: option A (Silk and gold) with option B's spending rings and floating bottom bar. Figures: plan amounts are the family's; pot balance and spending are made up. -->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Baloo+Thambi+2:wght@500;600;700;800&family=Mukta+Malar:wght@400;500;600;700&display=swap');
+
+.mx-wrap { display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; justify-content: center; margin-top: 8px; }
+.mx-notes { max-width: 360px; font-size: .95rem; line-height: 1.5; }
+.mx-notes h3 { margin: 0 0 6px; font-size: 1.05rem; }
+.mx-notes ul { margin: 0 0 18px; padding-left: 1.1rem; color: var(--text-secondary); }
+.mx-notes li { margin-bottom: 4px; }
+
+.nw-phone { width: 330px; height: 700px; border-radius: 46px; border: 10px solid #17161c; position: relative; overflow: hidden; box-shadow: 0 24px 50px -18px rgba(20, 16, 50, .45); font-family: 'Mukta Malar', system-ui, sans-serif; font-variant-numeric: lining-nums; text-align: left; }
+.nw-screen { position: absolute; inset: 0; overflow-y: auto; scrollbar-width: none; padding-bottom: 104px; }
+.nw-screen::-webkit-scrollbar { display: none; }
+.nw-phone p, .nw-phone h1, .nw-phone h2, .nw-phone h3 { margin: 0; }
+.nw-phone svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.nw-num { font-family: 'Baloo Thambi 2', system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+.nw-status { display: flex; justify-content: space-between; align-items: center; height: 44px; padding: 0 22px 0 26px; font-size: 14px; font-weight: 600; }
+.nw-status i { display: inline-block; width: 22px; height: 11px; border: 1.5px solid currentColor; border-radius: 3px; position: relative; opacity: .9; }
+.nw-status i::after { content: ''; position: absolute; inset: 1.5px 6px 1.5px 1.5px; background: currentColor; border-radius: 1px; }
+.nw-home-ind { position: absolute; bottom: 4px; left: 50%; width: 118px; height: 5px; margin-left: -59px; border-radius: 3px; z-index: 5; background: #0F2A33; }
+
+.A { --pea: #00566E; --pea-deep: #003F52; --gold: #F2B233; --rani: #D61F69; --leaf: #13965A; --ink: #0F2A33; --muted: #557078; --mist: #ECF3F4; }
+.A .nw-screen { background: var(--mist); color: var(--ink); }
+.A-top { background: var(--pea); color: #fff; padding: 0 0 22px; }
+.A-top .nw-status { color: #fff; }
+.A-greet { display: flex; justify-content: space-between; align-items: flex-start; padding: 6px 20px 0; }
+.A-hello { font-size: 14px; opacity: .8; }
+.A-fam { font-family: 'Baloo Thambi 2'; font-weight: 700; font-size: 22px; line-height: 1.1; }
+.A-bell { position: relative; width: 40px; height: 40px; border-radius: 14px; background: rgba(255,255,255,.12); display: grid; place-items: center; }
+.A-bell b { position: absolute; top: 9px; right: 10px; width: 8px; height: 8px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 2px var(--pea); }
+.A-potlabel { padding: 20px 20px 0; font-size: 14px; opacity: .85; }
+.A-pot { padding: 0 20px; font-size: 46px; font-weight: 800; line-height: 1.05; letter-spacing: -.5px; }
+.A-pot small { font-size: 26px; font-weight: 700; opacity: .9; margin-right: 2px; }
+.A-ok { margin: 10px 20px 0; display: inline-flex; gap: 6px; align-items: center; background: rgba(255,255,255,.14); border-radius: 999px; padding: 5px 12px 5px 8px; font-size: 13.5px; font-weight: 600; }
+.A-ok svg { width: 16px; height: 16px; color: var(--gold); stroke-width: 3; }
+.A-plus { padding: 8px 20px 0; font-size: 13.5px; opacity: .8; }
+.A-zari { height: 14px; background:
+  linear-gradient(135deg, var(--pea) 25%, transparent 25.5%) -7px 0 / 14px 14px repeat-x,
+  linear-gradient(225deg, var(--pea) 25%, transparent 25.5%) -7px 0 / 14px 14px repeat-x,
+  var(--gold); border-bottom: 3px solid var(--rani); }
+.A-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; padding: 16px 16px 4px; }
+.A-act { border-radius: 20px; padding: 14px 6px 12px; display: grid; justify-items: center; gap: 6px; font-weight: 700; font-size: 14px; }
+.A-act span { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; }
+.A-act.speak { background: var(--rani); color: #fff; }
+.A-act.speak span { background: rgba(255,255,255,.18); }
+.A-act.scan { background: var(--gold); color: var(--ink); }
+.A-act.scan span { background: rgba(255,255,255,.4); }
+.A-act.type { background: #fff; color: var(--pea); }
+.A-act.type span { background: var(--mist); }
+.A-sec { margin: 14px 16px 0; background: #fff; border-radius: 24px; padding: 16px; }
+.A-sec h2 { font-family: 'Baloo Thambi 2'; font-size: 19px; font-weight: 700; display: flex; justify-content: space-between; align-items: baseline; }
+.A-sec h2 a { font-family: 'Mukta Malar'; font-size: 13.5px; font-weight: 600; color: var(--pea); text-decoration: none; }
+.A-month { display: grid; grid-template-columns: 58px 1fr; gap: 12px; padding: 12px 0; border-bottom: 1px solid #E3ECEE; }
+.A-month:last-child { border-bottom: 0; padding-bottom: 2px; }
+.A-mname { border-radius: 16px; background: var(--mist); text-align: center; padding: 6px 0; align-self: start; }
+.A-mname b { display: block; font-family: 'Baloo Thambi 2'; font-size: 19px; line-height: 1.1; color: var(--pea); }
+.A-mname span { font-size: 11.5px; color: var(--muted); }
+.A-mname.now { background: var(--pea); }
+.A-mname.now b, .A-mname.now span { color: #fff; }
+.A-bill { display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 15px; gap: 8px; }
+.A-bill em { font-style: normal; display: inline-flex; gap: 6px; align-items: center; }
+.A-bill em svg { width: 18px; height: 18px; color: var(--pea); }
+.A-tag { font-size: 13px; color: var(--leaf); font-weight: 600; margin-top: 2px; }
+.A-quiet { font-size: 14px; color: var(--muted); }
+.A-quiet b { color: var(--ink); }
+.A-big { margin: 14px 16px 0; border-radius: 24px; padding: 16px; background: var(--pea-deep); color: #fff; }
+.A-big p:first-child { font-size: 13.5px; opacity: .8; }
+.A-big .nw-num { font-size: 26px; font-weight: 800; line-height: 1.2; }
+.A-big .nw-num span { font-size: 15px; font-weight: 600; opacity: .85; }
+.A-big .note { font-size: 13.5px; margin-top: 4px; opacity: .9; }
+.A-bar { height: 10px; border-radius: 6px; background: rgba(255,255,255,.18); margin-top: 10px; overflow: hidden; }
+.A-bar i { display: block; height: 100%; width: 34%; background: var(--gold); border-radius: 6px; }
+.A-undated { display: flex; gap: 12px; align-items: center; }
+.A-undated span.ic { width: 42px; height: 42px; border-radius: 14px; background: #FDEFF5; color: var(--rani); display: grid; place-items: center; }
+.A-undated p { font-size: 14px; color: var(--muted); }
+.A-undated p b { display: block; color: var(--ink); font-size: 15px; }
+
+/* From B: the rings, recoloured to the silk palette */
+.M-h { display: flex; justify-content: space-between; align-items: baseline; margin: 20px 20px 10px; }
+.M-h h2 { font-family: 'Baloo Thambi 2'; font-weight: 800; font-size: 20px; }
+.M-h a { font-size: 13.5px; font-weight: 700; color: var(--pea); text-decoration: none; }
+.M-card { margin: 0 16px; background: #fff; border-radius: 26px; padding: 16px; }
+.M-sum { font-size: 14px; color: var(--muted); }
+.M-sum b { font-family: 'Baloo Thambi 2'; color: var(--ink); font-size: 22px; font-weight: 800; }
+.M-rings { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; text-align: center; margin-top: 12px; }
+.M-ring { width: 70px; height: 70px; border-radius: 50%; margin: 0 auto 6px; display: grid; place-items: center; background: conic-gradient(var(--c) calc(var(--p) * 1%), #E3ECEE 0); }
+.M-ring b { width: 54px; height: 54px; border-radius: 50%; background: #fff; display: grid; place-items: center; font-family: 'Baloo Thambi 2'; font-size: 16px; font-weight: 800; }
+.M-rings p { font-size: 13px; font-weight: 600; }
+.M-rings p span { display: block; font-weight: 500; color: var(--muted); font-size: 12px; }
+
+/* From B: the floating tab bar, in peacock with a gold centre button */
+.M-tabs { position: absolute; left: 10px; right: 10px; bottom: 16px; height: 64px; background: var(--pea-deep); border-radius: 26px; display: grid; grid-template-columns: repeat(5, 1fr); align-items: center; z-index: 4; color: rgba(255,255,255,.6); box-shadow: 0 12px 28px -10px rgba(0, 63, 82, .6); }
+.M-tab { display: grid; justify-items: center; }
+.M-tab.on { color: #fff; }
+.M-tab.on::after { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--gold); margin-top: 4px; }
+.M-tab.plus span { width: 48px; height: 48px; border-radius: 18px; background: var(--gold); color: var(--ink); display: grid; place-items: center; }
+.M-tab.plus svg { stroke-width: 2.6; }
+</style>
+
+<h2>Your mix: A on top, B at the bottom</h2>
+<p class="subtitle">Scroll inside the phone. The colours are all from A now, so the rings and the bottom bar match the silk look.</p>
+
+<div class="mx-wrap">
+  <div class="nw-phone A">
+    <div class="nw-screen">
+      <div class="A-top">
+        <div class="nw-status"><span>9:41</span><i></i></div>
+        <div class="A-greet">
+          <div><p class="A-hello">Good evening</p><p class="A-fam">Our Family</p></div>
+          <span class="A-bell"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><b></b></span>
+        </div>
+        <p class="A-potlabel">In the yearly bills pot</p>
+        <p class="A-pot nw-num"><small>₹</small>1,10,750</p>
+        <p class="A-ok"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>Every dated bill for the next year is covered</p>
+        <p class="A-plus">You add ₹36,917 to it each month</p>
+      </div>
+      <div class="A-zari"></div>
+
+      <div class="A-actions">
+        <div class="A-act speak"><span><svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/></svg></span>Speak</div>
+        <div class="A-act scan"><span><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg></span>Scan</div>
+        <div class="A-act type"><span><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>Type</div>
+      </div>
+
+      <section class="A-sec">
+        <h2>Next 3 months <a>See the year</a></h2>
+        <div class="A-month">
+          <div class="A-mname now"><b>Nov</b><span>2026</span></div>
+          <div>
+            <p class="A-bill"><em><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>Bike insurance</em><span class="nw-num">₹1,500</span></p>
+            <p class="A-tag">Due this month. The pot covers it.</p>
+          </div>
+        </div>
+        <div class="A-month">
+          <div class="A-mname"><b>Dec</b><span>2026</span></div>
+          <div><p class="A-quiet">No yearly bills. The pot grows to <b>₹1,83,084</b>.</p></div>
+        </div>
+        <div class="A-month">
+          <div class="A-mname"><b>Jan</b><span>2027</span></div>
+          <div>
+            <p class="A-bill"><em><svg viewBox="0 0 24 24"><path d="M5 9h14"/><path d="M6 9c-2 3-1 9 3 11h6c4-2 5-8 3-11"/><path d="M9 9c0-2.5 1.3-4 3-4s3 1.5 3 4"/><path d="M12 2v2"/></svg>Pongal</em><span class="nw-num">₹15,000</span></p>
+            <p class="A-tag">The pot covers it.</p>
+          </div>
+        </div>
+      </section>
+
+      <div class="A-big">
+        <p>Biggest month ahead: June 2027</p>
+        <p class="nw-num">₹1,20,000 <span>in-laws' health and term insurance</span></p>
+        <div class="A-bar"><i></i></div>
+        <p class="note">The pot will have ₹3,29,586 by then. You're on track.</p>
+      </div>
+
+      <section class="A-sec">
+        <div class="A-undated">
+          <span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
+          <p><b>13 bills have no month yet</b>₹1,57,000 for birthdays, the tour, Deepavali and more. Give them a month so nothing is forgotten.</p>
+        </div>
+      </section>
+
+      <div class="M-h"><h2>November so far</h2><a>Open month</a></div>
+      <div class="M-card">
+        <p class="M-sum"><b>₹31,450</b> spent of ₹81,500</p>
+        <div class="M-rings">
+          <div><div class="M-ring" style="--p:100;--c:#D61F69"><b>100%</b></div><p>Housing<span>₹20,000</span></p></div>
+          <div><div class="M-ring" style="--p:37;--c:#F2B233"><b>37%</b></div><p>Food<span>₹8,900</span></p></div>
+          <div><div class="M-ring" style="--p:43;--c:#00566E"><b>43%</b></div><p>Utilities<span>₹2,550</span></p></div>
+        </div>
+      </div>
+    </div>
+    <nav class="M-tabs">
+      <div class="M-tab on"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1Z"/></svg></div>
+      <div class="M-tab"><svg viewBox="0 0 24 24"><path d="M21 12A9 9 0 1 1 12 3v9Z"/><path d="M15 3.5A9 9 0 0 1 20.5 9H15Z"/></svg></div>
+      <div class="M-tab plus"><span><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span></div>
+      <div class="M-tab"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+      <div class="M-tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+    </nav>
+    <span class="nw-home-ind"></span>
+  </div>
+
+  <div class="mx-notes">
+    <h3>From A</h3>
+    <ul>
+      <li>Peacock blue top with the gold temple border</li>
+      <li>The pot, and whether every bill is covered</li>
+      <li>Big Speak, Scan and Type buttons</li>
+      <li>Next 3 months, the biggest month ahead, and bills with no month yet</li>
+    </ul>
+    <h3>From B</h3>
+    <ul>
+      <li>November spending as rings, one per group</li>
+      <li>The floating bottom bar with the big centre button, now peacock and gold</li>
+    </ul>
+    <h3>Bottom bar, left to right</h3>
+    <ul>
+      <li>Home, Budgets, Add, Bills, Activity</li>
+    </ul>
+  </div>
+</div>
+
+</body>
+</html>

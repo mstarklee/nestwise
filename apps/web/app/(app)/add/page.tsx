@@ -4,6 +4,8 @@ import { YearPlanNotFoundError } from '@nestwise/domain/year-plan';
 import { makeGetTemplatesUseCase } from '@/composition/plan';
 import { makeGetYearPlanUseCase } from '@/composition/year-plan';
 import { PageLoading } from '@/components/page-loading';
+import { QuickActions } from '@/components/quick-actions';
+import { TabHeader } from '@/components/screen-header';
 import { moneyOf, pageContext } from '@/http/page-session';
 import { AddExpenseForm } from './add-expense-form';
 import { OutboxFailures } from './outbox-failures';
@@ -29,7 +31,13 @@ async function Add() {
     }
     return [...byGroup.values()];
   };
-  if (actor.role === 'viewer') return <p className="py-4">{t('viewerCannot')}</p>;
+  if (actor.role === 'viewer')
+    return (
+      <>
+        <TabHeader title={t('title')} border={false} />
+        <p className="rounded-card bg-white p-4 shadow-card">{t('viewerCannot')}</p>
+      </>
+    );
   // Last year's bills still open (carried or not yet answered) are paid against their own year's plan (TRD §5.7).
   const lastYear = Number(today.slice(0, 4)) - 1;
   let stillOpen: { id: string; name: string }[] = [];
@@ -43,8 +51,12 @@ async function Add() {
   const money = moneyOf(family);
   return (
     <>
-      <AddExpenseForm today={today} money={money} monthly={groups('monthly')} yearly={yearly} userId={actor.userId} />
-      <OutboxFailures money={money} userId={actor.userId} />
+      <TabHeader title={t('title')} border={false} />
+      <div className="mx-auto max-w-xl space-y-4">
+        <QuickActions withType={false} />
+        <AddExpenseForm today={today} money={money} monthly={groups('monthly')} yearly={yearly} userId={actor.userId} />
+        <OutboxFailures money={money} userId={actor.userId} />
+      </div>
     </>
   );
 }

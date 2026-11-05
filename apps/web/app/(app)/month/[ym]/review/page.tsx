@@ -1,12 +1,14 @@
 import { MonthParam } from '@nestwise/api-contract';
 import { addMonths } from '@nestwise/domain/shared';
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { Suspense } from 'react';
 import { formatMoney, formatPeriod, toYm } from '@/client/format';
 import { makeGetMonthReviewUseCase } from '@/composition/month-review';
+import { Icon } from '@/components/icon';
+import { NavLink } from '@/components/nav-link';
 import { PageLoading } from '@/components/page-loading';
+import { DetailHeader } from '@/components/screen-header';
 import { Card, CardTitle } from '@/components/ui/card';
 import { moneyOf, pageContext } from '@/http/page-session';
 import { CloseMonthButton, RaiseButton } from './review-actions';
@@ -37,11 +39,11 @@ async function Review({ params }: { params: Params }) {
   const isAdmin = actor.role === 'admin';
 
   return (
-    <div className="space-y-4 py-4">
-      <h1 className="text-xl font-semibold">{t('title', { month })}</h1>
+    <div className="mx-auto max-w-xl space-y-4">
+      <DetailHeader title={t('title', { month })} />
 
       <Card data-testid="review-headline">
-        <p className="tabular-nums">
+        <p className="money text-[17px] font-semibold">
           {t('headline', { actual: exact(r.totals.actualMinor), planned: exact(r.totals.plannedMinor) })}{' '}
           {r.totals.varianceMinor !== 0 && t(r.totals.varianceMinor > 0 ? 'over' : 'under', { amount: exact(Math.abs(r.totals.varianceMinor)) })}
         </p>
@@ -50,17 +52,20 @@ async function Review({ params }: { params: Params }) {
       {(r.over.length > 0 || r.under.length > 0) && (
         <Card>
           <CardTitle>{t('overUnder')}</CardTitle>
-          <ul className="divide-y divide-zinc-100 text-sm">
+          <ul className="divide-y divide-line">
             {[...r.over, ...r.under].map((l) => (
-              <li key={l.itemId} className="flex justify-between py-1">
-                <span>{l.name}</span>
-                <span className={l.varianceMinor > 0 ? 'text-red-700 tabular-nums' : 'text-green-900 tabular-nums'}>{signed(l.varianceMinor)}</span>
+              <li key={l.itemId} className="flex items-center justify-between gap-2 py-2.5">
+                <span className="min-w-0 break-words font-semibold">{l.name}</span>
+                <span className={`money flex shrink-0 items-center gap-1 font-semibold ${l.varianceMinor > 0 ? 'text-rani' : 'text-leaf'}`}>
+                  <Icon name={l.varianceMinor > 0 ? 'alert' : 'check'} className="size-4" />
+                  {signed(l.varianceMinor)} {t(l.varianceMinor > 0 ? 'overWord' : 'underWord')}
+                </span>
               </li>
             ))}
           </ul>
-          <Link href={`/month/${toYm(period)}`} className="mt-2 block text-sm text-green-900 underline">
+          <NavLink href={`/month/${toYm(period)}`} direction="forward" className="mt-1 flex min-h-11 items-center text-[13.5px] font-bold text-peacock">
             {t('fullList')}
-          </Link>
+          </NavLink>
         </Card>
       )}
 
@@ -68,7 +73,7 @@ async function Review({ params }: { params: Params }) {
         <Card>
           {r.streaks.map((s) => (
             <div key={s.itemId} className="space-y-1">
-              <p className="text-sm">{t('streak', { item: s.name, months: s.months })}</p>
+              <p className="text-[15px]">{t('streak', { item: s.name, months: s.months })}</p>
               {isAdmin && <RaiseButton ym={toYm(next)} itemId={s.itemId} plannedMinor={s.suggestedMinor} label={t('raise', { month: formatPeriod(next, money.locale), amount: exact(s.suggestedMinor) })} />}
             </div>
           ))}
@@ -77,13 +82,14 @@ async function Review({ params }: { params: Params }) {
 
       <Card>
         <CardTitle>{t('bills')}</CardTitle>
-        {r.billsPaid.length === 0 && r.billsUnpaid.length === 0 && <p className="text-sm text-zinc-600">{t('noBills')}</p>}
-        <ul className="text-sm">
+        {r.billsPaid.length === 0 && r.billsUnpaid.length === 0 && <p className="text-muted">{t('noBills')}</p>}
+        <ul className="space-y-1">
           {r.billsPaid.map((b) => (
             <li key={b.itemId}>{t('billPaid', { name: b.name, amount: exact(b.paidMinor) })}</li>
           ))}
           {r.billsUnpaid.map((b) => (
-            <li key={b.lineId} className="text-red-700">
+            <li key={b.lineId} className="flex items-center gap-1 font-semibold text-rani">
+              <Icon name="alert" className="size-4 shrink-0" />
               {t('billUnpaid', { name: b.name, amount: exact(b.remainingMinor) })}
             </li>
           ))}
@@ -92,7 +98,7 @@ async function Review({ params }: { params: Params }) {
 
       <Card>
         <CardTitle>{t('savings')}</CardTitle>
-        <ul className="text-sm">
+        <ul className="space-y-1">
           <li>{t('answer', { name: t('potDeposit'), answer: r.potDeposit })}</li>
           {r.savings.map((s) => (
             <li key={s.itemId}>{t('answer', { name: s.name, answer: s.answer })}</li>
@@ -102,15 +108,15 @@ async function Review({ params }: { params: Params }) {
 
       {r.inboxCount > 0 && (
         <Card>
-          <p className="text-sm">{t('inbox', { count: r.inboxCount })}</p>
-          <Link href="/inbox" className="mt-1 block text-sm text-green-900 underline">
+          <p className="text-[15px]">{t('inbox', { count: r.inboxCount })}</p>
+          <NavLink href="/inbox" direction="forward" className="mt-1 flex min-h-11 items-center text-[13.5px] font-bold text-peacock">
             {t('openInbox')}
-          </Link>
+          </NavLink>
         </Card>
       )}
 
       {r.status === 'closed' ? (
-        <p className="text-sm text-zinc-600">{t('closed', { month })}</p>
+        <p className="flex items-center gap-1 font-semibold text-leaf"><Icon name="check" className="size-5" />{t('closed', { month })}</p>
       ) : (
         isAdmin && <CloseMonthButton ym={toYm(period)} label={t('close', { month })} />
       )}

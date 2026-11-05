@@ -51,18 +51,18 @@ export function FamilySettingsForm({ name, alertThresholds }: { name: string; al
       <div>
         <Label htmlFor="levels">{t('alertLevels')}</Label>
         <Input id="levels" name="levels" inputMode="numeric" defaultValue={alertThresholds.join(', ')} />
-        <p className="mt-1 text-xs text-zinc-500">{t('alertLevelsHint')}</p>
+        <p className="mt-1 text-[13.5px] text-muted">{t('alertLevelsHint')}</p>
       </div>
-      <Button type="submit" size="sm" disabled={busy}>
+      <Button type="submit" disabled={busy}>
         {t('save')}
       </Button>
       {saved && (
-        <p role="status" className="text-sm text-green-900">
+        <p role="status" className="text-[14px] font-semibold text-leaf">
           {t('saved')}
         </p>
       )}
       {error && (
-        <p role="alert" className="text-sm text-red-700">
+        <p role="alert" className="text-[13.5px] font-semibold text-rani">
           {error}
         </p>
       )}

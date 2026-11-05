@@ -60,3 +60,6 @@ export async function pageContext(): Promise<PageContext> {
 
 /** The family's money settings, for formatMoney in client components. */
 export const moneyOf = (family: Family) => ({ currency: family.currencyCode, minorUnit: family.minorUnit, locale: family.numberLocale });
+
+/** The family's money settings, as moneyOf returns them. */
+export type Money = ReturnType<typeof moneyOf>;

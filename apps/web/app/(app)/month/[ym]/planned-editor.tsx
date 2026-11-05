@@ -40,7 +40,7 @@ export function PlannedEditor({ ym, itemId, plannedMinor, money }: { ym: string;
 
   if (value === null) {
     return (
-      <button type="button" className="tabular-nums underline decoration-dotted" onClick={() => setValue(minorToInput(plannedMinor, money.minorUnit))}>
+      <button type="button" className="money inline-flex min-h-11 items-center rounded-full bg-mist px-3 font-semibold text-peacock transition-transform active:scale-[.97] motion-reduce:transform-none" onClick={() => setValue(minorToInput(plannedMinor, money.minorUnit))}>
         {formatMoney(plannedMinor, money.currency, money.minorUnit, money.locale)}
       </button>
     );
@@ -50,7 +50,7 @@ export function PlannedEditor({ ym, itemId, plannedMinor, money }: { ym: string;
       <Input
         autoFocus
         inputMode="decimal"
-        className="h-8 w-28 text-right"
+        className="money min-h-11 w-32 text-right"
         aria-label={t('planned')}
         value={value}
         onChange={(e) => setValue(e.target.value)}
@@ -61,7 +61,7 @@ export function PlannedEditor({ ym, itemId, plannedMinor, money }: { ym: string;
         }}
       />
       {error && (
-        <span role="alert" className="text-xs text-red-700">
+        <span role="alert" className="text-[13.5px] font-semibold text-rani">
           {error}
         </span>
       )}

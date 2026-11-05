@@ -21,7 +21,7 @@ const bannedPatternsInDomain = [
 ];
 
 export default tseslint.config(
-  { ignores: ['**/node_modules/**', '**/.next/**', '**/dist/**', 'spikes/**', '**/next-env.d.ts', '.superpowers/**'] },
+  { ignores: ['**/node_modules/**', '**/.next/**', '**/.next-*/**', '**/dist/**', 'spikes/**', '**/next-env.d.ts', '.superpowers/**'] },
   {
     files: ['**/*.{ts,tsx,mts,cts}'],
     extends: [tseslint.configs.recommended],

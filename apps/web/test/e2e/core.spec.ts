@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test';
 import { captureBatches, captureEntries, createDb, items, members, users } from '@nestwise/db';
 import { and, eq } from 'drizzle-orm';
 import { E2E_EMAIL, e2eDatabaseUrl } from '../../playwright.config';
+import { gotoSettled } from './helpers';
 
 /**
  * Stages one spoken note directly in the browser-test database: two expenses, the second with no amount heard, so
@@ -94,6 +95,16 @@ test('sign up, set up the family, confirm the deposit, add an expense, see it in
   await expect(page.getByTestId('pot-balance')).toHaveText('₹0');
   await expect(page.getByRole('heading', { name: 'This month’s checklist' })).toBeVisible();
   await expect(page.getByText(/Bike Insurance/).locator('..')).toContainText('₹1,500');
+  // Home's frame: the pot label, the next 3 months, Speak / Scan / Type, and the header buttons.
+  await expect(page.getByText('In the yearly bills pot')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Next 3 months' })).toBeVisible();
+  await expect(page.getByTestId('home-voice')).toHaveAttribute('href', '/capture');
+  await expect(page.getByRole('link', { name: 'Inbox', exact: true })).toHaveAttribute('href', '/inbox');
+  await expect(page.getByRole('link', { name: 'Settings', exact: true })).toHaveAttribute('href', '/settings/account');
+  await page.getByTestId('home-scan').click();
+  await expect(page.getByRole('dialog')).toContainText('Scanning bills is coming soon. For now, Speak or Type it.');
+  await page.getByRole('button', { name: 'OK' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
 
   // 4. Confirm the deposit: the pot shows ₹36,917.
   await page.getByRole('button', { name: 'Done: Pot deposit' }).click();
@@ -123,12 +134,17 @@ test('sign up, set up the family, confirm the deposit, add an expense, see it in
   await page.context().setOffline(false);
   await expect(page.getByTestId('outbox-status')).toHaveCount(0);
   await page.goto('/month/2026-11');
-  await expect(page.getByTestId('line-Fruits')).toContainText('₹120');
+  // The service worker may hand back its saved copy of this page if the network is slow just after the signal
+  // returns, so reload until the live page shows the sent expense.
+  await expect(async () => {
+    await page.reload();
+    await expect(page.getByTestId('line-Fruits')).toContainText('₹120', { timeout: 3_000 });
+  }).toPass({ timeout: 60_000 });
   await expect(page.getByTestId('line-Fruits')).not.toContainText('₹240');
 
   // 8. The forecast shows 12 months and no short month.
   await page.goto('/forecast');
-  await expect(page.getByTestId('forecast-months').locator('tbody tr')).toHaveCount(12);
+  await expect(page.getByTestId('forecast-months').getByTestId('month-row')).toHaveCount(12);
   await expect(page.getByTestId('no-red')).toBeVisible();
 
   // 9. The same ₹300 at the same shop twice: "Same purchase?" → Same; Vegetables counts ₹300 once.
@@ -146,7 +162,8 @@ test('sign up, set up the family, confirm the deposit, add an expense, see it in
   await expect(page.getByTestId('duplicate-question')).toContainText('Same purchase?');
   await page.getByRole('button', { name: 'Same purchase' }).click();
   await expect(page.getByTestId('duplicate-question')).toHaveCount(0);
-  await page.goto('/month/2026-11');
+  // The answer refreshes the page in the background, which can cut a straight goto short (see gotoSettled).
+  await gotoSettled(page, '/month/2026-11');
   await expect(page.getByTestId('line-Vegetables')).toContainText('₹300');
   await expect(page.getByTestId('line-Vegetables')).not.toContainText('₹600');
 

@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { AuthFrame } from '@/components/auth-frame';
 import { PageLoading } from '@/components/page-loading';
 import { pageActorOrNone, pageUser } from '@/http/page-session';
 import { JoinButton } from './join-button';
@@ -7,11 +8,13 @@ type Params = Promise<{ token: string }>;
 
 export default function JoinPage({ params }: { params: Params }) {
   return (
-    <main className="pt-safe mx-auto w-full max-w-sm px-4 py-10">
-      <Suspense fallback={<PageLoading />}>
-        <Join params={params} />
-      </Suspense>
-    </main>
+    <AuthFrame>
+      <div className="rounded-card bg-white p-5 shadow-card">
+        <Suspense fallback={<PageLoading />}>
+          <Join params={params} />
+        </Suspense>
+      </div>
+    </AuthFrame>
   );
 }
 

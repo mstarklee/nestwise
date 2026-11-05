@@ -79,13 +79,13 @@ export function TemplateItemEditor({
 
   if (!editing) {
     return (
-      <div className="flex items-center justify-between gap-2 text-sm">
+      <div className="flex items-center justify-between gap-2 text-[13.5px]">
         <span>
           {entry.name}
-          {yearly && <span className="text-zinc-500"> · {entry.dueMonth === null ? t('noMonth') : monthName(entry.dueMonth, money.locale)}</span>}
+          {yearly && <span className="block text-muted">{entry.dueMonth === null ? t('noMonth') : monthName(entry.dueMonth, money.locale)}</span>}
         </span>
         <span className="flex items-center gap-2">
-          <span className="tabular-nums">{amount}</span>
+          <span className="money">{amount}</span>
           {canEdit && (
             <Button size="sm" variant="ghost" onClick={() => setEditing(true)} aria-label={t('editItem', { item: entry.name })}>
               {t('edit')}
@@ -112,8 +112,8 @@ export function TemplateItemEditor({
         )}
       </div>
       {futureMonths.length > 0 && (
-        <fieldset className="text-sm">
-          <legend className="text-zinc-600">{t('alsoApply')}</legend>
+        <fieldset className="text-[13.5px]">
+          <legend className="text-muted">{t('alsoApply')}</legend>
           {futureMonths.map((m) => (
             <label key={m.ym} className="mr-3 inline-flex items-center gap-1">
               <input type="checkbox" name="applyTo" value={m.ym} className="size-4" /> {m.label}
@@ -133,7 +133,7 @@ export function TemplateItemEditor({
         </Button>
       </div>
       {error && (
-        <p role="alert" className="text-sm text-red-700">
+        <p role="alert" className="text-[13.5px] text-rani">
           {error}
         </p>
       )}
@@ -185,7 +185,7 @@ export function AddItemForm({ groupId, money }: { groupId: string; money: Money 
         {t('add')}
       </Button>
       {error && (
-        <p role="alert" className="text-sm text-red-700">
+        <p role="alert" className="text-[13.5px] text-rani">
           {error}
         </p>
       )}

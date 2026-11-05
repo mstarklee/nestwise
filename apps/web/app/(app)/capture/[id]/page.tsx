@@ -7,6 +7,7 @@ import { makeGetCaptureBatchUseCase } from '@/composition/capture';
 import { makeGetTemplatesUseCase } from '@/composition/plan';
 import { makeGetPotBalanceUseCase } from '@/composition/pot';
 import { makeGetYearPlanUseCase } from '@/composition/year-plan';
+import { DetailHeader } from '@/components/screen-header';
 import { PageLoading } from '@/components/page-loading';
 import { VoiceReview } from '@/components/voice-review';
 import { moneyOf, pageContext } from '@/http/page-session';
@@ -51,9 +52,10 @@ async function Review({ params }: { params: Promise<{ id: string }> }) {
   const pot = await makeGetPotBalanceUseCase().execute({ actor });
 
   return (
-    <div className="space-y-4 py-4">
-      <h1 className="text-xl font-semibold">{t('reviewTitle', { count: batch.entries.length })}</h1>
-      <p className="text-sm text-zinc-600">{t('reviewExplain')}</p>
+    <>
+      <DetailHeader title={t('reviewTitle', { count: batch.entries.length })} />
+      <div className="mx-auto max-w-xl space-y-4">
+      <p className="text-[14px] text-muted">{t('reviewExplain')}</p>
       <VoiceReview
         batchId={batch.id}
         transcript={batch.transcript}
@@ -77,6 +79,7 @@ async function Review({ params }: { params: Promise<{ id: string }> }) {
         minorUnit={money.minorUnit}
         locale={money.locale}
       />
-    </div>
+      </div>
+    </>
   );
 }

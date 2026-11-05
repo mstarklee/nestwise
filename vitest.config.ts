@@ -16,7 +16,7 @@ export default defineConfig({
         resolve: { alias },
         test: {
           name: 'unit',
-          include: ['packages/*/test/**/*.test.ts', 'apps/web/test/unit/**/*.test.ts', 'scripts/**/*.test.ts'],
+          include: ['packages/*/test/**/*.test.ts', 'apps/web/test/unit/**/*.test.{ts,tsx}', 'scripts/**/*.test.ts'],
           exclude: [...ignored, '**/*.integration.test.ts'],
         },
       },

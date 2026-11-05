@@ -106,7 +106,7 @@ function ChecklistLine(props: {
         <span className="font-medium">{props.label}</span>
         <span className="tabular-nums">{formatMoneyRounded(props.suggestedMinor, money.currency, money.minorUnit, money.locale)}</span>
       </div>
-      {props.hint && <p className="text-sm text-zinc-500">{props.hint}</p>}
+      {props.hint && <p className="text-[13.5px] text-muted">{props.hint}</p>}
       {props.canAnswer && (
         <div className="mt-2 flex flex-wrap gap-2">
           <Button size="sm" disabled={busy} onClick={() => run(() => props.confirm(props.suggestedMinor))} aria-label={t('doneFor', { item: props.label })}>
@@ -135,7 +135,7 @@ function ChecklistLine(props: {
         </div>
       )}
       {error && (
-        <p role="alert" className="mt-1 text-sm text-red-700">
+        <p role="alert" className="mt-1 text-[13.5px] font-semibold text-rani">
           {error}
         </p>
       )}

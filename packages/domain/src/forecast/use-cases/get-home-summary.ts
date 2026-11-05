@@ -3,6 +3,7 @@ import type { GetMonthSummaryUseCase, MonthStatusGateway } from '../../month-bud
 import type { GetChecklistUseCase } from '../../pot';
 import { addMonths, assertCan } from '../../shared';
 import type { GetYearEndReviewUseCase, YearPlanGateway } from '../../year-plan';
+import { biggestMonthAhead } from '../biggest-month';
 import type { ForecastCommand, HomeCard, HomeSummary } from '../models';
 import type { GetForecastUseCase } from './get-forecast';
 
@@ -50,12 +51,17 @@ export class GetHomeSummaryUseCase {
         safeToSpendNowMinor: forecast.safeToSpendNowMinor,
         firstRed: red ? { period: red.period, shortfallMinor: -red.endMinor } : null,
         fixPerMonthMinor: forecast.fixPerMonthMinor,
+        setAsideMinor: forecast.months[1]!.inMinor,
+        allCovered: forecast.redMonths.length === 0,
+        topUpNowMinor: forecast.topUpNowMinor,
       },
-      next3Months: forecast.bills.slice(0, 3),
+      next3Months: forecast.bills.slice(0, 3).map((bills, i) => ({ ...bills, endMinor: forecast.months[i]!.endMinor })),
+      biggestAhead: biggestMonthAhead(forecast.months, forecast.bills),
       thisMonth: {
         plannedMinor: month.totals.plannedMinor,
         actualMinor: month.totals.actualMinor,
         groupsOver: month.groups.filter((g) => g.varianceMinor > 0).map((g) => g.groupName),
+        groups: month.groups.map((g) => ({ groupName: g.groupName, plannedMinor: g.plannedMinor, actualMinor: g.actualMinor })),
       },
       undated: forecast.undated,
       cards,

@@ -60,21 +60,21 @@ export function FirstYearCheckForm({
   }
 
   return (
-    <div className="space-y-4 py-6">
-      <h1 className="text-2xl font-semibold">{t('checkTitle', { year })}</h1>
-      <p className="text-zinc-600">{t('checkIntro')}</p>
+    <div className="space-y-4">
+      <h1 className="text-[24px] font-bold">{t('checkTitle', { year })}</h1>
+      <p className="text-muted">{t('checkIntro')}</p>
       <Card>
-        {lines.length === 0 && <p className="text-zinc-600">{t('checkNothing')}</p>}
-        <ul className="divide-y divide-zinc-100">
+        {lines.length === 0 && <p className="text-muted">{t('checkNothing')}</p>}
+        <ul className="divide-y divide-line">
           {lines.map((line) => (
             <li key={line.id}>
-              <label className="flex items-center gap-3 py-2">
-                <input type="checkbox" className="size-5" checked={ticked.has(line.id)} onChange={() => toggle(line.id)} />
+              <label className="flex min-h-12 items-center gap-3 py-2">
+                <input type="checkbox" className="size-6 accent-peacock" checked={ticked.has(line.id)} onChange={() => toggle(line.id)} />
                 <span className="flex-1">{line.name}</span>
-                <span className="text-sm text-zinc-500">
+                <span className="text-[13.5px] text-muted">
                   {line.dueMonth === null ? t('noMonth') : formatMonthShort({ year, month: line.dueMonth }, money.locale)}
                 </span>
-                <span className="w-28 text-right tabular-nums">{formatMoney(line.plannedMinor, money.currency, money.minorUnit, money.locale)}</span>
+                <span className="w-28 text-right money">{formatMoney(line.plannedMinor, money.currency, money.minorUnit, money.locale)}</span>
               </label>
             </li>
           ))}
@@ -86,11 +86,11 @@ export function FirstYearCheckForm({
         )}
       </Card>
       {error && (
-        <p role="alert" className="text-sm text-red-700">
+        <p role="alert" className="text-[13.5px] font-semibold text-rani">
           {error}
         </p>
       )}
-      <Button onClick={submit} disabled={busy} className="w-full">
+      <Button onClick={submit} disabled={busy} size="lg" className="w-full">
         {t('checkDone')}
       </Button>
     </div>

@@ -44,7 +44,7 @@ export function DuplicateQuestion({ matchId, amount, shop, day, mine, canPostpon
 
   return (
     <div className="space-y-2" data-testid="duplicate-question">
-      <p className="text-sm">{t('question', { who: mine ? 'me' : 'family', amount, shop: shop || '__none__', day })}</p>
+      <p className="text-[15px]">{t('question', { who: mine ? 'me' : 'family', amount, shop: shop || '__none__', day })}</p>
       <div className="flex flex-wrap gap-2">
         <Button size="sm" disabled={busy} onClick={() => answer('same')}>
           {t('same')}
@@ -59,7 +59,7 @@ export function DuplicateQuestion({ matchId, amount, shop, day, mine, canPostpon
         )}
       </div>
       {error && (
-        <p role="alert" className="text-sm text-red-700">
+        <p role="alert" className="text-[13.5px] font-semibold text-rani">
           {error}
         </p>
       )}

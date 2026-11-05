@@ -337,7 +337,7 @@ The activity history is recorded from day one; 1b adds the screen to view it.
   - Inbox count
   - undated items nudge
   - month-end review
-- The visual design is **parked** and will be done separately (§9).
+- The visual design is the approved "Silk and gold" look (§9).
 
 **6.11 Forecast screen** (FR-032–036)
 
@@ -476,7 +476,7 @@ From the FRD (AC-01 to AC-18) and the sample data:
 - **Mainly used on iPhone.**
 - **English screens now**, built so other languages can be added later.
 - **You'll put the AI service key in the environment settings.**
-- **Visual design is parked** for later.
+- **Visual design:** the "Silk and gold" look, approved 5 Nov (§9).
 
 ### My calls (please check these)
 
@@ -505,7 +505,7 @@ From the FRD (AC-01 to AC-18) and the sample data:
 
 ## 9. Open items (not blocking Stage 1)
 
-- **Visual design.** It's parked. A design pass with mockups happens before Stage 1 screens are polished, and until then the screens are plain and functional.
+- **Visual design.** Done as its own stage after Voice. The approved look is "Silk and gold": peacock blue and gold, a temple-border zigzag under the Home header, rings for spending, a floating bottom bar. See `docs/superpowers/specs/2026-11-05-nestwise-design-look-and-feel-design.md`. It was first a parked item; the earlier notes below are kept for the record.
   - *Update 2026-11-03:* the design pass now comes after Voice and before Photo receipts.
   - The aim is an app-like feel on phone, tablet and desktop: budgets and upcoming bills first, adding and editing expenses with little effort, and page changes that feel like a mobile app.
   - You noted a few Home page display items to look at then.

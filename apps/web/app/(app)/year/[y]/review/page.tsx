@@ -6,6 +6,7 @@ import { Suspense } from 'react';
 import { formatMonthShort, minorToInput } from '@/client/format';
 import { makeGetNextYearReviewUseCase } from '@/composition/year-plan';
 import { PageLoading } from '@/components/page-loading';
+import { DetailHeader } from '@/components/screen-header';
 import { Card } from '@/components/ui/card';
 import { moneyOf, pageContext } from '@/http/page-session';
 import { YearLineActions } from '../year-line-actions';
@@ -35,22 +36,27 @@ async function NextYearReview({ params }: { params: Params }) {
     review = await makeGetNextYearReviewUseCase().execute({ actor, year });
   } catch (error) {
     if (!(error instanceof YearPlanNotFoundError)) throw error;
-    return <Card className="my-4">{tYear('notYet', { year })}</Card>;
+    return (
+      <>
+        <DetailHeader title={t('title', { year })} />
+        <Card>{tYear('notYet', { year })}</Card>
+      </>
+    );
   }
   const isAdmin = actor.role === 'admin';
   const open = review.lines.filter((l) => l.state === 'open');
 
   return (
-    <div className="space-y-4 py-4">
-      <h1 className="text-xl font-semibold">{t('title', { year })}</h1>
-      <p className="text-sm text-zinc-600">{review.confirmed ? t('confirmed') : t('explain')}</p>
+    <div className="mx-auto max-w-xl space-y-4">
+      <DetailHeader title={t('title', { year })} />
+      <p className="text-[14px] text-muted">{review.confirmed ? t('confirmed') : t('explain')}</p>
       <Card>
-        <ul className="divide-y divide-zinc-100">
+        <ul className="divide-y divide-line">
           {open.map((line) => (
-            <li key={line.id} className="space-y-1 py-2">
+            <li key={line.id} className="space-y-2 py-3">
               <div className="flex justify-between gap-2">
-                <span className="font-medium">{line.name}</span>
-                <span className="text-sm text-zinc-600">
+                <span className="min-w-0 break-words font-semibold">{line.name}</span>
+                <span className="shrink-0 rounded-full bg-mist px-2.5 py-0.5 text-[13.5px] font-semibold text-peacock">
                   {line.dueMonth === null ? tYear('noMonth') : formatMonthShort({ year: line.dueYear, month: line.dueMonth }, money.locale)}
                 </span>
               </div>

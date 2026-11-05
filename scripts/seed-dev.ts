@@ -2,7 +2,8 @@
  * Loads the FICTIONAL sample family (fixtures/sample-family.ts: the plan plus October 2026's 36 expenses and two yearly
  * payments) into a LOCAL development database, so the screens have something to show.
  *
- *   pnpm seed:dev
+ *   pnpm seed:dev              the plan and October 2026
+ *   pnpm seed:dev --showcase   also fictional spending in the current month, so every screen case shows
  *
  * It never runs against production, never uses DATABASE_URL (the hosted database), and only accepts a DB_HOST on this
  * computer. Sign in afterwards as dev@example.com with the password in DEV_PASSWORD below (a local test value).
@@ -12,7 +13,10 @@ import { pathToFileURL } from 'node:url';
 import { createDb, databaseUrl, type Db } from '@nestwise/db';
 import { EmailAlreadyRegisteredError } from '@nestwise/domain/auth';
 import type { Actor, IsoDate } from '@nestwise/domain/shared';
-import { sampleFamily } from '../fixtures/sample-family';
+import { todayIn } from '@nestwise/domain/shared';
+import { sampleFamily, showcaseRows } from '../fixtures/sample-family';
+import { DrizzleFamilyGateway } from '../apps/web/src/adapters/family/drizzle-family-gateway';
+import { systemClock } from '../apps/web/src/adapters/shared/system-clock';
 import { DrizzlePlanGateway } from '../apps/web/src/adapters/plan/drizzle-plan-gateway';
 import { makeSignUpUseCase } from '../apps/web/src/composition/auth';
 import { makeRecordExpenseUseCase } from '../apps/web/src/composition/expenses';
@@ -29,7 +33,12 @@ const SETUP = { year: 2026, month: 10 };
 /** Still to come in 2026 when the sample family starts in October: the dated bills from October on, and Deepavali. */
 const STILL_TO_COME = ['car_ins', 'school_t2', 'bike_ins', 'deepavali', 'diwali_dress'];
 
-export async function runSeedDev(env: Env, injectedDb?: Db): Promise<{ actor: Actor; familyId: string }> {
+export interface SeedOptions {
+  /** Also load fictional rows in the current month so every screen case shows (design stage). */
+  readonly showcase?: boolean;
+}
+
+export async function runSeedDev(env: Env, injectedDb?: Db, options: SeedOptions = {}): Promise<{ actor: Actor; familyId: string }> {
   if (env.VERCEL_ENV === 'production' || env.NODE_ENV === 'production') {
     throw new Error('Refusing to seed production: seed:dev loads fictional data');
   }
@@ -87,6 +96,32 @@ export async function runSeedDev(env: Env, injectedDb?: Db): Promise<{ actor: Ac
         allocations: [{ itemId: itemId(p.itemKey), amountMinor: p.amountMinor }],
       });
     }
+
+    if (options.showcase) {
+      // FICTIONAL: spending in the current month, a part-paid bike insurance, and a set-aside too small for June 2027.
+      const today = todayIn(sampleFamily.timeZone, systemClock.now());
+      for (const row of showcaseRows(today)) {
+        await record.execute({
+          actor,
+          id: randomUUID(),
+          amountMinor: row.amountMinor,
+          txnDate: row.date,
+          merchant: row.merchant,
+          allocations: [{ itemId: itemId(row.itemKey), amountMinor: row.amountMinor }],
+        });
+      }
+      await record.execute({
+        actor,
+        id: randomUUID(),
+        amountMinor: 50_000,
+        txnDate: today,
+        merchant: 'FICTIONAL Insurance Agent',
+        allocations: [{ itemId: itemId('bike_ins'), amountMinor: 50_000 }],
+      });
+      const families = new DrizzleFamilyGateway(db);
+      const saved = await families.findById(family.id);
+      if (saved) await families.save({ ...saved, setAsideOverrideMinor: 2_000_000 });
+    }
     return { actor, familyId: family.id };
   } finally {
     if (!injectedDb) await db.$client.end();
@@ -94,7 +129,7 @@ export async function runSeedDev(env: Env, injectedDb?: Db): Promise<{ actor: Ac
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  runSeedDev(process.env)
+  runSeedDev(process.env, undefined, { showcase: process.argv.includes('--showcase') })
     .then(({ familyId }) => console.log(`Seeded the fictional sample family (${familyId}). Sign in as ${DEV_EMAIL}.`))
     .catch((error: unknown) => {
       console.error(error instanceof Error ? error.message : error);

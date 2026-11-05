@@ -5,6 +5,7 @@ import { systemClock } from '@/adapters/shared/system-clock';
 import { makeGetFamilyUseCase } from '@/composition/family';
 import { makeGetTemplatesUseCase } from '@/composition/plan';
 import { makeGetSetupStatusUseCase, makeGetYearPlanUseCase } from '@/composition/year-plan';
+import { AuthFrame } from '@/components/auth-frame';
 import { PageLoading } from '@/components/page-loading';
 import { moneyOf, pageActorOrNone, pageUser } from '@/http/page-session';
 import { setupShowsImport } from '@/http/signup-gate';
@@ -17,11 +18,15 @@ type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 /** Outside the app layout on purpose: no navigation links, so nothing else is loaded (or created) during setup. */
 export default function SetupPage({ searchParams }: { searchParams: SearchParams }) {
   return (
-    <main className="pt-safe mx-auto w-full max-w-xl px-4 pb-10">
-      <Suspense fallback={<PageLoading />}>
-        <Setup searchParams={searchParams} />
-      </Suspense>
-    </main>
+    <Suspense
+      fallback={
+        <AuthFrame>
+          <PageLoading />
+        </AuthFrame>
+      }
+    >
+      <Setup searchParams={searchParams} />
+    </Suspense>
   );
 }
 
@@ -29,11 +34,20 @@ export default function SetupPage({ searchParams }: { searchParams: SearchParams
 async function Setup({ searchParams }: { searchParams: SearchParams }) {
   const user = await pageUser();
   const actor = await pageActorOrNone(user);
-  if (!actor) return <FamilyForm currencies={[...CURRENCIES.keys()]} />;
+  if (!actor)
+    return (
+      <AuthFrame step={{ n: 1, of: 3 }}>
+        <FamilyForm currencies={[...CURRENCIES.keys()]} />
+      </AuthFrame>
+    );
 
   const templates = await makeGetTemplatesUseCase().execute({ actor });
   const hasPlan = templates.monthly.length + templates.savings.length + templates.yearly.length > 0;
-  if (!hasPlan && (await searchParams).plan !== 'empty') return <PlanStep canImport={setupShowsImport(user.email, actor.role)} />;
+  if (!hasPlan && (await searchParams).plan !== 'empty') return (
+      <AuthFrame step={{ n: 2, of: 3 }}>
+        <PlanStep canImport={setupShowsImport(user.email, actor.role)} />
+      </AuthFrame>
+    );
   if (actor.role !== 'admin' || (await makeGetSetupStatusUseCase().execute({ actor })).firstYearCheckDone) redirect('/home');
 
   const { family } = await makeGetFamilyUseCase().execute({ actor });
@@ -45,11 +59,13 @@ async function Setup({ searchParams }: { searchParams: SearchParams }) {
     .filter((l) => l.state === 'open' && l.dueYear === current.year && (l.dueMonth === null || l.dueMonth >= current.month))
     .map((l) => ({ id: l.id, name: l.name, plannedMinor: l.plannedMinor, dueMonth: l.dueMonth }));
   return (
-    <FirstYearCheckForm
-      year={current.year}
-      setupMonth={`${current.year}-${String(current.month).padStart(2, '0')}`}
-      lines={lines}
-      money={moneyOf(family)}
-    />
+    <AuthFrame step={{ n: 3, of: 3 }}>
+      <FirstYearCheckForm
+        year={current.year}
+        setupMonth={`${current.year}-${String(current.month).padStart(2, '0')}`}
+        lines={lines}
+        money={moneyOf(family)}
+      />
+    </AuthFrame>
   );
 }

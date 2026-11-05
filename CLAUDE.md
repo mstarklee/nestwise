@@ -56,7 +56,7 @@ skills differ on code structure, the skills win.
   prefers numbered questions they can answer by number.
 - **Commits.** Commit only when the owner asks.
 
-## Status (2026-11-04)
+## Status (2026-11-05)
 
 The full picture is in `docs/PROGRESS.md`.
 
@@ -68,4 +68,5 @@ The full picture is in `docs/PROGRESS.md`.
 - Waiting on the owner:
   - iPhone setup, the spouse invite and the airplane-mode check (`docs/RUNBOOK.md` §4–5)
   - the first daily cron run
-- Next, in order: Voice (OpenAI), UI design (frontend-design skill; the owner noted some Home display items to look at), Photo receipts
+- Design stage built, not deployed: every screen is in the "Silk and gold" look (spec `docs/superpowers/specs/2026-11-05-nestwise-design-look-and-feel-design.md`, plan `docs/superpowers/plans/2026-11-05-nestwise-design-look-and-feel.md`). The owner approved Home and Add; the rest waits on their look, then a deploy and an iPhone check.
+- Next, in order: finish the design approval and deploy, then Photo receipts

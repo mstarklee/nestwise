@@ -2,6 +2,7 @@ import { getTranslations } from 'next-intl/server';
 import { Suspense } from 'react';
 import { makeGetVoiceUsageUseCase } from '@/composition/capture';
 import { PageLoading } from '@/components/page-loading';
+import { DetailHeader } from '@/components/screen-header';
 import { Card, CardTitle } from '@/components/ui/card';
 import { pageContext } from '@/http/page-session';
 import { FamilySettingsForm } from './family-settings-form';
@@ -20,27 +21,32 @@ async function FamilySettings() {
   const t = await getTranslations('settings');
   const currencyName = new Intl.DisplayNames(['en'], { type: 'currency' }).of(family.currencyCode);
   const voice = await makeGetVoiceUsageUseCase(family.id).execute({ actor });
+  const facts: [string, React.ReactNode][] = [
+    [t('name'), family.name],
+    [
+      t('currency'),
+      <>
+        {family.currencyCode}, {currencyName} <span className="text-muted">({t('locked')})</span>
+      </>,
+    ],
+    [t('timeZone'), family.timeZone],
+    [t('yourRole'), t(`roles.${actor.role}`)],
+  ];
   return (
-    <div className="space-y-4 py-4">
-      <h1 className="text-xl font-semibold">{t('familyTitle')}</h1>
-      <Card>
-        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
-          <dt className="text-zinc-500">{t('name')}</dt>
-          <dd>{family.name}</dd>
-          <dt className="text-zinc-500">{t('currency')}</dt>
-          <dd>
-            {family.currencyCode} · {currencyName} <span className="text-zinc-500">({t('locked')})</span>
-          </dd>
-          <dt className="text-zinc-500">{t('timeZone')}</dt>
-          <dd>{family.timeZone}</dd>
-          <dt className="text-zinc-500">{t('yourRole')}</dt>
-          <dd>{t(`roles.${actor.role}`)}</dd>
-        </dl>
-      </Card>
+    <div className="mx-auto max-w-xl space-y-4">
+      <DetailHeader title={t('familyTitle')} />
+      <ul className="divide-y divide-line overflow-hidden rounded-card bg-white shadow-card">
+        {facts.map(([label, value]) => (
+          <li key={label} className="flex min-h-12 items-center justify-between gap-3 px-4 py-2">
+            <span className="text-muted">{label}</span>
+            <span className="min-w-0 break-words text-right font-semibold">{value}</span>
+          </li>
+        ))}
+      </ul>
       <Card>
         <CardTitle>{t('voiceTitle')}</CardTitle>
-        <p className="text-sm">{voice.capPerMonth === null ? t('voiceUsedNoLimit', { used: voice.used }) : t('voiceUsed', { used: voice.used, cap: voice.capPerMonth })}</p>
-        <p className="mt-1 text-xs text-zinc-500">{t('voiceExplain')}</p>
+        <p className="money">{voice.capPerMonth === null ? t('voiceUsedNoLimit', { used: voice.used }) : t('voiceUsed', { used: voice.used, cap: voice.capPerMonth })}</p>
+        <p className="mt-1 text-[13.5px] text-muted">{t('voiceExplain')}</p>
       </Card>
 
       {actor.role === 'admin' && (
@@ -52,7 +58,7 @@ async function FamilySettings() {
       {actor.role === 'admin' && (
         <Card>
           <CardTitle>{t('inviteTitle')}</CardTitle>
-          <p className="mb-2 text-sm text-zinc-600">{t('inviteIntro')}</p>
+          <p className="mb-3 text-[14px] text-muted">{t('inviteIntro')}</p>
           <InviteForm />
         </Card>
       )}

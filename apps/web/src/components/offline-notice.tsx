@@ -23,7 +23,7 @@ export function OfflineNotice({ asOf }: { asOf: string }) {
   if (online) return null;
   const time = new Date(asOf).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   return (
-    <p role="status" className="bg-amber-50 px-4 py-1 text-center text-xs text-amber-900">
+    <p role="status" className="pt-safe sticky top-0 z-30 bg-gold px-4 py-1 text-center text-[13.5px] font-semibold text-ink">
       {t('offline', { time })}
     </p>
   );

@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import { Suspense } from 'react';
 import { readProvider, maxClipSeconds } from '@/capture/clip-limits';
+import { DetailHeader } from '@/components/screen-header';
 import { PageLoading } from '@/components/page-loading';
 import { VoiceCapture } from '@/components/voice-capture';
 import { pageContext } from '@/http/page-session';
@@ -19,13 +20,21 @@ async function Capture() {
   const t = await getTranslations('voice');
   // A Viewer may not record an expense, so their microphone is never opened — the use case would refuse the upload
   // anyway, but asking for the microphone first and failing after is no way to tell someone they cannot do this.
-  if (actor.role === 'viewer') return <p className="py-4 text-sm">{t('viewerCannot')}</p>;
+  if (actor.role === 'viewer')
+    return (
+      <>
+        <DetailHeader title={t('title')} />
+        <p className="rounded-card bg-white p-4 shadow-card">{t('viewerCannot')}</p>
+      </>
+    );
   const seconds = maxClipSeconds(readProvider(process.env.STT_PROVIDER));
 
   return (
-    <div className="space-y-4 py-4">
-      <h1 className="text-xl font-semibold">{t('title')}</h1>
-      <VoiceCapture maxSeconds={seconds} />
-    </div>
+    <>
+      <DetailHeader title={t('title')} />
+      <div className="mx-auto max-w-xl">
+        <VoiceCapture maxSeconds={seconds} />
+      </div>
+    </>
   );
 }

@@ -40,12 +40,12 @@ export function AmountEditor({ year, lineId, initial, minorUnit }: { year: numbe
 
   return (
     <form onSubmit={save} className="flex items-center gap-2">
-      <Input name="amount" inputMode="decimal" defaultValue={initial} aria-label={t('amount')} className="h-8 w-32 text-sm" />
+      <Input name="amount" inputMode="decimal" defaultValue={initial} aria-label={t('amount')} className="min-h-11 w-32 text-[15px]" />
       <Button size="sm" variant="outline" type="submit" disabled={busy}>
         {t('save')}
       </Button>
       {error && (
-        <p role="alert" className="text-sm text-red-700">
+        <p role="alert" className="text-[13.5px] font-semibold text-rani">
           {error}
         </p>
       )}
@@ -80,7 +80,7 @@ export function LooksRight({ year }: { year: number }) {
         {t('looksRight')}
       </Button>
       {error && (
-        <p role="alert" className="text-sm text-red-700">
+        <p role="alert" className="text-[13.5px] font-semibold text-rani">
           {error}
         </p>
       )}

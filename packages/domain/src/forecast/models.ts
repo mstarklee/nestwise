@@ -1,6 +1,7 @@
 import type { Checklist } from '../pot';
 import type { Actor, Period } from '../shared';
 import type { YearLineStatus } from '../year-plan';
+import type { BiggestMonth } from './biggest-month';
 
 export interface ForecastMonthInput {
   readonly period: Period;
@@ -116,15 +117,33 @@ export interface ForecastView extends Forecast {
 
 export type HomeCard = 'checklist' | 'undated' | 'capture' | 'month_review' | 'next_year' | 'year_end';
 
+/** A month's bills with the pot's balance at the end of that month. */
+export interface HomeMonth extends ForecastBills {
+  readonly endMinor: number;
+}
+
 export interface HomeSummary {
   readonly pot: {
     readonly balanceMinor: number;
     readonly safeToSpendNowMinor: number;
     readonly firstRed: { readonly period: Period; readonly shortfallMinor: number } | null;
     readonly fixPerMonthMinor: number | null;
+    /** What goes into the pot each month (next month's deposit). */
+    readonly setAsideMinor: number;
+    /** No month in the 12-month forecast goes short. */
+    readonly allCovered: boolean;
+    /** A one-off top-up for short months no deposit can reach. */
+    readonly topUpNowMinor: number | null;
   };
-  readonly next3Months: readonly ForecastBills[];
-  readonly thisMonth: { readonly plannedMinor: number; readonly actualMinor: number; readonly groupsOver: readonly string[] };
+  readonly next3Months: readonly HomeMonth[];
+  /** The biggest month among months 4–12, or null when none has a dated bill. */
+  readonly biggestAhead: BiggestMonth | null;
+  readonly thisMonth: {
+    readonly plannedMinor: number;
+    readonly actualMinor: number;
+    readonly groupsOver: readonly string[];
+    readonly groups: readonly { readonly groupName: string; readonly plannedMinor: number; readonly actualMinor: number }[];
+  };
   readonly undated: readonly UndatedSummary[];
   readonly cards: readonly HomeCard[];
   /** This month's checklist, so the screen does not read it a second time. */

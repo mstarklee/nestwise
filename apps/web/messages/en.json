@@ -11,7 +11,9 @@
     "home": "Home",
     "budgets": "Budgets",
     "add": "Add",
-    "activity": "Activity"
+    "bills": "Bills",
+    "activity": "Activity",
+    "back": "Back"
   },
   "status": {
     "planned": "Planned",
@@ -87,22 +89,62 @@
     "checkNothing": "Nothing to check for this year.",
     "noMonth": "No month yet",
     "tickAll": "Tick all",
-    "checkDone": "Done"
+    "checkDone": "Done",
+    "step": "Step {step} of {total}"
   },
   "home": {
+    "greeting": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening"
+    },
     "settings": "Settings",
-    "pot": "Pot for yearly bills",
-    "safeToSpend": "Safe to spend now: {amount}",
-    "shortBy": "Short by {amount} in {month}.",
-    "fixPerMonth": "Add {amount} a month to fix it.",
-    "nextBills": "Next 3 months of yearly bills",
-    "noBills": "No bills",
-    "seeForecast": "See the 12-month forecast",
-    "spent": "Spent {actual} of {planned}",
-    "groupsOver": "Over plan: {groups}",
-    "seeMonth": "See this month",
-    "undated": "{count, plural, one {# item} other {# items}} ({amount}) in {year} have no month yet.",
-    "giveMonths": "Give them a month",
+    "inbox": "Inbox",
+    "potLabel": "In the yearly bills pot",
+    "covered": "Every dated bill for the next year is covered",
+    "topUpNow": "Top up <m>{amount}</m> now.",
+    "setAside": "You add <m>{amount}</m> to it each month",
+    "speak": "Speak",
+    "scan": "Scan",
+    "type": "Type",
+    "soon": "Soon",
+    "scanSoon": "Scanning bills is coming soon. For now, Speak or Type it.",
+    "scanTitle": "Scan a bill",
+    "scanOk": "OK",
+    "nextMonths": "Next 3 months",
+    "seeYear": "See the year",
+    "bill": {
+      "dueThisMonth": "Due this month",
+      "overdue": "Overdue. Still to pay.",
+      "partPaid": "Part paid",
+      "paid": "Paid"
+    },
+    "cover": {
+      "covers": "The pot covers this month.",
+      "short": "The pot is short by <m>{amount}</m> at the end of this month.",
+      "none": "No yearly bills. The pot grows to <m>{amount}</m>."
+    },
+    "biggest": {
+      "title": "Biggest month ahead: {month}",
+      "onTrack": "The pot will have <m>{amount}</m> by then. You’re on track.",
+      "short": "The pot is short by <m>{amount}</m> in <m>{month}</m>."
+    },
+    "undated": {
+      "title": "{count, plural, one {# bill has} other {# bills have}} no month yet",
+      "body": "<m>{amount}</m> for {names}. Give them a month so nothing is forgotten.",
+      "bodyMore": "<m>{amount}</m> for {names} and more. Give them a month so nothing is forgotten."
+    },
+    "spending": {
+      "title": "{month} so far",
+      "open": "Open month",
+      "summary": "<m>{actual}</m> spent of <m>{planned}</m>",
+      "over": "<m>{amount}</m> over",
+      "percentUsed": "{percent}%",
+      "noPlan": "No plan"
+    },
+    "shortBy": "Short by <m>{amount}</m> in <m>{month}</m>.",
+    "fixPerMonth": "Add <m>{amount}</m> a month to fix it.",
+    "safeToSpend": "Safe to spend now: <m>{amount}</m>",
     "inboxCount": "{count, plural, one {# expense waits} other {# expenses wait}} for an answer in the Inbox.",
     "monthReview": "{month} is over: take a look.",
     "nextYear": "{year}’s yearly bills are ready to check.",
@@ -110,9 +152,7 @@
     "yearEnd": "Some {year} bills are still open.",
     "openYearEnd": "Answer them",
     "openReview": "See how it went",
-    "openInbox": "Open the Inbox",
-    "speakPrompt": "Had an expense? Say it instead of typing it.",
-    "speak": "Speak an expense"
+    "openInbox": "Open the Inbox"
   },
   "checklist": {
     "title": "This month’s checklist",
@@ -138,12 +178,15 @@
     "previous": "Previous month",
     "next": "Next month",
     "totals": "This month",
-    "spentOfPlanned": "Spent {actual} of {planned}",
+    "spentOfPlanned": "Spent <m>{actual}</m> of <m>{planned}</m>",
     "item": "Item",
     "planned": "Planned",
     "actual": "Spent",
     "savings": "Savings plan",
-    "badAmount": "Please enter an amount like 5000 or 5,000.50."
+    "badAmount": "Please enter an amount like 5000 or 5,000.50.",
+    "over": "{amount} over",
+    "plan": "Plan",
+    "templates": "Templates"
   },
   "review": {
     "title": "{month}: how it went",
@@ -164,7 +207,9 @@
     "inbox": "{count, plural, one {# expense waits} other {# expenses wait}} in the Inbox.",
     "openInbox": "Open the Inbox",
     "close": "Close {month}",
-    "closed": "{month} is closed. Late expenses can still be added."
+    "closed": "{month} is closed. Late expenses can still be added.",
+    "overWord": "over",
+    "underWord": "under"
   },
   "yearEnd": {
     "title": "{year}: bills still open",
@@ -227,14 +272,20 @@
     "redMonths": "Short in: {months}.",
     "fixPerMonth": "Add {amount} a month to fix it.",
     "topUpNow": "Top up {amount} now.",
-    "householdNeeds": "Each month the household needs {total}: spending {spending}, savings {savings}, pot {pot}.",
+    "householdNeeds": "Each month the household needs <m>{total}</m>: spending <m>{spending}</m>, savings <m>{savings}</m>, pot <m>{pot}</m>.",
     "month": "Month",
     "in": "In",
     "out": "Out",
     "end": "End",
     "estimate": "estimate",
     "bills": "Yearly bills by month",
-    "undatedTitle": "{year}: {count, plural, one {# item} other {# items}} with no month yet ({amount})"
+    "undatedTitle": "{year}: {count, plural, one {# item} other {# items}} with no month yet ({amount})",
+    "chartLabel": "Pot at the end of each month: {months}.",
+    "chartMonth": "{month} {amount}",
+    "detail": "In <m>{inAmount}</m>. Out <m>{outAmount}</m>. Ends at <m>{endAmount}</m>.",
+    "estimateNote": "Estimate from the yearly template.",
+    "giveMonths": "Give them a month",
+    "short": "Short"
   },
   "add": {
     "title": "Add an expense",
@@ -256,7 +307,9 @@
     "seeMonth": "See the month",
     "badAmount": "Please enter an amount like 945 or 204.50.",
     "partsMustAddUp": "The parts must add up to the amount.",
-    "savedMaybeRepeat": "Saved {amount}. It may be a repeat:"
+    "savedMaybeRepeat": "Saved {amount}. It may be a repeat:",
+    "sameTitle": "Same purchase?",
+    "amountPlaceholder": "0"
   },
   "outbox": {
     "waiting": "{count, plural, one {# expense} other {# expenses}} waiting to send",
@@ -313,7 +366,7 @@
     "signOut": "Sign out",
     "voiceTitle": "Voice notes this month",
     "voiceUsed": "{used} of {cap} used",
-    "voiceUsedNoLimit": "{used} used · no limit on this family",
+    "voiceUsedNoLimit": "{used} used. No limit on this family.",
     "voiceExplain": "At the limit, voice stops and you can still type an expense. Recordings themselves are never kept."
   },
   "install": {
@@ -355,7 +408,8 @@
     "show": "Show",
     "empty": "No expenses match.",
     "entered": "Added by {who, select, me {you} other {{who}}}",
-    "proofs": "{count, plural, one {# proof} other {# proofs}}"
+    "proofs": "{count, plural, one {# proof} other {# proofs}}",
+    "filters": "Filters in use"
   },
   "join": {
     "title": "Join your family on NestWise",

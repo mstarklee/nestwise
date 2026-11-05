@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { type FormEvent, useRef, useState } from 'react';
 import { api } from '@/client/api-client';
 import { formatMoney } from '@/client/format';
+import { Icon } from '@/components/icon';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input, Select } from '@/components/ui/input';
@@ -141,9 +142,9 @@ export function VoiceReview({ batchId, transcript, rows, items, bills, potBalanc
       <Card
         key={draft.id}
         data-testid={bill ? 'voice-bill-row' : 'voice-expense-row'}
-        className={`space-y-2 ${bill ? 'border-sky-300 bg-sky-50' : draft.needsAttention ? 'border-amber-400 bg-amber-50' : ''}`}
+        className={`space-y-3 ${bill ? 'bg-white ring-2 ring-peacock/30' : draft.needsAttention ? 'bg-white ring-2 ring-gold' : ''}`}
       >
-        <p className="text-xs text-zinc-600">“{draft.heard}”</p>
+        <p className="text-[13.5px] text-muted">“{draft.heard}”</p>
 
         <div className="flex flex-wrap items-center gap-2">
           <Input
@@ -151,7 +152,7 @@ export function VoiceReview({ batchId, transcript, rows, items, bills, potBalanc
             name={`amount-${draft.id}`}
             inputMode="decimal"
             autoComplete="off"
-            className="w-28"
+            className="money w-32 text-[18px] font-bold"
             defaultValue={shown[draft.id] ?? ''}
             placeholder={t('amountMissing')}
             onChange={(e) => setShown((all) => ({ ...all, [draft.id]: e.target.value }))}
@@ -187,67 +188,72 @@ export function VoiceReview({ batchId, transcript, rows, items, bills, potBalanc
             </Select>
           )}
 
-          <Button type="button" size="sm" variant="ghost" onClick={() => update(draft.id, { dropped: true })}>
+          <Button type="button" size="sm" variant="ghost" className="text-muted" onClick={() => update(draft.id, { dropped: true })}>
             {t('remove')}
           </Button>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <Input aria-label={t('date')} type="date" name={`date-${draft.id}`} className="w-40" defaultValue={draft.txnDate} />
-          {draft.merchant && <span className="text-xs text-zinc-500">{draft.merchant}</span>}
+          {draft.merchant && <span className="text-[13.5px] text-muted">{draft.merchant}</span>}
         </div>
 
         {bill && chosenBill && minor > 0 && (
-          <p className="text-xs text-sky-900" data-testid="voice-bill-effect">
+          <p className="money text-[13.5px] text-peacock" data-testid="voice-bill-effect">
             {t('billEffect', { before: money(potBalanceMinor), after: money(potBalanceMinor - minor) })}
-            {short ? ` · ${t('billShort', { left: money(chosenBill.remainingMinor - minor) })}` : ''}
+            {short ? ` ${t('billShort', { left: money(chosenBill.remainingMinor - minor) })}` : ''}
           </p>
         )}
 
-        {draft.needsAttention && !bill && <p className="text-xs font-medium text-amber-900">{t('check')}</p>}
+        {draft.needsAttention && !bill && (
+          <p className="flex items-center gap-1 text-[13.5px] font-semibold text-ink">
+            <Icon name="alert" className="size-4 text-ink" />
+            {t('check')}
+          </p>
+        )}
       </Card>
     );
   }
 
   return (
     <form ref={form} onSubmit={submit} className="space-y-4">
-      <Card className="bg-zinc-50">
-        <p className="text-xs text-zinc-500">{t('youSaid')}</p>
-        <p className="text-sm">“{transcript}”</p>
+      <Card>
+        <p className="text-[13.5px] text-muted">{t('youSaid')}</p>
+        <p className="text-[15px]">“{transcript}”</p>
       </Card>
 
-      {!mine && <Card className="text-sm">{t('notYours')}</Card>}
+      {!mine && <Card className="text-[15px]">{t('notYours')}</Card>}
 
       {expenses.length > 0 && (
         <>
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{t('spending')}</h2>
+          <h2 className="text-[19px] font-bold">{t('spending')}</h2>
           {expenses.map(row)}
         </>
       )}
 
       {billRows.length > 0 && (
         <>
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{t('bills')}</h2>
+          <h2 className="text-[19px] font-bold">{t('bills')}</h2>
           {billRows.map(row)}
         </>
       )}
 
-      {keeping.length === 0 && <Card className="text-sm">{t('allRemoved')}</Card>}
+      {keeping.length === 0 && <Card className="text-[15px]">{t('allRemoved')}</Card>}
 
       {mine && (
-        <div className="space-y-2">
+        <div className="sticky bottom-[calc(96px+env(safe-area-inset-bottom))] z-10 space-y-2 lg:bottom-4">
           <Button
             type="submit"
             size="lg"
             variant={keeping.length === 0 ? 'outline' : 'default'}
-            className="w-full"
+            className="w-full shadow-card"
             disabled={busy}
             data-testid={keeping.length === 0 ? 'voice-discard' : 'voice-confirm'}
           >
             {keeping.length === 0 ? t('discard') : t('addAll', { count: keeping.length })}
           </Button>
           {keeping.length > 0 && (
-            <p className="text-center text-xs text-zinc-500">
+            <p className="rounded-chip bg-white/90 px-2 py-1 text-center text-[13.5px] text-muted">
               {t('split', { expenses: expenses.length, expenseTotal: money(expenseTotal), bills: billRows.length, billTotal: money(billTotal) })}
             </p>
           )}
@@ -255,7 +261,7 @@ export function VoiceReview({ batchId, transcript, rows, items, bills, potBalanc
       )}
 
       {error && (
-        <p role="alert" className="text-sm text-red-700">
+        <p role="alert" className="rounded-chip bg-rani/10 px-3 py-2 text-[13.5px] font-semibold text-rani">
           {error}
         </p>
       )}

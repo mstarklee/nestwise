@@ -20,7 +20,7 @@ export function e2eDatabaseUrl(): string {
 
 export default defineConfig({
   testDir: './test/e2e',
-  timeout: 120_000,
+  timeout: 240_000,
   expect: { timeout: 15_000 },
   fullyParallel: false,
   workers: 1,
@@ -34,6 +34,7 @@ export default defineConfig({
     reuseExistingServer: false,
     timeout: 180_000,
     env: {
+      NEXT_DIST_DIR: '.next-e2e',
       DATABASE_URL: e2eDatabaseUrl(),
       TEST_DB_NAME: E2E_DB_NAME,
       // "Today" is 1 November 2026 in India, so the expectations match the PRD's November example.

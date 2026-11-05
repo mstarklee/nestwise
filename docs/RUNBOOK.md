@@ -159,6 +159,12 @@ of schema `app` for 4 weeks.
 - `pnpm test` (unit), `pnpm test:integration` (needs the local Postgres in `DB_*`), `pnpm e2e` (WebKit, iPhone size;
   install the browser once with `pnpm --filter web exec playwright install webkit`).
 - `pnpm seed:dev` loads the fictional sample family into your local database; sign in as `dev@example.com`.
+- `pnpm seed:dev --showcase` also loads fictional spending in the current month, so every screen case shows: Food over
+  plan, Kids nearly used up, Housing exactly used, a part-paid bike insurance, and a set-aside too small for June
+  2027. It needs an empty database. To keep your own data safe, point it at a spare one:
+  `DB_NAME=nestwise_showcase pnpm seed:dev --showcase` (create and migrate that database first, for example with
+  `TEST_DB_NAME=nestwise_showcase node --env-file-if-exists=.env.local --import tsx scripts/e2e-db.ts`). It still refuses
+  production and any database that is not on this computer.
 
 ---
 

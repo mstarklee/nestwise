@@ -5,6 +5,7 @@ import { Suspense } from 'react';
 import { formatMoney } from '@/client/format';
 import { makeGetYearEndReviewUseCase } from '@/composition/year-plan';
 import { PageLoading } from '@/components/page-loading';
+import { DetailHeader } from '@/components/screen-header';
 import { Card } from '@/components/ui/card';
 import { moneyOf, pageContext } from '@/http/page-session';
 import { YearEndActions } from './year-end-actions';
@@ -31,14 +32,14 @@ async function YearEnd({ params }: { params: Params }) {
   const review = await makeGetYearEndReviewUseCase().execute({ actor, year });
 
   return (
-    <div className="space-y-4 py-4">
-      <h1 className="text-xl font-semibold">{t('title', { year })}</h1>
-      <p className="text-sm text-zinc-600">{t('explain', { year, next: year + 1 })}</p>
+    <div className="mx-auto max-w-xl space-y-4">
+      <DetailHeader title={t('title', { year })} />
+      <p className="text-[14px] text-muted">{t('explain', { year, next: year + 1 })}</p>
       {review.lines.length === 0 && <Card>{t('allAnswered', { year })}</Card>}
       {review.lines.map((line) => (
         <Card key={line.id} className="space-y-1" data-testid={`year-end-${line.name}`}>
-          <p className="font-medium">{line.name}</p>
-          <p className="text-sm tabular-nums text-zinc-600">
+          <p className="font-semibold">{line.name}</p>
+          <p className="money text-[13.5px] text-muted">
             {line.paidMinor > 0 ? t('partPaid', { paid: exact(line.paidMinor), planned: exact(line.plannedMinor) }) : t('unpaid', { planned: exact(line.plannedMinor) })}
           </p>
           {actor.role === 'admin' && <YearEndActions year={year} lineId={line.id} locale={money.locale} />}
