@@ -9,6 +9,7 @@ import { POST as reset } from '../../../app/api/v1/months/[ym]/reset/route';
 import { GET as summary } from '../../../app/api/v1/months/[ym]/route';
 import { DrizzlePlanGateway } from '@/adapters/plan/drizzle-plan-gateway';
 import { useTestDb } from '../setup';
+import { verifyEmailOf } from '../support/api';
 
 const db = useTestDb();
 
@@ -30,6 +31,7 @@ async function adminWithPlan() {
     }),
   );
   const token = /nw_session=([^;]*)/.exec(signed.headers.get('set-cookie') ?? '')?.[1] ?? '';
+  await verifyEmailOf('priya@example.com');
   const created = await createFamily(request('POST', '/api/v1/families', token, { name: 'Our Family', currencyCode: 'INR', timeZone: 'Asia/Kolkata', openingPotMinor: 0 }));
   const { family } = (await created.json()) as { family: { id: string } };
   await importPlan({ db: db(), familyId: family.id });

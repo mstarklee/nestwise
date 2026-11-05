@@ -4,6 +4,7 @@ import { POST as createFamily } from '../../../app/api/v1/families/route';
 import { POST as acceptInvite } from '../../../app/api/v1/invites/[token]/accept/route';
 import { POST as createInvite } from '../../../app/api/v1/invites/route';
 import { useTestDb } from '../setup';
+import { signUpUnverified, verifyEmailOf } from '../support/api';
 
 useTestDb();
 
@@ -16,6 +17,7 @@ const json = (url: string, body: unknown, token?: string) =>
 
 async function signUp(email: string): Promise<string> {
   const response = await signup(json('/api/v1/auth/signup', { email, password: 'correct-horse' }));
+  await verifyEmailOf(email);
   return /nw_session=([^;]*)/.exec(response.headers.get('set-cookie') ?? '')?.[1] ?? '';
 }
 
@@ -35,6 +37,13 @@ afterEach(() => {
 describe('POST /api/v1/families', () => {
   it('401 without a session', async () => {
     expect((await createFamily(json('/api/v1/families', family))).status).toBe(401);
+  });
+
+  it('403 for an allowed user whose email is not verified yet', async () => {
+    const { token } = await signUpUnverified('priya@example.com');
+    const response = await createFamily(json('/api/v1/families', family, token));
+    expect(response.status).toBe(403);
+    expect(await response.json()).toMatchObject({ error: { code: 'EmailNotVerifiedError' } });
   });
 
   it('403 for a signed-in user who is not on the allow-list', async () => {

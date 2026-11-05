@@ -7,5 +7,5 @@ import { withApiErrors } from '@/http/with-api-errors';
 export const GET = withApiErrors(async (request: Request) => {
   await perRequest();
   const session = await makeResolveSessionUseCase().execute({ token: readSessionToken(request) });
-  return Response.json(AuthUserResponse.parse({ user: { id: session.userId, email: session.email } }));
+  return Response.json(AuthUserResponse.parse({ user: { id: session.userId, email: session.email, emailVerified: session.emailVerified } }));
 });

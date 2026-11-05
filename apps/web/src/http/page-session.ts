@@ -9,18 +9,30 @@ import { makeResolveSessionUseCase } from '../composition/auth';
 import { makeGetFamilyUseCase, makeResolveActorUseCase } from '../composition/family';
 import { makeGetSetupStatusUseCase } from '../composition/year-plan';
 
+const withNext = (path: string, next?: string) => (next ? `${path}?next=${encodeURIComponent(next)}` : path);
+
 /**
- * For Server Components (inbound adapters, like route handlers): the signed-in user from the nw_session cookie.
- * Not signed in → /sign-in. Call it inside a <Suspense> boundary (it reads the request).
+ * The signed-in user from the nw_session cookie, verified or not. Not signed in → /sign-in. Only for the screens
+ * before the email is proved (Check your email); everything else uses pageUser.
  */
-export async function pageUser(next?: string): Promise<SessionUser> {
+export async function pageSignedIn(next?: string): Promise<SessionUser> {
   const token = (await cookies()).get('nw_session')?.value ?? null;
   try {
     return await makeResolveSessionUseCase().execute({ token });
   } catch (error) {
-    if (error instanceof NotSignedInError) redirect(next ? `/sign-in?next=${encodeURIComponent(next)}` : '/sign-in');
+    if (error instanceof NotSignedInError) redirect(withNext('/sign-in', next));
     throw error;
   }
+}
+
+/**
+ * For Server Components (inbound adapters, like route handlers): the signed-in user with a verified email.
+ * Not signed in → /sign-in; email not verified yet → /verify-email. Call it inside a <Suspense> boundary.
+ */
+export async function pageUser(next?: string): Promise<SessionUser> {
+  const user = await pageSignedIn(next);
+  if (!user.emailVerified) redirect(withNext('/verify-email', next));
+  return user;
 }
 
 /** The signed-in user with no family yet gets undefined (setup decides what to show). */

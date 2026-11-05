@@ -9,8 +9,12 @@ describe('signupAllowed', () => {
     expect(signupAllowed('stranger@example.com', env)).toBe(false);
   });
 
-  it('defaults to invite mode with nobody allowed', () => {
-    expect(signupAllowed('priya@example.com', {})).toBe(false);
+  it('defaults to open mode: anyone may create a family (owner, 2026-11-06)', () => {
+    expect(signupAllowed('stranger@example.com', {})).toBe(true);
+  });
+
+  it('in invite mode with no list, allows nobody', () => {
+    expect(signupAllowed('priya@example.com', { SIGNUP_MODE: 'invite' })).toBe(false);
   });
 
   it('in open mode, allows everyone', () => {

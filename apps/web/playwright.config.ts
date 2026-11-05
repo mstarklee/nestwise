@@ -44,6 +44,11 @@ export default defineConfig({
       PLAN_IMPORT_EMAILS: E2E_EMAIL,
       // Match production: Sarvam is the chosen service, so the clip limit on screen is 30 seconds.
       STT_PROVIDER: 'sarvam',
+      // No real email from browser tests: the verify link is planted in the database instead (helpers.openVerifyLink).
+      SMTP_HOST: '',
+      // Google sign-in is not exercised in the browser test.
+      GOOGLE_CLIENT_ID: '',
+      GOOGLE_CLIENT_SECRET: '',
     },
   },
 });

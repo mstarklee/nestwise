@@ -1,6 +1,6 @@
 import type { Clock } from '../../shared';
 import { NotSignedInError } from '../errors';
-import type { ResolveSessionCommand, SessionUser } from '../models';
+import { isEmailVerified, type ResolveSessionCommand, type SessionUser } from '../models';
 import type { SessionGateway, UserGateway } from '../ports';
 
 export class ResolveSessionUseCase {
@@ -15,6 +15,6 @@ export class ResolveSessionUseCase {
     const userId = await this.sessions.findUserId(command.token, this.clock.now());
     const user = userId ? await this.users.findById(userId) : undefined;
     if (!user) throw new NotSignedInError('Not signed in');
-    return { userId: user.id, email: user.email };
+    return { userId: user.id, email: user.email, emailVerified: isEmailVerified(user) };
   }
 }

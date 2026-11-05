@@ -9,7 +9,7 @@ import { useTestDb } from '../../setup';
 const db = useTestDb();
 
 async function familyFor(userId: string, email: string): Promise<string> {
-  await new DrizzleUserGateway(db()).save({ id: userId, email, passwordHash: 'x', createdAt: new Date() });
+  await new DrizzleUserGateway(db()).save({ id: userId, email, passwordHash: 'x', emailVerifiedAt: null, googleSubject: null, createdAt: new Date() });
   const family = await makeCreateFamilyUseCase(db()).execute({
     actorUserId: userId,
     name: 'Family',

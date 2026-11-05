@@ -1,11 +1,12 @@
 type Env = Readonly<Record<string, string | undefined>>;
 
 /**
- * Who may create a family (TRD §7). SIGNUP_MODE=invite (the default until Stage 4): only emails listed in
- * ALLOWED_SIGNUP_EMAILS; everyone else joins through an invite. SIGNUP_MODE=open: anyone.
+ * Who may create a family. SIGNUP_MODE=open (the default since 2026-11-06, owner: anyone may create an account and a
+ * family, once the email is verified). SIGNUP_MODE=invite: only emails listed in ALLOWED_SIGNUP_EMAILS; everyone else
+ * joins through an invite.
  */
 export function signupAllowed(email: string, env: Env = process.env): boolean {
-  if ((env.SIGNUP_MODE ?? 'invite') === 'open') return true;
+  if ((env.SIGNUP_MODE ?? 'open') !== 'invite') return true;
   const allowed = (env.ALLOWED_SIGNUP_EMAILS ?? '')
     .split(',')
     .map((e) => e.trim().toLowerCase())

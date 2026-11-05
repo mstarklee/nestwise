@@ -1,7 +1,36 @@
+import { createHash, randomBytes } from 'node:crypto';
 import { expect, type Page } from '@playwright/test';
-import { E2E_EMAIL } from '../../playwright.config';
+import { authTokens, createDb, users } from '@nestwise/db';
+import { eq } from 'drizzle-orm';
+import { E2E_EMAIL, e2eDatabaseUrl } from '../../playwright.config';
 
 export const E2E_PASSWORD = 'correct-horse-battery';
+
+/**
+ * The browser-test server sends no email, so this stands in for the inbox: it plants a fresh verify link for the
+ * account in the browser-test database, opens it, and continues into the app, as the person would.
+ */
+export async function openVerifyLink(page: Page, email = E2E_EMAIL): Promise<void> {
+  const db = createDb(e2eDatabaseUrl(), { max: 1 });
+  const token = randomBytes(32).toString('base64url');
+  try {
+    const [user] = await db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1);
+    const now = new Date();
+    await db.insert(authTokens).values({
+      tokenHash: createHash('sha256').update(token).digest('hex'),
+      userId: user!.id,
+      purpose: 'verify_email',
+      createdAt: now,
+      // The server's "today" is pinned to 1 Nov 2026 (NESTWISE_FIXED_NOW), so the link must outlive that too.
+      expiresAt: new Date(Math.max(now.getTime(), Date.parse('2026-11-01T04:00:00Z')) + 24 * 60 * 60 * 1000),
+    });
+  } finally {
+    await db.$client.end();
+  }
+  await page.goto(`/verify-email/confirm?token=${token}`);
+  await expect(page.getByRole('heading', { name: 'Your email is verified' })).toBeVisible();
+  await page.getByRole('link', { name: 'Continue' }).click();
+}
 
 /**
  * Gets a page to a signed-in Home. The browser-test database is emptied once per run, so this signs in when the
@@ -28,6 +57,8 @@ export async function signInOrSetUp(page: Page): Promise<void> {
     await page.getByLabel('Email').fill(E2E_EMAIL);
     await page.getByLabel('Password').fill(E2E_PASSWORD);
     await page.getByRole('button', { name: 'Create account' }).click();
+    await expect(page.getByRole('heading', { name: 'Check your email' })).toBeVisible();
+    await openVerifyLink(page);
   }
   await expect(page.getByRole('heading', { name: 'Set up your family' })).toBeVisible();
   await page.getByLabel('Family name').fill('Our Family');
