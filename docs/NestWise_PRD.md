@@ -380,10 +380,20 @@ iPhone has no automatic "install" button for web apps. So:
 
 ### Stage 2 — Voice (FR-039, AC-11)
 
-- **Recording:** press and hold to record, up to 60 seconds, in Tamil, English or both mixed.
+- **Recording:** **tap to start, tap to stop** (owner, 2026-11-05 — a four-item note takes about 15 seconds, too long
+  to hold a thumb down while carrying shopping). It stops itself at the limit and after a few seconds of silence.
+  Tamil, English or both mixed.
+  - **Up to 60 seconds on OpenAI, 30 on Sarvam**, whichever service the Stage 2 test picks.
   - Example: *"pazham 200, kaaikari 300, tea 23, petrol 300"*.
 - **Several expenses per recording.** Each becomes a proposed entry (amount, item, date) on a review screen. The user fixes anything wrong and confirms them in one go.
-- **Nothing counts until confirmed.**
+- **A yearly bill can be ticked off by voice** (owner, 2026-11-05): *"bike insurance 1500 paid"* records the payment
+  against that bill, which moves the pot and the 12-month forecast. The row shows the pot before and after, and a
+  short payment leaves the rest owed.
+- **Savings and the pot deposit are not done by voice** (owner, 2026-11-05): they already take one tap on the
+  1st-of-month checklist.
+- **Nothing counts until confirmed**, and **only the person who recorded a note may confirm it** (owner, 2026-11-05).
+  The other adult sees it waiting in the Inbox.
+- **Voice needs a signal.** With none, the button says so and offers typing; no recordings are stored for later.
 - **The audio is deleted once it's been transcribed.** The text is kept as proof.
 - **Quality gate before polishing.**
   - First test on at least 30 real recordings from both of you, in real places: kitchen, market, car, with background noise.
@@ -502,7 +512,9 @@ From the FRD (AC-01 to AC-18) and the sample data:
 - **AI provider (update 2026-11-03).** The AI provider is OpenAI (TRD §14.3).
 - **Fourth birthday.** The item is named "Fourth family birthday" and can be renamed.
 - **Paid hosting.** A decision on paid hosting plans is needed before Stage 4.
-- **Speech service.** Which speech-to-text service handles Tamil best is decided by the Stage 2 test (see TRD). It starts with OpenAI's.
+- **Speech service.** Which speech-to-text service handles Tamil best is decided by the Stage 2 test (see TRD §9),
+  between **OpenAI `gpt-transcribe`** and **Sarvam Saaras**. Google Chirp was dropped (owner, 2026-11-05) rather than
+  open a third trial account. Waiting on the owner's recordings.
 
 ## 10. FRD traceability
 

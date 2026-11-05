@@ -27,6 +27,10 @@ In Vercel → the `nestwise` project → Settings → Environment Variables (Pro
 - `CRON_SECRET`: a long random string (Vercel sends it to the daily job).
 - `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (`mailto:` + your email).
 - `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=465`, `SMTP_USER`, `SMTP_PASSWORD` (a Gmail **app password**), `EMAIL_FROM`.
+- **Voice (Stage 2)**, once you have chosen a speech service (section 8): `OPENAI_API_KEY`, `AI_MODEL`
+  (leave unset for the default `gpt-6.1-terra`), `STT_PROVIDER` (`openai` or `sarvam`) and `STT_API_KEY` (the key for
+  whichever service you chose). `CAP_VOICE_PER_MONTH` defaults to 400, so it only needs setting to change it.
+  `SARVAM_API_KEY` is **not** needed in production — it is only used by the comparison script on your own machine.
 
 In Vercel → Settings → General, set **Root Directory** to `apps/web`, and keep **Include files outside the Root
 Directory in the Build Step** switched on (the app builds from the shared `packages/*`).
@@ -155,3 +159,34 @@ of schema `app` for 4 weeks.
 - `pnpm test` (unit), `pnpm test:integration` (needs the local Postgres in `DB_*`), `pnpm e2e` (WebKit, iPhone size;
   install the browser once with `pnpm --filter web exec playwright install webkit`).
 - `pnpm seed:dev` loads the fictional sample family into your local database; sign in as `dev@example.com`.
+
+---
+
+## 8. Choosing the speech service (Stage 2)
+
+Which service hears your Tamil best is decided by **your own recordings**, not by a vendor's claim. The full
+instructions for you are in `D:\Mouni\voice-samples\READ-ME-FIRST.txt`; the technical detail is in
+`scripts/voice-eval.README.md`. In short:
+
+1. **Record** six notes on Voice Memos, from **both adults**: two mostly Tamil with Tamil number words, one Tamil and
+   English mixed, one somewhere noisy, one naming a yearly bill, and one over 30 seconds. Say them the way you really
+   would — dictation-speed speech in a quiet room proves nothing.
+2. **Put them in a folder outside this repository**, e.g. `D:\Mouni\voice-samples`. They are recordings of your
+   family and must never reach git; the script refuses a path inside the repo.
+3. **Write down the right answer** for each — every amount and the category it belongs in. Plain words are enough;
+   `expected.json` can be written from them.
+4. **Run it:**
+
+   ```bash
+   pnpm voice-eval --audio "D:/Mouni/voice-samples"
+   ```
+
+   Keys come from both `.env.local` files automatically (`OPENAI_API_KEY` at the root, `SARVAM_API_KEY` in
+   `apps/web`). A service whose key is missing is skipped with a warning.
+5. **Read the report.** It shows, per recording, the exact words each service heard and whether the amount and the
+   category came out right, plus the cost. `voice-eval-report.txt` and `voice-eval-result.json` are written beside
+   the audio, never into git.
+6. **The pass mark** is amount ≥ 90% and item ≥ 80% on 30+ recordings (PRD §8 decision 18). That is Stage 2's exit
+   criterion. The first handful is only there to tell us early whether Tamil works at all.
+
+Then set `STT_PROVIDER` and `STT_API_KEY` to the winner, locally and in Vercel.
