@@ -114,7 +114,7 @@ function build() {
   );
 
   const useCase = new ConfirmVoiceEntriesUseCase(
-    { captures, yearPlans, yearPaid, evidence, families },
+    { captures, plan: planUow.plan, yearPlans, yearPaid, evidence, families },
     recordExpense,
     clock,
     new SequentialIds('ev'),
@@ -357,6 +357,98 @@ describe('ConfirmVoiceEntriesUseCase — paying a yearly bill', () => {
     const { created } = await h.useCase.execute({ actor: speaker, batchId: batch.id, entries: [billRow({ amountMinor: 50000 })] });
 
     expect(created[0]!.allocations[0]!.amountMinor).toBe(50000);
+  });
+});
+
+describe('ConfirmVoiceEntriesUseCase — one bad row must not cost the whole note', () => {
+  let h: Harness;
+  beforeEach(async () => {
+    h = await setUp(build());
+  });
+
+  it('writes nothing and leaves the note waiting when a row names an item that is gone', async () => {
+    // Realistic: the note sits in the Inbox, an Admin archives the item, then the speaker confirms.
+    const batch = await stage(h, [entry(), entry({ id: uuid(2), amountMinor: 50000 })]);
+    await h.planUow.plan.saveItem({ ...(await h.planUow.plan.findItem(FAMILY, GROCERIES))!, archived: true });
+
+    await expect(
+      h.useCase.execute({ actor: speaker, batchId: batch.id, entries: [confirmed(), confirmed({ id: uuid(2), amountMinor: 50000 })] }),
+    ).rejects.toThrow();
+
+    expect([...h.expensesUow.transactions.rows.values()]).toEqual([]);
+    expect(await h.captures.listWaiting(FAMILY)).toHaveLength(1);
+  });
+
+  it('writes nothing and leaves the note waiting when the SECOND row is the bad one', async () => {
+    const batch = await stage(h, [entry(), entry({ id: uuid(2), amountMinor: 50000 })]);
+
+    await expect(
+      h.useCase.execute({
+        actor: speaker,
+        batchId: batch.id,
+        entries: [confirmed(), confirmed({ id: uuid(2), amountMinor: 50000, itemId: 'item-that-never-existed' })],
+      }),
+    ).rejects.toThrow();
+
+    expect([...h.expensesUow.transactions.rows.values()]).toEqual([]);
+    expect((await h.captures.find(FAMILY, batch.id))!.resolvedAt).toBeNull();
+  });
+
+  it('refuses a kept expense row with no item at all, before writing anything', async () => {
+    const batch = await stage(h, [entry()]);
+
+    await expect(h.useCase.execute({ actor: speaker, batchId: batch.id, entries: [confirmed({ itemId: null })] })).rejects.toThrow();
+
+    expect([...h.expensesUow.transactions.rows.values()]).toEqual([]);
+    expect(await h.captures.listWaiting(FAMILY)).toHaveLength(1);
+  });
+
+  it('refuses an entry that was never part of this note', async () => {
+    const batch = await stage(h, [entry()]);
+
+    await expect(
+      h.useCase.execute({ actor: speaker, batchId: batch.id, entries: [confirmed(), confirmed({ id: uuid(60), amountMinor: 99900 })] }),
+    ).rejects.toThrow();
+
+    expect([...h.expensesUow.transactions.rows.values()]).toEqual([]);
+  });
+});
+
+describe('ConfirmVoiceEntriesUseCase — one bill, named twice', () => {
+  let h: Harness;
+  beforeEach(async () => {
+    h = await setUp(build());
+    await h.yearPlans.create(yearPlan([bikeLine()]));
+  });
+
+  it('refuses two rows that pay the same bill, so it cannot go out of the pot twice', async () => {
+    const bill = (n: number) =>
+      entry({ id: uuid(n), amountMinor: 150000, itemId: null, yearLineId: BIKE_LINE, kind: 'yearly_bill', heard: 'bike insurance 1500 paid' });
+    const row = (n: number) =>
+      confirmed({ id: uuid(n), amountMinor: 150000, itemId: null, yearLineId: BIKE_LINE, kind: 'yearly_bill', merchant: null });
+    const batch = await stage(h, [bill(3), bill(4)]);
+
+    await expect(h.useCase.execute({ actor: speaker, batchId: batch.id, entries: [row(3), row(4)] })).rejects.toThrow(BillNotPayableError);
+
+    expect([...h.expensesUow.transactions.rows.values()]).toEqual([]);
+    expect(await h.captures.listWaiting(FAMILY)).toHaveLength(1);
+  });
+
+  it('allows the same bill twice if one of the two rows was removed', async () => {
+    const bill = (n: number) =>
+      entry({ id: uuid(n), amountMinor: 150000, itemId: null, yearLineId: BIKE_LINE, kind: 'yearly_bill' });
+    const batch = await stage(h, [bill(3), bill(4)]);
+
+    const { created } = await h.useCase.execute({
+      actor: speaker,
+      batchId: batch.id,
+      entries: [
+        confirmed({ id: uuid(3), amountMinor: 150000, itemId: null, yearLineId: BIKE_LINE, kind: 'yearly_bill', merchant: null }),
+        confirmed({ id: uuid(4), amountMinor: 150000, itemId: null, yearLineId: BIKE_LINE, kind: 'yearly_bill', merchant: null, dropped: true }),
+      ],
+    });
+
+    expect(created).toHaveLength(1);
   });
 });
 

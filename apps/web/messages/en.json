@@ -433,6 +433,9 @@
     "allRemoved": "You have removed every row. Nothing will be added.",
     "addAll": "{count, plural, one {Add it} other {Add all #}}",
     "split": "{expenses, plural, =0 {} one {# expense {expenseTotal}} other {# expenses {expenseTotal}}}{bills, plural, =0 {} one { · # bill {billTotal}} other { · # bills {billTotal}}}",
-    "blocked": "{count, plural, one {# row needs an amount and an item} other {# rows need an amount and an item}}"
+    "blocked": "{count, plural, one {# row needs an amount and an item} other {# rows need an amount and an item}}",
+    "date": "Date",
+    "discard": "Discard this voice note",
+    "viewerCannot": "A Viewer can look at the family’s money but not add to it, so voice is not available."
   }
 }

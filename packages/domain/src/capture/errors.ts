@@ -33,3 +33,8 @@ export class BillAlreadyPaidError extends CaptureError {
 export class BillNotPayableError extends CaptureError {
   readonly category = 'invalid' as const;
 }
+
+/** The review screen sent a row that was not part of the note it is confirming. */
+export class UnknownCaptureEntryError extends CaptureError {
+  readonly category = 'invalid' as const;
+}

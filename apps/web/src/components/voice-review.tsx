@@ -76,11 +76,18 @@ export function VoiceReview({ batchId, transcript, rows, items, bills, potBalanc
   };
 
   /** What the boxes hold right now; falls back to the mirror before the form has mounted. */
-  function typedAmounts(): Record<string, string> {
+  function typedFields(): Record<string, { amount: string; date: string }> {
     const element = form.current;
-    if (!element) return shown;
-    const data = new FormData(element);
-    return Object.fromEntries(drafts.map((d) => [d.id, String(data.get(`amount-${d.id}`) ?? shown[d.id] ?? '')]));
+    const data = element ? new FormData(element) : null;
+    return Object.fromEntries(
+      drafts.map((d) => [
+        d.id,
+        {
+          amount: String(data?.get(`amount-${d.id}`) ?? shown[d.id] ?? ''),
+          date: String(data?.get(`date-${d.id}`) || d.txnDate),
+        },
+      ]),
+    );
   }
 
   const keeping = drafts.filter((d) => !d.dropped);
@@ -92,8 +99,8 @@ export function VoiceReview({ batchId, transcript, rows, items, bills, potBalanc
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const typed = typedAmounts();
-    const unready = keeping.filter((d) => toMinor(typed[d.id] ?? '') === null || (d.kind === 'expense' ? !d.itemId : !d.yearLineId));
+    const typed = typedFields();
+    const unready = keeping.filter((d) => toMinor(typed[d.id]?.amount ?? '') === null || (d.kind === 'expense' ? !d.itemId : !d.yearLineId));
     if (unready.length > 0) {
       setError(t('blocked', { count: unready.length }));
       return;
@@ -105,11 +112,11 @@ export function VoiceReview({ batchId, transcript, rows, items, bills, potBalanc
       await api('POST', `/api/v1/capture/voice/${batchId}/confirm`, {
         entries: drafts.map((d) => ({
           id: d.id,
-          amountMinor: toMinor(typed[d.id] ?? '') ?? 1,
+          amountMinor: toMinor(typed[d.id]?.amount ?? '') ?? 1,
           itemId: d.kind === 'expense' ? d.itemId : null,
           yearLineId: d.kind === 'yearly_bill' ? d.yearLineId : null,
           kind: d.kind,
-          txnDate: d.txnDate,
+          txnDate: typed[d.id]?.date ?? d.txnDate,
           merchant: d.merchant,
           note: d.note,
           paidBy: null,
@@ -185,10 +192,10 @@ export function VoiceReview({ batchId, transcript, rows, items, bills, potBalanc
           </Button>
         </div>
 
-        <p className="text-xs text-zinc-500">
-          {draft.merchant ? `${draft.merchant} · ` : ''}
-          {draft.txnDate}
-        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <Input aria-label={t('date')} type="date" name={`date-${draft.id}`} className="w-40" defaultValue={draft.txnDate} />
+          {draft.merchant && <span className="text-xs text-zinc-500">{draft.merchant}</span>}
+        </div>
 
         {bill && chosenBill && minor > 0 && (
           <p className="text-xs text-sky-900" data-testid="voice-bill-effect">
@@ -227,14 +234,23 @@ export function VoiceReview({ batchId, transcript, rows, items, bills, potBalanc
 
       {keeping.length === 0 && <Card className="text-sm">{t('allRemoved')}</Card>}
 
-      {mine && keeping.length > 0 && (
+      {mine && (
         <div className="space-y-2">
-          <Button type="submit" size="lg" className="w-full" disabled={busy} data-testid="voice-confirm">
-            {t('addAll', { count: keeping.length })}
+          <Button
+            type="submit"
+            size="lg"
+            variant={keeping.length === 0 ? 'outline' : 'default'}
+            className="w-full"
+            disabled={busy}
+            data-testid={keeping.length === 0 ? 'voice-discard' : 'voice-confirm'}
+          >
+            {keeping.length === 0 ? t('discard') : t('addAll', { count: keeping.length })}
           </Button>
-          <p className="text-center text-xs text-zinc-500">
-            {t('split', { expenses: expenses.length, expenseTotal: money(expenseTotal), bills: billRows.length, billTotal: money(billTotal) })}
-          </p>
+          {keeping.length > 0 && (
+            <p className="text-center text-xs text-zinc-500">
+              {t('split', { expenses: expenses.length, expenseTotal: money(expenseTotal), bills: billRows.length, billTotal: money(billTotal) })}
+            </p>
+          )}
         </div>
       )}
 

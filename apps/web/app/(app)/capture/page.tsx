@@ -15,8 +15,11 @@ export default function CapturePage() {
 
 /** Speak a batch of expenses (PRD §6.11). The clip limit comes from whichever speech service is configured. */
 async function Capture() {
-  await pageContext();
+  const { actor } = await pageContext();
   const t = await getTranslations('voice');
+  // A Viewer may not record an expense, so their microphone is never opened — the use case would refuse the upload
+  // anyway, but asking for the microphone first and failing after is no way to tell someone they cannot do this.
+  if (actor.role === 'viewer') return <p className="py-4 text-sm">{t('viewerCannot')}</p>;
   const seconds = maxClipSeconds(readProvider(process.env.STT_PROVIDER));
 
   return (

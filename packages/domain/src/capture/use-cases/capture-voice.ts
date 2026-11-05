@@ -1,4 +1,5 @@
 import { InvalidFamilyCommandError, type Family } from '../../family';
+import { isPaid } from '../../year-plan';
 import type { EnsureMiscellaneousItemUseCase } from '../../plan';
 import { type Actor, assertCan, type Clock, type IdGenerator, type IsoDate, periodOf, todayIn } from '../../shared';
 import { CaptureCapReachedError, CaptureNotUnderstoodError } from '../errors';
@@ -96,8 +97,11 @@ export class CaptureVoiceUseCase {
       items: items
         .filter((item) => item.kind === 'monthly')
         .map((item) => ({ id: item.id, name: item.name, group: groupName.get(item.groupId) ?? '' })),
+      // Open AND still owing. A line whose payments already cover it is never offered again (design §6): offering
+      // it would let the parse name a bill that the confirm step then refuses, blocking the whole note at the last
+      // tap over a row the family had no reason to doubt.
       yearLines: (yearPlan?.lines ?? [])
-        .filter((line) => line.state === 'open')
+        .filter((line) => line.state === 'open' && !isPaid(line, paid.get(line.id) ?? 0))
         .map((line) => ({
           id: line.id,
           name: line.name,

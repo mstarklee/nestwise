@@ -143,13 +143,30 @@ describe('POST /api/v1/capture/voice/[id]/confirm — paying a yearly bill', () 
     expect(line.status).not.toBe('paid');
   });
 
-  it('refuses to pay the same bill twice', async () => {
+  it('refuses to pay the same bill twice, and takes nothing more out of the pot', async () => {
+    const f = await familyWithBikeLine();
+    await speakAndConfirm(f.token, [billRow(f.lineId)]);
+    const after = await potOf(f.token);
+
+    // The line is now fully paid, so it is no longer offered to the parse at all (design §6). A client that names
+    // it anyway is refused — the status is 4xx either way; what matters is that no further money moves.
+    const { response } = await speakAndConfirm(f.token, [billRow(f.lineId)]);
+
+    expect(response.status).toBeGreaterThanOrEqual(400);
+    expect(response.status).toBeLessThan(500);
+    expect((await potOf(f.token)).balanceMinor).toBe(after.balanceMinor);
+  });
+
+  it('stops offering a bill once it is fully paid', async () => {
     const f = await familyWithBikeLine();
     await speakAndConfirm(f.token, [billRow(f.lineId)]);
 
-    const { response } = await speakAndConfirm(f.token, [billRow(f.lineId)]);
+    // Capture again: the staged row comes back with no bill attached, because the paid line is not in the context.
+    stub([billRow(f.lineId)]);
+    const captured = await capture(recording(f.token));
+    const { batch } = (await captured.json()) as { batch: Batch };
 
-    expect(response.status).toBe(409);
+    expect(batch.entries[0]!.yearLineId).toBeNull();
   });
 
   it('creates the expenses once when the same batch is confirmed twice', async () => {

@@ -1,9 +1,10 @@
 import type { EvidenceGateway } from '../../duplicates';
+import type { PlanGateway } from '../../plan';
 import { InvalidFamilyCommandError, type FamilyGateway } from '../../family';
-import type { RecordExpenseUseCase, Transaction } from '../../expenses';
+import { type RecordExpenseUseCase, resolveAllocations, type Transaction } from '../../expenses';
 import { type Actor, assertCan, type Clock, type IdGenerator, type IsoDate } from '../../shared';
 import type { YearLine, YearPaidGateway, YearPlanGateway } from '../../year-plan';
-import { BillAlreadyPaidError, BillNotPayableError, CaptureBatchNotFoundError, NotYourBatchError } from '../errors';
+import { BillAlreadyPaidError, BillNotPayableError, CaptureBatchNotFoundError, NotYourBatchError, UnknownCaptureEntryError } from '../errors';
 import type { CaptureKind } from '../models';
 import type { CaptureGateway } from '../ports';
 
@@ -30,6 +31,7 @@ export interface ConfirmVoiceEntriesCommand {
 
 export interface ConfirmGateways {
   readonly captures: CaptureGateway;
+  readonly plan: PlanGateway;
   readonly yearPlans: YearPlanGateway;
   readonly yearPaid: YearPaidGateway;
   readonly evidence: EvidenceGateway;
@@ -72,16 +74,35 @@ export class ConfirmVoiceEntriesUseCase {
     const family = await this.gateways.families.findById(familyId);
     if (!family) throw new InvalidFamilyCommandError('Your family was not found');
 
+    // Only rows that were actually staged may be confirmed: a crafted request must not be able to write an expense
+    // nobody spoke, or slip a real transaction's id into the sibling list and suppress a genuine duplicate question.
+    const staged = new Set(batch.entries.map((entry) => entry.id));
+    const unknown = command.entries.find((entry) => !staged.has(entry.id));
+    if (unknown) throw new UnknownCaptureEntryError('That row was not part of this voice note');
+
     const keeping = command.entries.filter((entry) => !entry.dropped);
 
-    // Every bill row is checked before anything is written, so a bad one cannot leave half a batch behind.
+    /**
+     * EVERY kept row is checked before anything is written, and the note is claimed only afterwards. Validating
+     * bills alone was not enough: an item archived while the note waited in the Inbox threw halfway through the
+     * loop, leaving some rows written, the note already marked done, and the family with no way to see which.
+     */
     const lines = new Map<string, YearLine>();
+    const paying = new Set<string>();
     for (const entry of keeping.filter((e) => e.kind === 'yearly_bill')) {
-      lines.set(entry.id, await this.payableLine(familyId, entry));
+      const line = await this.payableLine(familyId, entry);
+      // Two rows naming one bill would each pass on the same pre-write snapshot and both go out of the pot.
+      if (paying.has(line.id)) throw new BillNotPayableError(`“${line.name}” is named twice in this voice note`);
+      paying.add(line.id);
+      lines.set(entry.id, line);
     }
 
-    // Claimed first: a second confirm finds it already resolved and writes nothing.
-    if (!(await this.gateways.captures.resolve(familyId, batch.id, this.clock.now()))) return { created: [] };
+    // The same rules the write will apply, applied first: a missing, archived or savings item fails here, with
+    // nothing written and the note still waiting.
+    for (const entry of keeping.filter((e) => e.kind === 'expense')) {
+      if (entry.itemId === null) throw new BillNotPayableError('That row has no item to put the money against');
+      await resolveAllocations(this.gateways.plan, familyId, [{ itemId: entry.itemId, amountMinor: entry.amountMinor }], entry.txnDate);
+    }
 
     const siblingIds = keeping.map((entry) => entry.id);
     const created: Transaction[] = [];
@@ -119,6 +140,10 @@ export class ConfirmVoiceEntriesUseCase {
 
       created.push(transaction);
     }
+
+    // Claimed last, so a failure above leaves the note waiting rather than silently consuming it. A racing second
+    // confirm writes nothing new: each row uses its staged id, which `RecordExpenseUseCase` treats as a resend.
+    await this.gateways.captures.resolve(familyId, batch.id, this.clock.now());
 
     return { created };
   }

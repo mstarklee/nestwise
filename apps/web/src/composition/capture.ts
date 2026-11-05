@@ -70,6 +70,7 @@ export const makeConfirmVoiceEntriesUseCase = (db: Db = getDb()) =>
       captures: new DrizzleCaptureGateway(db),
       yearPlans: new DrizzleYearPlanGateway(db),
       yearPaid: new DrizzleYearPaidGateway(db),
+      plan: new DrizzlePlanGateway(db),
       evidence: new DrizzleEvidenceGateway(db),
       families: new DrizzleFamilyGateway(db),
     },

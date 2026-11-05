@@ -225,6 +225,26 @@ describe('CaptureVoiceUseCase — the parse context', () => {
     expect(h.parser.lastContext.yearLines.map((l) => l.id)).toEqual(['line-bike']);
   });
 
+  it('leaves out a bill that is already fully paid, so it is never offered to be paid again', async () => {
+    const h = await withFamily(build());
+    await h.yearPlans.create(yearPlan([yearLine({}), yearLine({ id: 'line-other', name: 'Car Insurance' })]));
+    h.yearPaid.set(FAMILY, 2026, 'line-bike', 150000); // the whole ₹1,500 is paid
+
+    await h.useCase.execute({ actor: admin, audio: AUDIO, mimeType: MIME });
+
+    expect(h.parser.lastContext.yearLines.map((l) => l.id)).toEqual(['line-other']);
+  });
+
+  it('still offers a part-paid bill, because something is still owed', async () => {
+    const h = await withFamily(build());
+    await h.yearPlans.create(yearPlan([yearLine({})]));
+    h.yearPaid.set(FAMILY, 2026, 'line-bike', 50000);
+
+    await h.useCase.execute({ actor: admin, audio: AUDIO, mimeType: MIME });
+
+    expect(h.parser.lastContext.yearLines.map((l) => l.id)).toEqual(['line-bike']);
+  });
+
   it('leaves out a cancelled bill', async () => {
     const h = await withFamily(build());
     await h.yearPlans.create(yearPlan([yearLine({ state: 'cancelled' })]));

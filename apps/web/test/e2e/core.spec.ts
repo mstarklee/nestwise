@@ -8,7 +8,7 @@ import { E2E_EMAIL, e2eDatabaseUrl } from '../../playwright.config';
  * Stages one spoken note directly in the browser-test database: two expenses, the second with no amount heard, so
  * the review screen has something real to show. The speech and parse services are never called.
  */
-async function seedVoiceNote(): Promise<string> {
+async function seedVoiceNote(transcript = 'KPN grocery 250, and something I mumbled'): Promise<string> {
   const db = createDb(e2eDatabaseUrl(), { max: 1 });
   const [user] = await db.select({ id: users.id }).from(users).where(eq(users.email, E2E_EMAIL)).limit(1);
   const [member] = await db.select({ familyId: members.familyId }).from(members).where(eq(members.userId, user!.id)).limit(1);
@@ -21,7 +21,7 @@ async function seedVoiceNote(): Promise<string> {
     id: batchId,
     familyId,
     createdBy: user!.id,
-    transcript: 'KPN grocery 250, and something I mumbled',
+    transcript,
     sttModel: 'saaras:v4',
     parseModel: 'gpt-6.1-terra',
     createdAt: new Date('2026-11-01T05:00:00Z'),
@@ -192,6 +192,9 @@ test('sign up, set up the family, confirm the deposit, add an expense, see it in
   await page.getByTestId('voice-confirm').click();
   await expect(page.getByText('1 row needs an amount and an item')).toBeVisible();
 
+  // The date is editable, because a misheard date would put the money in the wrong month.
+  await expect(rows.nth(1).getByLabel('Date')).toHaveValue('2026-11-01');
+
   await rows.nth(1).getByLabel('Amount').fill('80');
   await rows.nth(1).getByLabel('Item').selectOption({ label: 'Fruits' });
   await page.getByTestId('voice-confirm').click();
@@ -201,6 +204,17 @@ test('sign up, set up the family, confirm the deposit, add an expense, see it in
   await page.goto('/month/2026-11');
   await expect(page.getByTestId('line-Fruits')).toContainText('₹200');
   await expect(page.getByTestId('line-Groceries')).toContainText('₹1,195');
+
+  // A junk note can be thrown away: remove every row and the button becomes Discard, so nothing nags for ever.
+  const junkId = await seedVoiceNote('hello, testing one two');
+  await page.goto(`/capture/${junkId}`);
+  await page.getByTestId('voice-expense-row').first().getByRole('button', { name: 'Remove' }).click();
+  await page.getByTestId('voice-expense-row').first().getByRole('button', { name: 'Remove' }).click();
+  await expect(page.getByText('You have removed every row. Nothing will be added.')).toBeVisible();
+  await page.getByTestId('voice-discard').click();
+  await expect(page).toHaveURL(/\/home/);
+  await page.goto(`/capture/${junkId}`);
+  await expect(page.getByText(/could not be found|Page not found|404/i).first()).toBeVisible();
 
   // The note has been dealt with, so it no longer waits in the Inbox.
   await page.goto('/inbox');

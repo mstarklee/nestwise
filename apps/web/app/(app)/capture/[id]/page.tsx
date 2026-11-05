@@ -44,7 +44,8 @@ async function Review({ params }: { params: Promise<{ id: string }> }) {
       throw error;
     });
   const bills = (year?.lines ?? [])
-    .filter((line) => line.state === 'open')
+    // Still owed only: a bill whose payments already cover it is not offered (design §6), matching the parse context.
+    .filter((line) => line.state === 'open' && line.remainingMinor > 0)
     .map((line) => ({ id: line.id, name: line.name, plannedMinor: line.plannedMinor, remainingMinor: line.remainingMinor }));
 
   const pot = await makeGetPotBalanceUseCase().execute({ actor });

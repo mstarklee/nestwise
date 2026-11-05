@@ -7,3 +7,4 @@ export { ListExpensesUseCase } from './use-cases/list-expenses';
 export { ListLedgerUseCase } from './use-cases/list-ledger';
 export { RecordExpenseUseCase } from './use-cases/record-expense';
 export { RestoreExpenseUseCase } from './use-cases/restore-expense';
+export { resolveAllocations } from './use-cases/expense-rules';
