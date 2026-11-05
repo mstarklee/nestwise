@@ -410,7 +410,8 @@
     "empty": "No expenses match.",
     "entered": "Added by {who, select, me {you} other {{who}}}",
     "proofs": "{count, plural, one {# proof} other {# proofs}}",
-    "filters": "Filters in use"
+    "filters": "Filters in use",
+    "payer": "{who, select, me {You paid} other {Someone else paid}}"
   },
   "join": {
     "title": "Join your family on NestWise",

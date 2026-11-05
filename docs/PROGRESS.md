@@ -101,9 +101,7 @@ Tests 10, 11 and 19 also need your check on the iPhone (`docs/RUNBOOK.md` §5).
 
   The full list is in the Stage 1b ledger.
 - **Google sign-in:** maybe later (PRD §6.1 is replaced by email and password).
-- **A missing label on the "All expenses" screen.** Found on 5 Nov while testing Stage 2, and not caused by it: the
-  screen asks for a piece of wording ("payer") that was never written, so that line shows an error instead of
-  "You paid" / "Someone else paid". It dates from Stage 1b and is live now. One line to fix, once you say what the
+- **The missing "payer" label on All expenses** is fixed in the code (it now reads "You paid" / "Someone else paid"); it goes live with the next deploy.
   wording should be.
 
 ## Where the details are
