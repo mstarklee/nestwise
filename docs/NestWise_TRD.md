@@ -31,7 +31,7 @@
 | Email | **Gmail SMTP** (your Gmail + an app password) for Stages 1–3; **Resend** on your own domain before Stage 4 | Sign-in codes and backup reminders without needing a domain yet |
 | Scheduled jobs | **Vercel Cron**, daily | Hobby allows only daily jobs, and that's enough for India-only Stages 1–3 |
 | Receipt & voice understanding | **OpenAI** (§14.3 decision 3), model from `AI_MODEL`, default `gpt-6.1-terra` | Structured JSON out; reads images including handwriting |
-| Speech-to-text (Tamil/English) | **Pluggable adapter** (`SpeechToText`), chosen by the owner's own recordings between **OpenAI `gpt-transcribe`** and **Sarvam Saaras** | No independent Tamil-English benchmark exists, so the family's own clips decide (§9) |
+| Speech-to-text (Tamil/English) | **Sarvam Saaras** (`saaras:v4`), chosen 2026-11-05 on the owner's own recordings, behind the pluggable `SpeechToText` port | Cleaner Tamil than OpenAI `gpt-transcribe` on the same clips (§9). The port keeps the switch to a one-line env change |
 | Tests | **Vitest** (unit/integration), **Playwright** (WebKit, iPhone profile) | iPhone Safari is the main target |
 | Package manager | **pnpm** | |
 | Code layout | **pnpm monorepo**: `apps/web` (Next.js), `packages/domain` (business rules), `packages/api-contract` (API shapes), `packages/db` (schema) | A future native app imports the same packages and calls the same API |
@@ -469,6 +469,8 @@ The design that governs this stage is `docs/superpowers/specs/2026-11-04-nestwis
 - **Tap to start, tap to stop** with `MediaRecorder`; it also stops itself at the limit and after a few seconds of
   silence. iPhone produces `audio/mp4`; about 0.5 MB per minute at 64 kbps.
 - **The limit follows the chosen service: 60 s on OpenAI, 30 s on Sarvam**, whose quick endpoint stops there.
+  **Sarvam was chosen, so the limit in force is 30 seconds.** Going back to 60 on Sarvam means splitting a long clip
+  at a silence gap and stitching the text — built only if the owner asks for it (plan Task 14).
   `maxClipSeconds()` in `apps/web/src/capture/clip-limits.ts` is the one place that number lives, and the browser and
   the route both read it.
 - The audio and the recorded duration are sent as `multipart/form-data` to `/api/v1/capture/voice`. Vercel's 4.5 MB
@@ -521,6 +523,15 @@ remainder out of the forecast.
   path inside the repository.
 - **Candidates: OpenAI and Sarvam.** Google Chirp was dropped by the owner (2026-11-05) rather than open a third
   account. If both miss the gate on Tamil, look at ElevenLabs Scribe and Google Chirp before building further.
+- **Result (2026-11-05), on four of the owner's recordings:** amounts **11/11 on both** services; Tamil number words
+  read correctly by both. Sarvam's raw Tamil was consistently cleaner (number-word spelling, "KPN" as an acronym,
+  word endings, amounts normalised to digits), so **Sarvam was chosen**. The remaining single item miss moved between
+  rows run to run and landed on "snacks", which has no home in the family's plan — model variability on an ambiguous
+  category, not a hearing problem. **The noisy and long clips were never recorded**, so the services were not
+  separated under the hardest conditions.
+- **Key resolution.** `speechKeyFor` prefers a service's own name (`SARVAM_API_KEY`, `OPENAI_API_KEY`) over the shared
+  `STT_API_KEY`, so the key the owner pasted under a service's name is found without copying it twice, and one
+  service's key can never be sent to the other.
 - **Accounts.** `OPENAI_API_KEY` lives in the repo-root `.env.local`; `SARVAM_API_KEY` in `apps/web/.env.local`. The
   eval loads both. I can't create accounts on your behalf.
 

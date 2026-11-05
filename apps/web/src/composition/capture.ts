@@ -7,6 +7,7 @@ import { makePostJson, OpenAiExpenseParser } from '../adapters/capture/openai-ex
 import { OpenAiSpeechToText } from '../adapters/capture/openai-speech-to-text';
 import { makePostForm } from '../adapters/capture/post-form';
 import { SarvamSpeechToText } from '../adapters/capture/sarvam-speech-to-text';
+import { speechKeyFor } from '../adapters/capture/stt-env';
 import { DrizzleEvidenceGateway } from '../adapters/duplicates/drizzle-evidence-gateway';
 import { DrizzleFamilyGateway } from '../adapters/family/drizzle-family-gateway';
 import { DrizzlePlanGateway } from '../adapters/plan/drizzle-plan-gateway';
@@ -21,12 +22,13 @@ import { makeEnsureMiscellaneousItemUseCase } from './plan';
 
 type Env = Readonly<Record<string, string | undefined>>;
 
-/** The speech service named by `STT_PROVIDER`, with its key from `STT_API_KEY`. */
+/** The speech service named by `STT_PROVIDER`, with its key resolved by `speechKeyFor`. */
 export function makeSpeechToText(env: Env = process.env) {
-  const key = env.STT_API_KEY ?? '';
-  return readProvider(env.STT_PROVIDER) === 'sarvam'
+  const provider = readProvider(env.STT_PROVIDER);
+  const key = speechKeyFor(provider, env);
+  return provider === 'sarvam'
     ? new SarvamSpeechToText(makePostForm({ 'api-subscription-key': key }), env.SARVAM_STT_MODEL ?? 'saaras:v4')
-    : new OpenAiSpeechToText(makePostForm({ Authorization: `Bearer ${env.OPENAI_API_KEY ?? key}` }));
+    : new OpenAiSpeechToText(makePostForm({ Authorization: `Bearer ${key}` }));
 }
 
 export function makeExpenseParser(env: Env = process.env) {

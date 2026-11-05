@@ -10,7 +10,7 @@ The details live in the documents linked at the end.
 | **0 — iPhone spike** | A throwaway test app to prove the iPhone works as an installed app | **Done** (2 Nov). Sign-in, a lock-screen notification and an offline save all worked on your iPhone. Decision: stay with a web app you install on the phone (no separate App Store app). Google sign-in was not tested, by your choice. |
 | **1a — Core plan** | The money model: plan, months, yearly bills, the pot, expenses, the forecast, reminders | **Built and live** (2–3 Nov). Waiting on your iPhone setup and a first month of daily use. |
 | **1b — Core complete** | No-signal adding, duplicate checks, month-end and year-end reviews, activity, spending alerts | **Built and live** (3 Nov). Waiting on your iPhone checks and one full month of use. |
-| **2 — Voice** | Add expenses by speaking (Tamil and English), and tick a yearly bill off by voice | **Part built** (5 Nov). The engine is done and tested: it listens, works out the expenses, holds them until you say yes, and can pay a yearly bill. **Not built:** the button and the review screen, which wait on your recordings — they decide which speech service we use, and that fixes how long a recording may be. Nothing is live. |
+| **2 — Voice** | Add expenses by speaking (Tamil and English), and tick a yearly bill off by voice | **Part built** (5 Nov). The engine is done and tested: it listens, works out the expenses, holds them until you say yes, and can pay a yearly bill. **The speech service is chosen: Sarvam**, so a recording may run up to 30 seconds. **Not built:** the button and the review screen. Nothing is live. |
 | **Design** | The app-like look on phone, tablet and desktop (your design brief) | After Voice |
 | **3 — Photo receipts** | Add an expense from a receipt photo | After the design |
 | **4 — Public** | Own domain, open sign-up, privacy pages, paid plans | Later |
@@ -67,6 +67,7 @@ has no number; it sits between Voice and Photo.
 | Type check, lint, build | Clean |
 | Independent review of Stage 1b | Done by a fresh reviewer. It found 5 serious problems, all fixed with tests, and 11 small ones, left for later. |
 | Independent review of the Stage 2 design | Done before any code. It found 6 gaps, including one that would have dropped money out of the forecast when a bill was part-paid. All settled; the money case now has a test that compares voice against typing side by side. |
+| Speech comparison on your own recordings (5 Nov) | Four clips, two mostly Tamil. **Amounts: 11 of 11 on both services.** Tamil number words read correctly by both. Sarvam's Tamil was cleaner, so Sarvam was chosen. The noisy and long clips were not recorded. |
 | Independent review of the Stage 2 code | **Not yet** — it runs at the end of the stage, once the screens exist. |
 
 PRD §7 acceptance tests: 1–14 and 16–19 have automatic tests. Test 15's voice half (several expenses from one
@@ -75,15 +76,19 @@ Tests 10, 11 and 19 also need your check on the iPhone (`docs/RUNBOOK.md` §5).
 
 ## Waiting on you
 
-1. **Six voice recordings**, from both of you, with the right answers written down. This is what Stage 2 is waiting
-   on, and only you can do it. Everything you need is in `D:\Mouni\voice-samples\READ-ME-FIRST.txt`; the steps are
-   also in `docs/RUNBOOK.md` §8.
-2. **iPhone setup:** install the app, sign up, set up the family, import the plan (`docs/RUNBOOK.md` §4).
-3. **Invite your spouse.**
-4. **iPhone checks** (`docs/RUNBOOK.md` §5): add an expense in airplane mode and see it send; log the same amount on both phones and see "Same purchase?".
-5. **Check the first daily reminder run** in Vercel's logs.
-6. **Vercel:** untick "Preview" on `DATABASE_URL`.
-7. **Use it for a full month** and compare the month-end review with what really happened. That is how Stages 1a and 1b finish (TRD §15).
+1. **The rest of the recordings.** Four are done, and they settled which service to use. Still missing:
+   **one in a noisy place** and **one over 30 seconds** — the two that would have separated the services
+   under hard conditions — and the full **30+ set** from both of you, which is how Stage 2 finishes.
+   See `docs/RUNBOOK.md` §8.
+2. **Where do "snacks" and "Amazon orders" belong?** Snacks was the one thing the test read
+   inconsistently, because your plan has no home for it. Either tell me it counts as Groceries, or add a
+   Snacks item to the plan.
+3. **iPhone setup:** install the app, sign up, set up the family, import the plan (`docs/RUNBOOK.md` §4).
+4. **Invite your spouse.**
+5. **iPhone checks** (`docs/RUNBOOK.md` §5): add an expense in airplane mode and see it send; log the same amount on both phones and see "Same purchase?".
+6. **Check the first daily reminder run** in Vercel's logs.
+7. **Vercel:** untick "Preview" on `DATABASE_URL`.
+8. **Use it for a full month** and compare the month-end review with what really happened. That is how Stages 1a and 1b finish (TRD §15).
 
 ## Noted for later
 

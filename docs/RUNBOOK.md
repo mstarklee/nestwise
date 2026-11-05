@@ -27,10 +27,10 @@ In Vercel → the `nestwise` project → Settings → Environment Variables (Pro
 - `CRON_SECRET`: a long random string (Vercel sends it to the daily job).
 - `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (`mailto:` + your email).
 - `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=465`, `SMTP_USER`, `SMTP_PASSWORD` (a Gmail **app password**), `EMAIL_FROM`.
-- **Voice (Stage 2)**, once you have chosen a speech service (section 8): `OPENAI_API_KEY`, `AI_MODEL`
-  (leave unset for the default `gpt-6.1-terra`), `STT_PROVIDER` (`openai` or `sarvam`) and `STT_API_KEY` (the key for
-  whichever service you chose). `CAP_VOICE_PER_MONTH` defaults to 400, so it only needs setting to change it.
-  `SARVAM_API_KEY` is **not** needed in production — it is only used by the comparison script on your own machine.
+- **Voice (Stage 2).** The speech service was chosen on 2026-11-05 (section 8): **Sarvam Saaras**. So production
+  needs `STT_PROVIDER=sarvam` and **`SARVAM_API_KEY`** (the app prefers a service's own key name over the shared
+  `STT_API_KEY`). `OPENAI_API_KEY` is still needed — the understanding step runs on it — plus `AI_MODEL` if you want
+  something other than the default `gpt-6.1-terra`. `CAP_VOICE_PER_MONTH` defaults to 400, so set it only to change it.
 
 In Vercel → Settings → General, set **Root Directory** to `apps/web`, and keep **Include files outside the Root
 Directory in the Build Step** switched on (the app builds from the shared `packages/*`).
@@ -163,6 +163,14 @@ of schema `app` for 4 weeks.
 ---
 
 ## 8. Choosing the speech service (Stage 2)
+
+> **Decided on 2026-11-05: Sarvam Saaras (`saaras:v4`).** Four of the owner's own recordings, two mostly Tamil, were
+> run through both services. **Amounts: 11/11 on both.** Tamil number words (*aayirathu ainooru*, *moovaayiram*,
+> *irunoothampathu*) were read correctly by both. Sarvam's raw Tamil was consistently cleaner — correct spelling of
+> number words, "KPN" read as an acronym, correct word endings, and amounts normalised to digits — so it was chosen
+> on hearing quality, accepting its 30-second limit over OpenAI's 60. The noisy and long recordings were not made,
+> so the two services were never separated under the hardest conditions. Switching back is a one-line env change.
+> The full 30-recording gate is still Stage 2's exit criterion.
 
 Which service hears your Tamil best is decided by **your own recordings**, not by a vendor's claim. The full
 instructions for you are in `D:\Mouni\voice-samples\READ-ME-FIRST.txt`; the technical detail is in

@@ -4,6 +4,7 @@ import { maxClipSeconds } from '@/capture/clip-limits';
 import { OpenAiSpeechToText } from '@/adapters/capture/openai-speech-to-text';
 import { SarvamSpeechToText } from '@/adapters/capture/sarvam-speech-to-text';
 import type { PostForm } from '@/adapters/capture/post-form';
+import { speechKeyFor } from '@/adapters/capture/stt-env';
 
 const AUDIO = new Uint8Array([1, 2, 3, 4, 5]);
 const MIME = 'audio/mp4';
@@ -20,6 +21,29 @@ function recorder(reply: unknown): { post: PostForm; calls: Call[] } {
   };
   return { post, calls };
 }
+
+describe('speechKeyFor', () => {
+  it('uses Sarvam’s own key name when Sarvam is the chosen service', () => {
+    expect(speechKeyFor('sarvam', { SARVAM_API_KEY: 'sarvam-key', OPENAI_API_KEY: 'openai-key' })).toBe('sarvam-key');
+  });
+
+  it('uses OpenAI’s own key name when OpenAI is the chosen service', () => {
+    expect(speechKeyFor('openai', { SARVAM_API_KEY: 'sarvam-key', OPENAI_API_KEY: 'openai-key' })).toBe('openai-key');
+  });
+
+  it('falls back to the shared STT_API_KEY when the service’s own name is not set', () => {
+    expect(speechKeyFor('sarvam', { STT_API_KEY: 'shared-key' })).toBe('shared-key');
+    expect(speechKeyFor('openai', { STT_API_KEY: 'shared-key' })).toBe('shared-key');
+  });
+
+  it('never sends one service’s key to the other', () => {
+    expect(speechKeyFor('sarvam', { OPENAI_API_KEY: 'openai-key' })).toBe('');
+  });
+
+  it('returns empty rather than the string "undefined" when nothing is set', () => {
+    expect(speechKeyFor('sarvam', {})).toBe('');
+  });
+});
 
 describe('maxClipSeconds', () => {
   it('allows a minute on OpenAI', () => {

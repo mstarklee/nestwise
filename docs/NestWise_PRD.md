@@ -383,7 +383,8 @@ iPhone has no automatic "install" button for web apps. So:
 - **Recording:** **tap to start, tap to stop** (owner, 2026-11-05 — a four-item note takes about 15 seconds, too long
   to hold a thumb down while carrying shopping). It stops itself at the limit and after a few seconds of silence.
   Tamil, English or both mixed.
-  - **Up to 60 seconds on OpenAI, 30 on Sarvam**, whichever service the Stage 2 test picks.
+  - **Up to 30 seconds.** Sarvam was chosen as the speech service on 2026-11-05, and its quick endpoint stops there.
+    (OpenAI would have allowed 60.) A four-item note takes about 15 seconds, so 30 covers roughly eight items.
   - Example: *"pazham 200, kaaikari 300, tea 23, petrol 300"*.
 - **Several expenses per recording.** Each becomes a proposed entry (amount, item, date) on a review screen. The user fixes anything wrong and confirms them in one go.
 - **A yearly bill can be ticked off by voice** (owner, 2026-11-05): *"bike insurance 1500 paid"* records the payment
@@ -512,9 +513,10 @@ From the FRD (AC-01 to AC-18) and the sample data:
 - **AI provider (update 2026-11-03).** The AI provider is OpenAI (TRD §14.3).
 - **Fourth birthday.** The item is named "Fourth family birthday" and can be renamed.
 - **Paid hosting.** A decision on paid hosting plans is needed before Stage 4.
-- **Speech service.** Which speech-to-text service handles Tamil best is decided by the Stage 2 test (see TRD §9),
-  between **OpenAI `gpt-transcribe`** and **Sarvam Saaras**. Google Chirp was dropped (owner, 2026-11-05) rather than
-  open a third trial account. Waiting on the owner's recordings.
+- ~~**Speech service.**~~ **Settled (owner, 2026-11-05): Sarvam Saaras.** Four of the family's own recordings went
+  through both candidates. Both got 11/11 on amounts and read Tamil number words correctly; Sarvam's Tamil was
+  consistently cleaner, so it was chosen on hearing quality, accepting a 30-second recording limit instead of 60.
+  Google Chirp was dropped rather than open a third trial account. Switching is a one-line env change (TRD §9).
 
 ## 10. FRD traceability
 
