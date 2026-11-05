@@ -308,7 +308,11 @@
     "inviteOnce": "Copy it now; it is shown only once.",
     "signedInAs": "Signed in as",
     "install": "Install on iPhone and turn on reminders",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "voiceTitle": "Voice notes this month",
+    "voiceUsed": "{used} of {cap} used",
+    "voiceUsedNoLimit": "{used} used · no limit on this family",
+    "voiceExplain": "At the limit, voice stops and you can still type an expense. Recordings themselves are never kept."
   },
   "install": {
     "title": "Install NestWise",

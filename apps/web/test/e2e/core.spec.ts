@@ -101,6 +101,9 @@ test('sign up, set up the family, confirm the deposit, add an expense, see it in
   await page.getByLabel('Name', { exact: true }).fill('Kumar Family');
   await page.getByRole('button', { name: 'Save' }).first().click();
   await expect(page.getByText('Saved.')).toBeVisible();
+  // Voice usage for the month, with nothing recorded in this run.
+  await expect(page.getByText('Voice notes this month')).toBeVisible();
+  await expect(page.getByText(/^0 (of \d+ used|used)/)).toBeVisible();
   await page.getByRole('link', { name: 'Home' }).click();
   await expect(page.getByRole('heading', { name: 'Kumar Family' })).toBeVisible();
 });

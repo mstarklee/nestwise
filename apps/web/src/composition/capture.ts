@@ -1,6 +1,6 @@
 import 'server-only';
 import type { Db } from '@nestwise/db';
-import { CaptureVoiceUseCase, ConfirmVoiceEntriesUseCase } from '@nestwise/domain/capture';
+import { CaptureVoiceUseCase, ConfirmVoiceEntriesUseCase, GetVoiceUsageUseCase } from '@nestwise/domain/capture';
 import { DrizzleCaptureGateway } from '../adapters/capture/drizzle-capture-gateway';
 import { DrizzleUsageGateway } from '../adapters/capture/drizzle-usage-gateway';
 import { makePostJson, OpenAiExpenseParser } from '../adapters/capture/openai-expense-parser';
@@ -58,6 +58,9 @@ export const makeCaptureVoiceUseCase = (familyId: string, db: Db = getDb()) =>
     uuidIds,
     voiceCapFor(familyId),
   );
+
+export const makeGetVoiceUsageUseCase = (familyId: string, db: Db = getDb()) =>
+  new GetVoiceUsageUseCase(new DrizzleUsageGateway(db), new DrizzleFamilyGateway(db), systemClock, voiceCapFor(familyId));
 
 export const makeConfirmVoiceEntriesUseCase = (db: Db = getDb()) =>
   new ConfirmVoiceEntriesUseCase(

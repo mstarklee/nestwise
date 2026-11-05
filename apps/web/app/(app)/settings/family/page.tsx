@@ -1,5 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import { Suspense } from 'react';
+import { makeGetVoiceUsageUseCase } from '@/composition/capture';
 import { PageLoading } from '@/components/page-loading';
 import { Card, CardTitle } from '@/components/ui/card';
 import { pageContext } from '@/http/page-session';
@@ -18,6 +19,7 @@ async function FamilySettings() {
   const { actor, family } = await pageContext();
   const t = await getTranslations('settings');
   const currencyName = new Intl.DisplayNames(['en'], { type: 'currency' }).of(family.currencyCode);
+  const voice = await makeGetVoiceUsageUseCase(family.id).execute({ actor });
   return (
     <div className="space-y-4 py-4">
       <h1 className="text-xl font-semibold">{t('familyTitle')}</h1>
@@ -35,6 +37,12 @@ async function FamilySettings() {
           <dd>{t(`roles.${actor.role}`)}</dd>
         </dl>
       </Card>
+      <Card>
+        <CardTitle>{t('voiceTitle')}</CardTitle>
+        <p className="text-sm">{voice.capPerMonth === null ? t('voiceUsedNoLimit', { used: voice.used }) : t('voiceUsed', { used: voice.used, cap: voice.capPerMonth })}</p>
+        <p className="mt-1 text-xs text-zinc-500">{t('voiceExplain')}</p>
+      </Card>
+
       {actor.role === 'admin' && (
         <Card>
           <CardTitle>{t('changeTitle')}</CardTitle>
