@@ -11,7 +11,7 @@ const PORT = 3100;
 export const E2E_EMAIL = 'e2e-admin@example.com';
 export const E2E_DB_NAME = 'nestwise_e2e';
 
-function e2eDatabaseUrl(): string {
+export function e2eDatabaseUrl(): string {
   const { DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME } = process.env;
   if (!DB_HOST || !DB_PORT || !DB_USER || !DB_PASSWORD) throw new Error('The browser test needs DB_HOST, DB_PORT, DB_USER and DB_PASSWORD');
   if (DB_NAME === E2E_DB_NAME) throw new Error('DB_NAME is the browser-test database; the test would erase it');
@@ -41,6 +41,8 @@ export default defineConfig({
       SIGNUP_MODE: 'invite',
       ALLOWED_SIGNUP_EMAILS: E2E_EMAIL,
       PLAN_IMPORT_EMAILS: E2E_EMAIL,
+      // Match production: Sarvam is the chosen service, so the clip limit on screen is 30 seconds.
+      STT_PROVIDER: 'sarvam',
     },
   },
 });

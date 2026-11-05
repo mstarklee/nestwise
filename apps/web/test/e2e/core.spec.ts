@@ -1,5 +1,70 @@
+import { randomUUID } from 'node:crypto';
 import { expect, test } from '@playwright/test';
-import { E2E_EMAIL } from '../../playwright.config';
+import { captureBatches, captureEntries, createDb, items, members, users } from '@nestwise/db';
+import { and, eq } from 'drizzle-orm';
+import { E2E_EMAIL, e2eDatabaseUrl } from '../../playwright.config';
+
+/**
+ * Stages one spoken note directly in the browser-test database: two expenses, the second with no amount heard, so
+ * the review screen has something real to show. The speech and parse services are never called.
+ */
+async function seedVoiceNote(): Promise<string> {
+  const db = createDb(e2eDatabaseUrl(), { max: 1 });
+  const [user] = await db.select({ id: users.id }).from(users).where(eq(users.email, E2E_EMAIL)).limit(1);
+  const [member] = await db.select({ familyId: members.familyId }).from(members).where(eq(members.userId, user!.id)).limit(1);
+  const familyId = member!.familyId;
+  const itemId = async (seedKey: string) =>
+    (await db.select({ id: items.id }).from(items).where(and(eq(items.familyId, familyId), eq(items.seedKey, seedKey))).limit(1))[0]!.id;
+
+  const batchId = randomUUID();
+  await db.insert(captureBatches).values({
+    id: batchId,
+    familyId,
+    createdBy: user!.id,
+    transcript: 'KPN grocery 250, and something I mumbled',
+    sttModel: 'saaras:v4',
+    parseModel: 'gpt-6.1-terra',
+    createdAt: new Date('2026-11-01T05:00:00Z'),
+    resolvedAt: null,
+  });
+  await db.insert(captureEntries).values([
+    {
+      id: randomUUID(),
+      batchId,
+      familyId,
+      amountMinor: 25_000,
+      itemId: await itemId('groceries'),
+      yearLineId: null,
+      kind: 'expense',
+      txnDate: '2026-11-01',
+      merchant: 'KPN',
+      note: '',
+      heard: 'KPN grocery 250',
+      confidenceAmount: 0.97,
+      confidenceItem: 0.95,
+      dropped: false,
+      sort: 0,
+    },
+    {
+      id: randomUUID(),
+      batchId,
+      familyId,
+      amountMinor: null,
+      itemId: null,
+      yearLineId: null,
+      kind: 'expense',
+      txnDate: '2026-11-01',
+      merchant: null,
+      note: '',
+      heard: 'something I mumbled',
+      confidenceAmount: 0.1,
+      confidenceItem: 0.2,
+      dropped: false,
+      sort: 1,
+    },
+  ]);
+  return batchId;
+}
 
 // The core flow on an iPhone-sized WebKit, with "today" pinned to 1 Nov 2026 in India (playwright.config.ts).
 // Sign-in is our own email + password (no email codes, so no mail catcher).
@@ -106,4 +171,38 @@ test('sign up, set up the family, confirm the deposit, add an expense, see it in
   await expect(page.getByText(/^0 (of \d+ used|used)/)).toBeVisible();
   await page.getByRole('link', { name: 'Home' }).click();
   await expect(page.getByRole('heading', { name: 'Kumar Family' })).toBeVisible();
+
+  // 13. Voice: the recording screen, then a staged note checked and added.
+  // The speech services are never called here — the note is seeded straight into the browser-test database, so
+  // this covers the review screen and the confirm path. Actual microphone capture is only provable on a real phone.
+  await page.getByTestId('home-voice').click();
+  await expect(page).toHaveURL(/\/capture$/);
+  await expect(page.getByTestId('voice-start')).toBeVisible();
+  await expect(page.getByText(/Up to 30 seconds/)).toBeVisible();
+
+  const batchId = await seedVoiceNote();
+  await page.goto(`/capture/${batchId}`);
+  await expect(page.getByRole('heading', { name: 'Check these 2' })).toBeVisible();
+  await expect(page.getByText('“KPN grocery 250, and something I mumbled”')).toBeVisible();
+
+  // The row whose amount was not heard is flagged, and adding is refused until it is filled in.
+  await expect(page.getByText('Please check this one.')).toBeVisible();
+  const rows = page.getByTestId('voice-expense-row');
+  await expect(rows).toHaveCount(2);
+  await page.getByTestId('voice-confirm').click();
+  await expect(page.getByText('1 row needs an amount and an item')).toBeVisible();
+
+  await rows.nth(1).getByLabel('Amount').fill('80');
+  await rows.nth(1).getByLabel('Item').selectOption({ label: 'Fruits' });
+  await page.getByTestId('voice-confirm').click();
+
+  // Both land in the month: Fruits had 120 from step 7, so it now reads 200.
+  await expect(page).toHaveURL(/\/home/);
+  await page.goto('/month/2026-11');
+  await expect(page.getByTestId('line-Fruits')).toContainText('₹200');
+  await expect(page.getByTestId('line-Groceries')).toContainText('₹1,195');
+
+  // The note has been dealt with, so it no longer waits in the Inbox.
+  await page.goto('/inbox');
+  await expect(page.getByText(/voice note/)).toBeHidden();
 });

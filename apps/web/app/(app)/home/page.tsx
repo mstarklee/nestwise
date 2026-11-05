@@ -90,6 +90,15 @@ async function Home() {
         </Card>
       )}
 
+      {actor.role !== 'viewer' && (
+        <Card>
+          <p className="text-sm">{t('speakPrompt')}</p>
+          <Link href="/capture" className="mt-1 block text-sm font-medium text-green-900 underline" data-testid="home-voice">
+            {t('speak')}
+          </Link>
+        </Card>
+      )}
+
       {home.cards.includes('checklist') && <ChecklistCard checklist={checklist} money={money} canAnswer={actor.role !== 'viewer'} />}
 
       <Card>
