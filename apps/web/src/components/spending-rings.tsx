@@ -42,7 +42,7 @@ export function SpendingRings({ groups, alertThresholds, money }: { groups: read
   const t = useTranslations('home.spending');
   const rounded = (minor: number) => formatMoneyRounded(minor, money.currency, money.minorUnit, money.locale);
   return (
-    <ul className="-mx-1 flex snap-x gap-3 overflow-x-auto px-1 pb-1">
+    <ul tabIndex={0} aria-label={t('groupsLabel')} className="-mx-1 flex snap-x gap-3 overflow-x-auto px-1 pb-1">
       {byMostUsed(groups).map((group) => {
         const ring = ringOf(group.actualMinor, group.plannedMinor, alertThresholds);
         return (

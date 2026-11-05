@@ -140,7 +140,8 @@
       "summary": "<m>{actual}</m> spent of <m>{planned}</m>",
       "over": "<m>{amount}</m> over",
       "percentUsed": "{percent}%",
-      "noPlan": "No plan"
+      "noPlan": "No plan",
+      "groupsLabel": "Spending by group"
     },
     "shortBy": "Short by <m>{amount}</m> in <m>{month}</m>.",
     "fixPerMonth": "Add <m>{amount}</m> a month to fix it.",

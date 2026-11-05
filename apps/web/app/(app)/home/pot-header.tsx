@@ -1,6 +1,6 @@
 import type { HomeSummary } from '@nestwise/domain/forecast';
 import { useTranslations } from 'next-intl';
-import { formatMoneyRounded, formatPeriod } from '@/client/format';
+import { formatMoney, formatMoneyRounded, formatPeriod } from '@/client/format';
 import { Icon } from '@/components/icon';
 import { NavLink } from '@/components/nav-link';
 import { mTag } from '@/components/num';
@@ -26,7 +26,7 @@ export function PotHeader(props: {
   const { pot, money } = props;
   const rounded = (minor: number) => formatMoneyRounded(minor, money.currency, money.minorUnit, money.locale);
   const [sign, digits] = splitSign(rounded(pot.balanceMinor));
-  const covered = pot.allCovered && pot.firstRed === null;
+  const covered = pot.allCovered;
   return (
     <header className="on-peacock -mx-4 bg-peacock text-white md:mx-0 md:rounded-b-card md:overflow-hidden">
       <div className="px-5 pb-5 pt-2">
@@ -63,11 +63,11 @@ export function PotHeader(props: {
             {t('covered')}
           </p>
         ) : (
-          <p role="alert" className="mt-2.5 flex items-start gap-1.5 rounded-chip bg-rani py-2 pl-2.5 pr-3 text-[13.5px] font-semibold">
+          <p className="mt-2.5 flex items-start gap-1.5 rounded-chip bg-rani py-2 pl-2.5 pr-3 text-[13.5px] font-semibold">
             <Icon name="alert" className="mt-0.5 size-4 shrink-0" />
             <span>
               {pot.firstRed
-                ? t.rich('shortBy', { m: mTag, amount: (rounded(pot.firstRed.shortfallMinor)), month: (formatPeriod(pot.firstRed.period, money.locale)) })
+                ? t.rich('shortBy', { m: mTag, amount: (formatMoney(pot.firstRed.shortfallMinor, money.currency, money.minorUnit, money.locale)), month: (formatPeriod(pot.firstRed.period, money.locale)) })
                 : null}{' '}
               {pot.fixPerMonthMinor !== null
                 ? t.rich('fixPerMonth', { m: mTag, amount: (rounded(pot.fixPerMonthMinor)) })

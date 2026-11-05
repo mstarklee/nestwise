@@ -20,6 +20,8 @@ export function DepthTracker() {
   useEffect(() => {
     const onPop = () => {
       popped.current = true;
+      // If the address path does not change (query or hash only), do not let the flag linger.
+      requestAnimationFrame(() => setTimeout(() => (popped.current = false), 300));
     };
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
@@ -27,7 +29,13 @@ export function DepthTracker() {
 
   useEffect(() => {
     if (previous.current === null) {
+      // A screen opened cold (a reminder, a reload) has no earlier screen of ours, whatever an old count says.
       previous.current = pathname;
+      try {
+        sessionStorage.setItem(DEPTH_KEY, '0');
+      } catch {
+        /* no storage */
+      }
       return;
     }
     if (previous.current === pathname) return;

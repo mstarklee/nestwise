@@ -57,7 +57,7 @@ export function MonthRow({ month, isCurrent, money, detail }: { month: HomeMonth
         ) : cover.key === 'short' ? (
           <p className="flex items-center gap-1 text-[13.5px] font-semibold text-rani">
             <Icon name="alert" className="size-4 shrink-0" />
-            <span>{t.rich('cover.short', { m: mTag, amount: (rounded(cover.shortfallMinor)) })}</span>
+            <span>{t.rich('cover.short', { m: mTag, amount: (exact(cover.shortfallMinor)) })}</span>
           </p>
         ) : (
           <p className="flex items-center gap-1 text-[13.5px] font-semibold text-leaf">

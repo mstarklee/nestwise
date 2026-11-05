@@ -3,8 +3,9 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, test } from 'vitest';
 import messages from '../../messages/en.json';
 import { SpendingRings } from '@/components/spending-rings';
+import type { Money } from '@/http/page-session';
 
-const money = { currency: 'INR', minorUnit: 2, locale: 'en-IN' };
+const money: Money = { currency: 'INR', minorUnit: 2, locale: 'en-IN' };
 const render = (groups: { groupName: string; plannedMinor: number; actualMinor: number }[]) =>
   renderToStaticMarkup(
     <NextIntlClientProvider locale="en" messages={messages} timeZone="Asia/Kolkata">

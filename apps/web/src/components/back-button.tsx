@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter, usePathname } from 'next/navigation';
+import { addTransitionType, startTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { backTarget } from '@/client/nav';
@@ -25,7 +26,10 @@ export function BackButton() {
       onClick={(e) => {
         if (readDepth() > 0) {
           e.preventDefault();
-          router.back();
+          startTransition(() => {
+            addTransitionType('back');
+            router.back();
+          });
         }
       }}
     >

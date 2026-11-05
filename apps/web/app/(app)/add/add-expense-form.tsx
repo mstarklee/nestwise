@@ -147,8 +147,8 @@ export function AddExpenseForm({ today, money, monthly, yearly, userId }: { toda
     <form onSubmit={submit} className="space-y-4 pb-2">
       <Card>
         <Label htmlFor="amount">{t('amount')}</Label>
-        <div className="flex items-center gap-2">
-          <span aria-hidden="true" className="money text-[30px] font-bold text-muted">
+        <div className="flex items-center gap-2 rounded-chip focus-within:ring-2 focus-within:ring-peacock">
+          <span aria-hidden="true" className="money pl-2 text-[30px] font-bold text-muted">
             {sign}
           </span>
           <Input
@@ -158,7 +158,7 @@ export function AddExpenseForm({ today, money, monthly, yearly, userId }: { toda
             autoComplete="off"
             required
             placeholder={t('amountPlaceholder')}
-            className="money min-h-14 min-w-0 flex-1 rounded-chip bg-transparent px-0 text-[40px] font-extrabold leading-none focus:ring-0 focus-visible:outline-none"
+            className="money min-h-14 min-w-0 flex-1 rounded-chip bg-transparent px-0 text-[40px] font-extrabold leading-none"
           />
         </div>
       </Card>

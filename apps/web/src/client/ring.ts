@@ -11,7 +11,7 @@ export function ringOf(actualMinor: number, plannedMinor: number, alertThreshold
   if (actualMinor > plannedMinor) return { percent, tone: 'over', overMinor: actualMinor - plannedMinor };
   const below = alertThresholds.filter((t) => t < 100);
   const nearAt = below.length > 0 ? Math.min(...below) : null;
-  const near = percent !== null && nearAt !== null && percent >= nearAt;
+  const near = plannedMinor > 0 && nearAt !== null && actualMinor * 100 >= plannedMinor * nearAt;
   return { percent, tone: near ? 'near' : 'fine', overMinor: 0 };
 }
 

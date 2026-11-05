@@ -50,3 +50,8 @@ describe('biggestMonthAhead', () => {
     expect(biggestMonthAhead(m2, b2)?.shortOnTheWay?.period).toEqual(m2[6]!.period);
   });
 });
+
+test('a month whose bills are all paid is never the biggest', () => {
+  const { months, billMonths } = build({ 5: [line('paid', 0)] });
+  expect(biggestMonthAhead(months, billMonths)).toBeNull();
+});

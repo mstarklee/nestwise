@@ -19,6 +19,7 @@ export function biggestMonthAhead(months: readonly ForecastMonth[], bills: reado
     const lines = bills[i]!.lines;
     if (lines.length === 0) continue;
     const total = lines.reduce((sum, l) => sum + l.remainingMinor, 0);
+    if (total <= 0) continue; // every bill in the month is already paid
     if (best === -1 || total > bestTotal) {
       best = i;
       bestTotal = total;
