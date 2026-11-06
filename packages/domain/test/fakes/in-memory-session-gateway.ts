@@ -16,6 +16,10 @@ export class InMemorySessionGateway implements SessionGateway {
     this.sessions.delete(token);
   }
 
+  async deleteAllForUser(userId: string): Promise<void> {
+    for (const [token, session] of this.sessions) if (session.userId === userId) this.sessions.delete(token);
+  }
+
   all(): readonly NewSession[] {
     return [...this.sessions.values()];
   }

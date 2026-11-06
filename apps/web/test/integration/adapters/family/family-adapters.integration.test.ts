@@ -18,7 +18,7 @@ const ids = { next: () => `10000000-0000-4000-8000-${String(++next).padStart(12,
 const clock = { now: () => new Date('2026-10-31T19:00:00Z') };
 
 async function addUser(id: string, email: string) {
-  await new DrizzleUserGateway(db()).save({ id, email, passwordHash: 'x', createdAt: clock.now() });
+  await new DrizzleUserGateway(db()).save({ id, email, passwordHash: 'x', emailVerifiedAt: null, googleSubject: null, createdAt: clock.now() });
 }
 
 const createFamily = () =>

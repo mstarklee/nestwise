@@ -30,7 +30,11 @@ skills differ on code structure, the skills win.
   - The backend is Supabase **as the Postgres host** (and Storage later). Supabase Auth is **not** used.
 - **Email:**
   - Gmail SMTP for now.
-  - Sign-up and sign-in are our own **email + password** (owner, 2026-11-02): users and sessions live in our own tables, passwords stored only as scrypt hashes, sessions as random tokens in an HttpOnly cookie (or a Bearer header for a future native app). No Supabase Auth, no Supabase keys, no email codes; Google maybe later. This replaces PRD §6.1 / TRD §7.
+  - Sign-up and sign-in are our own **email + password** (owner, 2026-11-02): users and sessions live in our own tables, passwords stored only as scrypt hashes, sessions as random tokens in an HttpOnly cookie (or a Bearer header for a future native app). No Supabase Auth, no Supabase keys, no email codes. This replaces PRD §6.1 / TRD §7.
+  - Accounts (owner, 2026-11-06): anyone may sign up, but an email account must open its verify link before the app
+    opens; "forgot password" emails a one-hour single-use link; "Continue with Google" (our own OAuth code + PKCE,
+    `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`) joins an existing account with the same email. Spec:
+    `docs/superpowers/specs/2026-11-06-nestwise-account-handling-design.md`.
 - **Money:**
   - Amounts are integer minor units (paise); never floats.
   - A family's currency is locked once the family is created.

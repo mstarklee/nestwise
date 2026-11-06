@@ -1,8 +1,8 @@
 import type { Clock } from '../../shared';
-import { sessionExpiry, type SignedIn, type User } from '../models';
+import { isEmailVerified, sessionExpiry, type SignedIn, type User } from '../models';
 import type { SessionGateway, TokenGenerator } from '../ports';
 
-/** Internal: shared by sign-up and sign-in. Not exported from the feature. */
+/** Internal: shared by every way of signing in. Not exported from the feature. */
 export class SessionStarter {
   constructor(
     private readonly sessions: SessionGateway,
@@ -14,6 +14,6 @@ export class SessionStarter {
     const token = this.tokens.next();
     const expiresAt = sessionExpiry(this.clock.now());
     await this.sessions.create({ token, userId: user.id, expiresAt });
-    return { user: { id: user.id, email: user.email }, token, expiresAt };
+    return { user: { id: user.id, email: user.email, emailVerified: isEmailVerified(user) }, token, expiresAt };
   }
 }

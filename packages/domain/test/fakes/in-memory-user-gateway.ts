@@ -11,10 +11,20 @@ export class InMemoryUserGateway implements UserGateway {
     return this.users.get(id);
   }
 
+  async findByGoogleSubject(subject: string): Promise<User | undefined> {
+    return [...this.users.values()].find((u) => u.googleSubject === subject);
+  }
+
   async save(user: User): Promise<User> {
     if ([...this.users.values()].some((u) => u.email === user.email && u.id !== user.id)) {
       throw new EmailAlreadyRegisteredError('An account with this email already exists');
     }
+    this.users.set(user.id, user);
+    return user;
+  }
+
+  async update(user: User): Promise<User> {
+    if (!this.users.has(user.id)) throw new Error(`No user ${user.id}`);
     this.users.set(user.id, user);
     return user;
   }

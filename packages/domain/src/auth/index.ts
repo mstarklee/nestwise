@@ -1,7 +1,12 @@
 export * from './errors';
 export * from './models';
 export * from './ports';
+export { ConfirmEmailUseCase } from './use-cases/confirm-email';
+export { RequestPasswordResetUseCase } from './use-cases/request-password-reset';
+export { ResendVerificationUseCase } from './use-cases/resend-verification';
+export { ResetPasswordUseCase } from './use-cases/reset-password';
 export { ResolveSessionUseCase } from './use-cases/resolve-session';
 export { SignInUseCase } from './use-cases/sign-in';
+export { SignInWithGoogleUseCase } from './use-cases/sign-in-with-google';
 export { SignOutUseCase } from './use-cases/sign-out';
 export { SignUpUseCase } from './use-cases/sign-up';

@@ -10,6 +10,7 @@ import { PATCH as updateItem } from '../../../app/api/v1/templates/items/[id]/ro
 import { POST as addItem } from '../../../app/api/v1/templates/items/route';
 import { GET as getTemplates } from '../../../app/api/v1/templates/route';
 import { useTestDb } from '../setup';
+import { verifyEmailOf } from '../support/api';
 
 const db = useTestDb();
 
@@ -23,6 +24,7 @@ const params = <T extends Record<string, string>>(p: T) => ({ params: Promise.re
 
 async function signUp(email: string) {
   const response = await signup(request('POST', '/api/v1/auth/signup', undefined, { email, password: 'correct-horse' }));
+  await verifyEmailOf(email);
   return /nw_session=([^;]*)/.exec(response.headers.get('set-cookie') ?? '')?.[1] ?? '';
 }
 

@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 import { captureBatches, captureEntries, createDb, items, members, users } from '@nestwise/db';
 import { and, eq } from 'drizzle-orm';
 import { E2E_EMAIL, e2eDatabaseUrl } from '../../playwright.config';
-import { gotoSettled } from './helpers';
+import { gotoSettled, openVerifyLink } from './helpers';
 
 /**
  * Stages one spoken note directly in the browser-test database: two expenses, the second with no amount heard, so
@@ -77,6 +77,13 @@ test('sign up, set up the family, confirm the deposit, add an expense, see it in
   await page.getByLabel('Email').fill(E2E_EMAIL);
   await page.getByLabel('Password').fill('correct-horse-battery');
   await page.getByRole('button', { name: 'Create account' }).click();
+
+  // 1b. The app waits for the email: "Check your email", then the verify link, then Continue.
+  await expect(page.getByRole('heading', { name: 'Check your email' })).toBeVisible();
+  await expect(page.getByText(E2E_EMAIL)).toBeVisible();
+  await page.goto('/home');
+  await expect(page).toHaveURL(/\/verify-email/);
+  await openVerifyLink(page);
 
   // 2. Setup: INR, Asia/Kolkata, opening ₹0, import the plan, tick Deepavali.
   await expect(page.getByRole('heading', { name: 'Set up your family' })).toBeVisible();

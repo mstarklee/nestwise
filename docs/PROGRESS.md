@@ -12,6 +12,7 @@ The details live in the documents linked at the end.
 | **1b — Core complete** | No-signal adding, duplicate checks, month-end and year-end reviews, activity, spending alerts | **Built and live** (3 Nov). Waiting on your iPhone checks and one full month of use. |
 | **2 — Voice** | Add expenses by speaking (Tamil and English), and tick a yearly bill off by voice | **Part built** (5 Nov). The engine is done and tested: it listens, works out the expenses, holds them until you say yes, and can pay a yearly bill. **The speech service is chosen: Sarvam** after testing your own recordings, so a recording may run up to 30 seconds. The button and the review screen are built, and an independent review of the whole thing is done with its serious findings fixed. **Not done:** the full 30-recording check, and nothing is deployed yet. |
 | **Design** | The app-like look on phone, tablet and desktop (your design brief) | **Built** (5 Nov), not deployed. Every screen is in the "Silk and gold" look: a peacock-and-gold Home that shows whether the coming bills are covered, a floating bottom bar, page slides, and tablet and desktop layouts. You approved Home and Add on 5 Nov. You approved every screen on 5 Nov. **Deployed 5 Nov** (with Voice, which was not live before). **Waiting on you:** the iPhone check, then turn on the page slides (`NEXT_PUBLIC_PAGE_SLIDES=on` in Vercel) if they behave. |
+| **Accounts** | Email verification, forgot password, Google sign-in (your request, 6 Nov) | **Built** (6 Nov) on branch `feat/account-handling`, not merged or deployed. Spec: `docs/superpowers/specs/2026-11-06-nestwise-account-handling-design.md`. |
 | **3 — Photo receipts** | Add an expense from a receipt photo | After the design |
 | **4 — Public** | Own domain, open sign-up, privacy pages, paid plans | Later |
 
@@ -23,7 +24,9 @@ has no number; it sits between Voice and Photo.
 ## What the app does today
 
 **Setting up**
-- Sign up and sign in with email and password (no email codes, no Google yet). Sign-up is limited to the invited emails.
+- Sign up and sign in with email and password, or with Google. Anyone may create an account (6 Nov), and an email
+  account must open its "Verify your email" link before the app opens. "Forgot password?" emails a one-hour reset link.
+  A Google account with the same email joins the existing account. *(On branch `feat/account-handling`, not live yet.)*
 - Create the family: name, currency (locked once created), time zone, and money already kept aside for yearly bills.
 - Import your plan, then tick which of this year's yearly bills are still to come.
 - Invite the other adult as an Admin, Member or Viewer.

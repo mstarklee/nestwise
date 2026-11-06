@@ -18,6 +18,10 @@ const buttonVariants = cva(
   },
 );
 
+/** The button look for a link (`<Link className={buttonClass({ size: 'lg' })}>`). */
+export const buttonClass = ({ className, ...variants }: VariantProps<typeof buttonVariants> & { className?: string } = {}) =>
+  cn(buttonVariants(variants), className);
+
 export function Button({ className, variant, size, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & VariantProps<typeof buttonVariants>) {
   return <button className={cn(buttonVariants({ variant, size }), className)} {...props} />;
 }

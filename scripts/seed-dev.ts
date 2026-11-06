@@ -18,7 +18,8 @@ import { sampleFamily, showcaseRows } from '../fixtures/sample-family';
 import { DrizzleFamilyGateway } from '../apps/web/src/adapters/family/drizzle-family-gateway';
 import { systemClock } from '../apps/web/src/adapters/shared/system-clock';
 import { DrizzlePlanGateway } from '../apps/web/src/adapters/plan/drizzle-plan-gateway';
-import { makeSignUpUseCase } from '../apps/web/src/composition/auth';
+import { DrizzleUserGateway } from '../apps/web/src/adapters/auth/drizzle-user-gateway';
+import { makeSignUpUseCase, noAccountEmails } from '../apps/web/src/composition/auth';
 import { makeRecordExpenseUseCase } from '../apps/web/src/composition/expenses';
 import { makeCreateFamilyUseCase } from '../apps/web/src/composition/family';
 import { makeApplyFirstYearCheckUseCase, makeEnsureYearPlanUseCase } from '../apps/web/src/composition/year-plan';
@@ -49,7 +50,11 @@ export async function runSeedDev(env: Env, injectedDb?: Db, options: SeedOptions
   try {
     let userId: string;
     try {
-      userId = (await makeSignUpUseCase(db).execute({ email: DEV_EMAIL, password: DEV_PASSWORD })).user.id;
+      // Fictional account: no email is sent, and it counts as verified so you can sign in straight away.
+      userId = (await makeSignUpUseCase(noAccountEmails, db).execute({ email: DEV_EMAIL, password: DEV_PASSWORD })).user.id;
+      const users = new DrizzleUserGateway(db);
+      const created = (await users.findById(userId))!;
+      await users.update({ ...created, emailVerifiedAt: created.createdAt });
     } catch (error) {
       if (error instanceof EmailAlreadyRegisteredError) throw new Error('This database is already seeded; empty it first', { cause: error });
       throw error;

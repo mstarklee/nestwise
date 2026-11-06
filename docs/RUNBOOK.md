@@ -21,9 +21,15 @@ In Vercel → the `nestwise` project → Settings → Environment Variables (Pro
 - `PROD_DIRECT_DATABASE_URL` (**Production only**, not Preview): the Supabase **session pooler** string (port 5432).
   Each production deploy uses it to update the database first (section 2). Supabase's "Direct connection" address
   does not work from Vercel, so use the session pooler one.
-- `SIGNUP_MODE=invite`, `ALLOWED_SIGNUP_EMAILS` (your email; your spouse joins by invite link and need not be
-  listed), `PLAN_IMPORT_EMAILS` (your email).
-- `APP_URL`: the app's address, e.g. `https://<project>.vercel.app`.
+- `SIGNUP_MODE=open` (since 2026-11-06: anyone may create an account, and must verify their email before using the
+  app). `invite` with `ALLOWED_SIGNUP_EMAILS` still limits who may create a family. `PLAN_IMPORT_EMAILS` (your email).
+- `APP_URL`: the app's address, e.g. `https://<project>.vercel.app`. **Required**: the verify-email and reset-password
+  links and the Google redirect are built from it, and sign-up refuses to run in production without it.
+- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`: the OAuth client from Google Cloud (project `NestWise` → Google Auth
+  Platform → Clients → `nestwise-web`, type Web application). Its **Authorised redirect URIs** must include
+  `https://nestwise-alpha.vercel.app/api/v1/auth/google/callback` (and `http://localhost:3000/api/v1/auth/google/callback`
+  for local work). While the Google app is in "Testing", only the test users listed under **Audience** can use it;
+  click **Publish app** there before opening to the public (name and email only, so Google needs no review).
 - `CRON_SECRET`: a long random string (Vercel sends it to the daily job).
 - `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (`mailto:` + your email).
 - `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=465`, `SMTP_USER`, `SMTP_PASSWORD` (a Gmail **app password**), `EMAIL_FROM`.
@@ -78,7 +84,8 @@ Expected: `{"status":"ok","database":"ok"}` (HTTP 200). A 503 means the app cann
 ## 4. Set up the family (on your iPhone)
 
 1. Open the app address in Safari, then Share → **Add to Home Screen**, and open NestWise from the Home Screen.
-2. **Create account** with your email (it must be in `ALLOWED_SIGNUP_EMAILS`) and a password.
+2. **Create account** with your email and a password, or tap **Continue with Google**. With email and password, open
+   the "Verify your email" message and tap its link (it works for 24 hours) before the app opens.
 3. Setup: family name, currency **INR** (locked afterwards), time zone **Asia/Kolkata**, country `IN`, and the money
    already kept aside for yearly bills (0 if none).
 4. Tap **Import our plan**. This loads `fixtures/sample-plan.ts`: your groups, items and amounts, and **no expenses**.

@@ -9,7 +9,7 @@ import { makeCreateFamilyUseCase } from '@/composition/family';
 /** A user, a family (INR, Asia/Kolkata) with the sample plan imported, and a seedKey → itemId lookup. */
 export async function familyWithPlan(db: Db, email = `${randomUUID()}@example.com`) {
   const userId = randomUUID();
-  await new DrizzleUserGateway(db).save({ id: userId, email, passwordHash: 'x', createdAt: new Date() });
+  await new DrizzleUserGateway(db).save({ id: userId, email, passwordHash: 'x', emailVerifiedAt: null, googleSubject: null, createdAt: new Date() });
   const family = await makeCreateFamilyUseCase(db).execute({
     actorUserId: userId,
     name: 'Family',

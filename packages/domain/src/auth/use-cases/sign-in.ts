@@ -20,7 +20,8 @@ export class SignInUseCase {
   async execute(command: SignInCommand): Promise<SignedIn> {
     const email = normaliseEmail(command.email);
     const user = await this.users.findByEmail(email);
-    const matches = await this.hasher.verify(command.password, user?.passwordHash);
+    // A Google-only account has no password hash; verify still does the work, so the answer takes the same time.
+    const matches = await this.hasher.verify(command.password, user?.passwordHash ?? undefined);
     if (!user || !matches) throw new InvalidCredentialsError('Wrong email or password');
     return this.starter.start(user);
   }

@@ -1,11 +1,13 @@
-import { AuthUserResponse, CredentialsRequest } from '@nestwise/api-contract';
-import { makeSignUpUseCase } from '@/composition/auth';
+import { AuthUserResponse, SignUpRequest } from '@nestwise/api-contract';
+import { makeAccountEmails, makeSignUpUseCase } from '@/composition/auth';
+import { appOrigin } from '@/http/app-origin';
 import { sessionCookie } from '@/http/session-cookie';
 import { withApiErrors } from '@/http/with-api-errors';
 
+/** Creates the account (unverified), emails the verify link, and signs in. */
 export const POST = withApiErrors(async (request: Request) => {
-  const body = CredentialsRequest.parse(await request.json());
-  const signedIn = await makeSignUpUseCase().execute(body);
+  const body = SignUpRequest.parse(await request.json());
+  const signedIn = await makeSignUpUseCase(makeAccountEmails(appOrigin(request))).execute(body);
   return Response.json(AuthUserResponse.parse({ user: signedIn.user }), {
     status: 201,
     headers: { 'set-cookie': sessionCookie(request, signedIn.token, signedIn.expiresAt) },

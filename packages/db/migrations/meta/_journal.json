@@ -43,6 +43,13 @@
       "when": 1793825887079,
       "tag": "0005_stage_2_capture",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793905012686,
+      "tag": "0006_account_handling",
+      "breakpoints": true
     }
   ]
 }

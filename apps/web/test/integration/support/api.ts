@@ -3,6 +3,8 @@ import type { Db } from '@nestwise/db';
 import type { Role } from '@nestwise/domain/shared';
 import { importPlan } from '../../../../../scripts/import-plan';
 import { POST as signup } from '../../../app/api/v1/auth/signup/route';
+import { POST as confirmEmail } from '../../../app/api/v1/auth/verification/confirm/route';
+import { capturedEmails } from '@/adapters/shared/memory-email-gateway';
 import { POST as createFamily } from '../../../app/api/v1/families/route';
 import { POST as acceptInvite } from '../../../app/api/v1/invites/[token]/accept/route';
 import { POST as createInvite } from '../../../app/api/v1/invites/route';
@@ -18,11 +20,34 @@ export const request = (method: string, url: string, token?: string, body?: unkn
 
 export const params = <T extends Record<string, string>>(p: T) => ({ params: Promise.resolve(p) });
 
-export async function signUp(email: string): Promise<{ token: string; userId: string }> {
+/** The token in the newest link emailed to `email` (tests keep emails in memory; nothing is sent). */
+export function linkTokenFor(email: string, path: '/verify-email/confirm' | '/reset-password'): string {
+  const mail = capturedEmails().filter((m) => m.to === email.trim().toLowerCase() && m.text.includes(path)).at(-1);
+  const query = mail ? new RegExp(`${path}\\?(\\S+)`).exec(mail.text)?.[1] : undefined;
+  const token = query ? new URLSearchParams(query).get('token') : null;
+  if (!token) throw new Error(`No ${path} email for ${email}`);
+  return token;
+}
+
+/** Opens the newest verify link emailed to `email`, as the person would. */
+export async function verifyEmailOf(email: string): Promise<void> {
+  const response = await confirmEmail(request('POST', '/api/v1/auth/verification/confirm', undefined, { token: linkTokenFor(email, '/verify-email/confirm') }));
+  if (response.status !== 200) throw new Error(`Verifying ${email} failed: ${response.status}`);
+}
+
+/** Signs up without verifying: the account can only reach the account routes. */
+export async function signUpUnverified(email: string): Promise<{ token: string; userId: string }> {
   const response = await signup(request('POST', '/api/v1/auth/signup', undefined, { email, password: 'correct-horse' }));
   const token = /nw_session=([^;]*)/.exec(response.headers.get('set-cookie') ?? '')?.[1] ?? '';
   const { user } = (await response.json()) as { user: { id: string } };
   return { token, userId: user.id };
+}
+
+/** Signs up and opens the verify link, so the account can use the app. */
+export async function signUp(email: string): Promise<{ token: string; userId: string }> {
+  const signed = await signUpUnverified(email);
+  await verifyEmailOf(email);
+  return signed;
 }
 
 export async function adminWithPlan(db: Db) {

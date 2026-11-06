@@ -21,7 +21,7 @@ describe('/api/v1/auth', () => {
   it('signs up: 201, the user, and an HttpOnly Secure session cookie', async () => {
     const response = await signup(post('signup', priya));
     expect(response.status).toBe(201);
-    expect(await response.json()).toEqual({ user: { id: expect.any(String), email: 'priya@example.com' } });
+    expect(await response.json()).toEqual({ user: { id: expect.any(String), email: 'priya@example.com', emailVerified: false } });
     const setCookie = response.headers.get('set-cookie') ?? '';
     expect(setCookie).toMatch(/^nw_session=[A-Za-z0-9_-]{43};/);
     expect(setCookie).toMatch(/HttpOnly/);
@@ -41,7 +41,7 @@ describe('/api/v1/auth', () => {
     const token = tokenFrom(await signup(post('signup', priya)));
     const byCookie = await me(get('me', cookie(token)));
     expect(byCookie.status).toBe(200);
-    expect(await byCookie.json()).toEqual({ user: { id: expect.any(String), email: 'priya@example.com' } });
+    expect(await byCookie.json()).toEqual({ user: { id: expect.any(String), email: 'priya@example.com', emailVerified: false } });
     expect((await me(get('me', { authorization: `Bearer ${token}` }))).status).toBe(200);
     expect((await me(get('me'))).status).toBe(401);
     expect((await me(get('me', cookie('made-up')))).status).toBe(401);

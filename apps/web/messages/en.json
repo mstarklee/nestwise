@@ -52,7 +52,11 @@
       "YearLineNotCompletableError": "Only an open yearly item can be marked done.",
       "ExpenseItemNotFoundError": "That item is not in your plan.",
       "ItemNotUsableError": "That item can’t take spending (archived, or a savings item).",
-      "ExpenseNotRestorableError": "Deleted expenses can be restored for 30 days only."
+      "ExpenseNotRestorableError": "Deleted expenses can be restored for 30 days only.",
+      "EmailNotVerifiedError": "Please verify your email first. Check your inbox for the link.",
+      "InvalidAuthLinkError": "This link has expired or was already used. Please ask for a new one.",
+      "GoogleSignInFailedError": "Google sign-in didn’t work. Please try again.",
+      "GoogleAccountConflictError": "This email is already joined to a different Google account."
     }
   },
   "signIn": {
@@ -64,7 +68,58 @@
     "submitSignIn": "Sign in",
     "submitSignUp": "Create account",
     "switchToSignUp": "New here? Create an account",
-    "switchToSignIn": "Already have an account? Sign in"
+    "switchToSignIn": "Already have an account? Sign in",
+    "or": "or",
+    "continueWithGoogle": "Continue with Google",
+    "forgotPassword": "Forgot password?",
+    "errors": {
+      "google": "Google sign-in didn’t work. Please try again.",
+      "google_cancelled": "Google sign-in was cancelled.",
+      "google_unavailable": "Google sign-in isn’t set up yet. Please use your email and password.",
+      "google_conflict": "This email is already joined to a different Google account."
+    }
+  },
+  "verifyEmail": {
+    "title": "Check your email",
+    "body": "We sent a link to <strong>{email}</strong>. Open it to verify your email, then you can start using NestWise.",
+    "hint": "It can take a minute. Check your spam folder too. The link works for 24 hours.",
+    "resend": "Send the link again",
+    "sent": "A new link is on its way.",
+    "tooSoon": "Please wait a minute before asking again.",
+    "alreadyVerified": "Your email is already verified.",
+    "continue": "Continue",
+    "signOut": "Use a different account",
+    "confirmingTitle": "Verifying your email…",
+    "confirmedTitle": "Your email is verified",
+    "confirmedBody": "Thank you. You can start using NestWise now.",
+    "failedTitle": "This link didn’t work",
+    "failedBody": "It may have expired or already been used. Sign in and ask for a new link.",
+    "goToSignIn": "Go to sign in"
+  },
+  "forgotPassword": {
+    "title": "Forgot your password?",
+    "body": "Enter your email and we’ll send you a link to set a new password.",
+    "submit": "Send reset link",
+    "sentTitle": "Check your email",
+    "sentBody": "If {email} has a NestWise account, a reset link is on its way. It works for 1 hour.",
+    "backToSignIn": "Back to sign in"
+  },
+  "resetPassword": {
+    "title": "Set a new password",
+    "newPassword": "New password",
+    "submit": "Save new password",
+    "missingToken": "This reset link is not complete. Please ask for a new one.",
+    "askAgain": "Ask for a new link"
+  },
+  "accountEmails": {
+    "verify": {
+      "subject": "Verify your email for NestWise",
+      "body": "Welcome to NestWise!\n\nOpen this link to verify your email:\n{link}\n\nThe link works for {hours} hours. If you didn’t create a NestWise account, you can ignore this email."
+    },
+    "reset": {
+      "subject": "Reset your NestWise password",
+      "body": "Someone asked to reset the password for your NestWise account.\n\nOpen this link to set a new password:\n{link}\n\nThe link works once, for {minutes} minutes. If it wasn’t you, you can ignore this email: your password stays the same."
+    }
   },
   "setup": {
     "familyTitle": "Set up your family",

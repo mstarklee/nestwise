@@ -30,4 +30,8 @@ export class DrizzleSessionGateway implements SessionGateway {
   async delete(token: string): Promise<void> {
     await this.db.delete(sessions).where(eq(sessions.tokenHash, hashToken(token)));
   }
+
+  async deleteAllForUser(userId: string): Promise<void> {
+    await this.db.delete(sessions).where(eq(sessions.userId, userId));
+  }
 }
