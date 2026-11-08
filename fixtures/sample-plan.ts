@@ -11,6 +11,8 @@ export interface SampleMonthlyItem {
   readonly groupKey: string;
   readonly groupName: string;
   readonly amountMinor: number;
+  /** A bill the family pays every month (rent, fees, subscriptions): Home lists it with done or not done. */
+  readonly bill?: boolean;
 }
 
 export interface SampleSavingsItem {
@@ -34,6 +36,12 @@ const monthly = (groupKey: string, groupName: string, key: string, name: string,
   groupKey,
   groupName,
   amountMinor: rupees(amount),
+});
+
+/** A monthly item that is a bill (owner, 2026-11-07). */
+const bill = (groupKey: string, groupName: string, key: string, name: string, amount: number): SampleMonthlyItem => ({
+  ...monthly(groupKey, groupName, key, name, amount),
+  bill: true,
 });
 
 const yearly = (
@@ -64,28 +72,28 @@ const VEH = ['veh', 'Vehicle Maintenance'] as const;
 const RECREATION = ['recreation', 'Kids’ Recreation'] as const;
 const REPAIR = ['repair', 'Appliance Maintenance'] as const;
 
-/** Sample doc §2: 20 items in 9 groups, ₹81,500 a month. */
+/** Sample doc §2: 20 items in 9 groups, ₹81,500 a month. Nine of them are bills (₹42,500). */
 export const monthlyTemplate: readonly SampleMonthlyItem[] = [
   monthly(...FOOD, 'groceries', 'Groceries', 8_000),
   monthly(...FOOD, 'fruits', 'Fruits', 3_000),
   monthly(...FOOD, 'vegetables', 'Vegetables', 3_000),
   monthly(...FOOD, 'non_veg', 'Non-veg', 5_000),
   monthly(...FOOD, 'outside_food', 'Outside Food / Restaurants', 5_000),
-  monthly(...HOUSING, 'rent', 'House Rent', 20_000),
-  monthly(...UTIL, 'electricity', 'Electricity Bill', 3_000),
-  monthly(...UTIL, 'internet', 'Internet Bill', 2_500),
-  monthly(...UTIL, 'gas', 'Cooking Gas', 500),
-  monthly(...HOME, 'housekeeping', 'Housekeeping', 5_500),
+  bill(...HOUSING, 'rent', 'House Rent', 20_000),
+  bill(...UTIL, 'electricity', 'Electricity Bill', 3_000),
+  bill(...UTIL, 'internet', 'Internet Bill', 2_500),
+  bill(...UTIL, 'gas', 'Cooking Gas', 500),
+  bill(...HOME, 'housekeeping', 'Housekeeping', 5_500),
   monthly(...HOME, 'soaps', 'Soap, Detergents & Washing Supplies', 1_500),
   monthly(...KIDS, 'kids_maintenance', 'Kids’ Maintenance', 5_000),
-  monthly(...KIDS, 'football', 'Kids’ Football Fees', 2_000),
+  bill(...KIDS, 'football', 'Kids’ Football Fees', 2_000),
   monthly(...KIDS, 'diapers', 'Diapers & Cream', 1_000),
   monthly(...HEALTH, 'medical', 'Routine Medical Expenses', 3_000),
   monthly(...HEALTH, 'ayurveda', 'Ayurvedic Medicines', 1_500),
   monthly(...TRANS, 'petrol', 'Petrol', 3_000),
-  monthly(...SUBS, 'books_cloud', 'Books & Claude/Cloud Subscription', 3_000),
-  monthly(...SUBS, 'ott', 'OTT Subscriptions (Netflix, Amazon)', 1_000),
-  monthly(...PERSONAL, 'spouse', 'Spouse’s Maintenance', 5_000),
+  bill(...SUBS, 'books_cloud', 'Books & Claude/Cloud Subscription', 3_000),
+  bill(...SUBS, 'ott', 'OTT Subscriptions (Netflix, Amazon)', 1_000),
+  bill(...PERSONAL, 'spouse', 'Spouse’s Maintenance', 5_000),
 ];
 
 /** Sample doc §2: ₹17,000 a month; gold is usually ₹10,000–₹20,000. */

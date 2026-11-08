@@ -25,6 +25,7 @@ const toItem = (row: ItemRow): Item => ({
   sort: row.sort,
   archived: row.archivedAt !== null,
   seedKey: row.seedKey,
+  isBill: row.isBill,
 });
 
 const toLine = (row: LineRow): TemplateLine => ({
@@ -104,10 +105,11 @@ export class DrizzlePlanGateway implements PlanGateway {
         sort: item.sort,
         archivedAt: item.archived ? new Date() : null,
         seedKey: item.seedKey,
+        isBill: item.isBill,
       })
       .onConflictDoUpdate({
         target: items.id,
-        set: { groupId: item.groupId, name: item.name, sort: item.sort, archivedAt: archivedAt(item.archived, items.archivedAt) },
+        set: { groupId: item.groupId, name: item.name, sort: item.sort, isBill: item.isBill, archivedAt: archivedAt(item.archived, items.archivedAt) },
         setWhere: eq(items.familyId, item.familyId),
       });
     return item;

@@ -15,7 +15,13 @@ type ForecastBody = {
   bills: { period: unknown; lines: unknown[] }[];
   monthlyPlanMinor: number;
 };
-type HomeBody = { pot: { balanceMinor: number }; next3Months: unknown[]; cards: string[]; thisMonth: { plannedMinor: number } };
+type HomeBody = {
+  pot: { balanceMinor: number };
+  comingMonths: unknown[];
+  cards: string[];
+  thisMonth: { monthlyPlannedMinor: number; bills: { lines: { kind: string; name: string; state: string }[] } };
+  checklist: { pot: { status: string } };
+};
 
 // The routes use the real clock, so the expectations follow today's month in India.
 const current = periodOf(todayIn('Asia/Kolkata', new Date()));
@@ -43,14 +49,18 @@ describe('/api/v1/forecast and /api/v1/home', () => {
     expect(after.months[0]!.inMinor).toBe(0);
   });
 
-  it('home shows the pot, three months of bills, this month and the checklist card', async () => {
+  it('home shows the pot, this month with its bills, the coming months and the checklist', async () => {
     const { token } = await adminWithPlan(db());
     const response = await getHome(request('GET', '/api/v1/home', token));
     expect(response.status).toBe(200);
     const body = (await response.json()) as HomeBody;
     expect(body.pot.balanceMinor).toBe(0);
-    expect(body.next3Months).toHaveLength(3);
-    expect(body.thisMonth.plannedMinor).toBe(8_150_000);
+    expect(body.comingMonths).toHaveLength(3);
+    expect(body.thisMonth.monthlyPlannedMinor).toBe(8_150_000);
+    const monthlyBills = body.thisMonth.bills.lines.filter((b) => b.kind === 'monthly');
+    expect(monthlyBills).toHaveLength(9);
+    expect(monthlyBills.every((b) => b.state === 'to_pay')).toBe(true);
     expect(body.cards).toContain('checklist');
+    expect(body.checklist.pot.status).toBe('pending');
   });
 });

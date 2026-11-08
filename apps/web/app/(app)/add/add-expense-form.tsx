@@ -4,10 +4,9 @@ import { parseMinor, sumMinor } from '@nestwise/domain/shared';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { type FormEvent, useRef, useState } from 'react';
-import { ApiError } from '@/client/api-client';
 import { formatDay, formatMoney } from '@/client/format';
 import { newId } from '@/client/new-id';
-import { outbox } from '@/client/outbox';
+import { saveExpense } from '@/client/save-expense';
 import { Button } from '@/components/ui/button';
 import { NavLink } from '@/components/nav-link';
 import { Sheet } from '@/components/sheet';
@@ -86,19 +85,9 @@ export function AddExpenseForm({ today, money, monthly, yearly, userId }: { toda
         merchant: String(form.get('merchant')) || null,
         note: String(form.get('note')) || null,
       };
-      await outbox(userId).add(body);
-      let result = await outbox(userId).flush();
-      // A send already under way may have started before this entry was added; one more pass picks it up.
-      if (!result.responses.has(body.id)) result = await outbox(userId).flush();
-      const entry = (await outbox(userId).list()).find((e) => e.id === body.id);
-      const refused = entry?.state === 'failed' ? entry : undefined;
-      if (refused) {
-        // The person is right here: show why, keep what they typed, and let them fix it.
-        await outbox(userId).discard(body.id);
-        setError(errorText(new ApiError(refused.error?.status ?? 0, refused.error?.code ?? 'ServerError', '')));
-        return;
-      }
-      const response = result.responses.get(body.id) as RecordResponse | undefined;
+      // A refusal is thrown: the person is right here, so the catch shows why and keeps what they typed.
+      const saved = await saveExpense(userId, body);
+      const response = saved.response as RecordResponse | undefined;
       const format = (minor: number) => formatMoney(minor, money.currency, money.minorUnit, money.locale);
       const duplicate = response?.duplicate ?? null;
       const question: DuplicateQuestionProps | null = duplicate && {
@@ -109,7 +98,7 @@ export function AddExpenseForm({ today, money, monthly, yearly, userId }: { toda
         mine: duplicate.other.enteredBy === userId,
         canPostpone: true,
       };
-      setSaved({ amount: format(response?.transaction.amountMinor ?? amountMinor), ym: txnDate.slice(0, 7), question, onPhone: entry !== undefined });
+      setSaved({ amount: format(response?.transaction.amountMinor ?? amountMinor), ym: txnDate.slice(0, 7), question, onPhone: saved.onPhone });
       id.current = newId();
       formElement.reset();
       setParts([{ key: 0, itemId: '', amount: '' }]);
@@ -213,7 +202,7 @@ export function AddExpenseForm({ today, money, monthly, yearly, userId }: { toda
         </p>
       )}
 
-      <div className="sticky bottom-[calc(96px+env(safe-area-inset-bottom))] z-10 space-y-2 lg:bottom-4">
+      <div className="sticky bottom-[calc(76px+env(safe-area-inset-bottom))] z-10 space-y-2 lg:bottom-4">
         {saved && saved.onPhone && (
           <p role="status" className="rounded-chip bg-leaf px-4 py-3 text-[14px] font-semibold text-white">
             {tOutbox('savedOnPhone', { amount: saved.amount })}

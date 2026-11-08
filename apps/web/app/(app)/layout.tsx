@@ -15,7 +15,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       <Suspense fallback={null}>
         <RenderedOfflineNotice />
       </Suspense>
-      <main className="pt-safe mx-auto w-full max-w-xl px-4 pb-[calc(112px+env(safe-area-inset-bottom))] md:max-w-[1100px] lg:pb-10 lg:pl-60 lg:pr-8">
+      <main className="pt-safe mx-auto w-full max-w-xl px-4 pb-[calc(88px+env(safe-area-inset-bottom))] md:max-w-[1100px] lg:pb-10 lg:pl-60 lg:pr-8">
         <Suspense fallback={null}>
           <SignedInOutboxSync />
         </Suspense>

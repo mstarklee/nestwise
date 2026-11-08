@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { check, index, integer, smallint, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import { boolean, check, index, integer, smallint, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import { app, money } from './app-schema';
 import { families } from './families';
 
@@ -37,11 +37,14 @@ export const items = app.table(
     sort: integer().notNull(),
     archivedAt: timestamp({ withTimezone: true }),
     seedKey: text(),
+    /** A monthly bill shown on Home with done or not done (2026-11-08). Only monthly items carry it. */
+    isBill: boolean().notNull().default(false),
   },
   (t) => [
     index('items_family_idx').on(t.familyId),
     uniqueIndex('items_family_seed_key_idx').on(t.familyId, t.seedKey).where(sql`${t.seedKey} is not null`),
     check('items_kind_check', kindCheck(t.kind)),
+    check('items_bill_monthly_check', sql`not ${t.isBill} or ${t.kind} = 'monthly'`),
   ],
 );
 

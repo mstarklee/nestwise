@@ -25,6 +25,7 @@ import {
 interface CountedLine {
   readonly line: YearLine;
   readonly estimate: boolean;
+  readonly paidMinor: number;
   readonly remainingMinor: number;
   readonly status: YearLineStatus;
 }
@@ -80,7 +81,7 @@ export class GetForecastUseCase {
         const paidByLine = await this.paid.paidByLine(familyId, year);
         for (const line of plan.lines) {
           const paidMinor = paidByLine.get(line.id) ?? 0;
-          lines.push({ line, estimate: false, remainingMinor: remainingMinor(line, paidMinor), status: yearLineStatus(line, paidMinor, current) });
+          lines.push({ line, estimate: false, paidMinor, remainingMinor: remainingMinor(line, paidMinor), status: yearLineStatus(line, paidMinor, current) });
         }
       } else if (year >= current.year) {
         estimateYears.add(year);
@@ -98,7 +99,7 @@ export class GetForecastUseCase {
             dueDay: e.dueDay,
             state: 'open',
           };
-          lines.push({ line, estimate: true, remainingMinor: line.plannedMinor, status: yearLineStatus(line, 0, current) });
+          lines.push({ line, estimate: true, paidMinor: 0, remainingMinor: line.plannedMinor, status: yearLineStatus(line, 0, current) });
         }
       }
     }
@@ -108,7 +109,11 @@ export class GetForecastUseCase {
     );
     const toBill = (c: CountedLine): ForecastBillLine => ({
       yearLineId: c.estimate ? null : c.line.id,
+      itemId: c.line.itemId,
+      planYear: c.line.year,
       name: c.line.name,
+      plannedMinor: c.line.plannedMinor,
+      paidMinor: c.paidMinor,
       remainingMinor: c.remainingMinor,
       status: c.status,
     });

@@ -19,7 +19,7 @@ const monthlyGroups: PlanImportGroup[] = groupBy(monthlyTemplate).map(([key, g])
   key,
   kind: 'monthly',
   name: g.name,
-  items: g.rows.map((r) => ({ key: r.key, name: r.name, amountMinor: r.amountMinor })),
+  items: g.rows.map((r) => ({ key: r.key, name: r.name, amountMinor: r.amountMinor, isBill: r.bill === true })),
 }));
 
 const savingsGroup: PlanImportGroup = {

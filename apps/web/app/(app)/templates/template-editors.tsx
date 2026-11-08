@@ -11,7 +11,7 @@ import { Input, Select } from '@/components/ui/input';
 import { useErrorText } from '@/components/use-error-text';
 
 type Money = { currency: string; minorUnit: number; locale: string };
-type Entry = { itemId: string; name: string; amountMinor: number; dueMonth: number | null };
+type Entry = { itemId: string; name: string; amountMinor: number; dueMonth: number | null; isBill: boolean };
 
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 const monthName = (m: number, locale: string) => new Intl.DateTimeFormat(locale, { month: 'short', timeZone: 'UTC' }).format(Date.UTC(2000, m - 1, 1));
@@ -24,12 +24,15 @@ function parseAmount(value: string, minorUnit: number): number {
 export function TemplateItemEditor({
   entry,
   yearly,
+  canBeBill = false,
   canEdit,
   money,
   futureMonths = [],
 }: {
   entry: Entry;
   yearly: boolean;
+  /** Monthly items only: the "This is a bill" box (Home lists bills with done or not done). */
+  canBeBill?: boolean;
   canEdit: boolean;
   money: Money;
   /** Months after this one that exist and may also take a new amount (PRD §6.2). */
@@ -58,6 +61,7 @@ export function TemplateItemEditor({
         name: String(form.get('name')),
         // Fields left out are kept (hint range, due day); clearing the month also clears the day.
         template: { amountMinor, ...(yearly ? { dueMonth, ...(dueMonth === null ? { dueDay: null } : {}) } : {}) },
+        ...(canBeBill ? { isBill: form.get('isBill') === 'on' } : {}),
         applyToMonths: form.getAll('applyTo').map(String),
       });
       setEditing(false);
@@ -82,6 +86,7 @@ export function TemplateItemEditor({
       <div className="flex items-center justify-between gap-2 text-[13.5px]">
         <span>
           {entry.name}
+          {entry.isBill && <span className="ml-1.5 rounded-full bg-peacock/10 px-2 py-0.5 text-[12px] font-semibold text-peacock">{t('billTag')}</span>}
           {yearly && <span className="block text-muted">{entry.dueMonth === null ? t('noMonth') : monthName(entry.dueMonth, money.locale)}</span>}
         </span>
         <span className="flex items-center gap-2">
@@ -111,6 +116,12 @@ export function TemplateItemEditor({
           </Select>
         )}
       </div>
+      {canBeBill && (
+        <label className="flex min-h-11 items-center gap-2 text-[14px]">
+          <input type="checkbox" name="isBill" defaultChecked={entry.isBill} className="size-5 accent-peacock" />
+          {t('isBill')}
+        </label>
+      )}
       {futureMonths.length > 0 && (
         <fieldset className="text-[13.5px]">
           <legend className="text-muted">{t('alsoApply')}</legend>

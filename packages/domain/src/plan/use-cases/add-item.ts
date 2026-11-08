@@ -1,6 +1,6 @@
 import { assertCan, type Clock, type IdGenerator } from '../../shared';
 import { GroupNotFoundError } from '../errors';
-import { type AddItemCommand, checkName, type Item, toTemplateLine } from '../models';
+import { type AddItemCommand, checkBill, checkName, type Item, toTemplateLine } from '../models';
 import type { PlanGateway, PlanUnitOfWork } from '../ports';
 
 export class AddItemUseCase {
@@ -18,6 +18,7 @@ export class AddItemUseCase {
     const group = await this.plan.findGroup(familyId, command.groupId);
     if (!group || group.archived) throw new GroupNotFoundError('That group does not exist');
 
+    const isBill = checkBill(group.kind, command.isBill);
     const id = this.ids.next();
     const line = toTemplateLine(id, group.kind, command);
     const siblings = (await this.plan.listItems(familyId, { includeArchived: true })).filter((i) => i.groupId === group.id);
@@ -30,6 +31,7 @@ export class AddItemUseCase {
       sort: siblings.reduce((max, i) => Math.max(max, i.sort + 1), 0),
       archived: false,
       seedKey: null,
+      isBill,
     };
 
     return this.uow.run(async ({ plan, activity }) => {

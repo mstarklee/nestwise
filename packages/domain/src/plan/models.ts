@@ -23,6 +23,8 @@ export interface Item {
   readonly sort: number;
   readonly archived: boolean;
   readonly seedKey: string | null;
+  /** A monthly bill (rent, fees, subscriptions): it shows on Home with done or not done. Monthly items only. */
+  readonly isBill: boolean;
 }
 
 /** One per item: this is the template. Due fields apply to yearly items only. */
@@ -47,6 +49,7 @@ export interface TemplateFields {
 export interface PlanImportItem extends TemplateFields {
   readonly key: string;
   readonly name: string;
+  readonly isBill?: boolean;
 }
 
 export interface PlanImportGroup {
@@ -62,6 +65,7 @@ export interface PlanImport {
 
 export interface TemplateEntry extends TemplateLine {
   readonly seedKey: string | null;
+  readonly isBill: boolean;
   readonly name: string;
   readonly groupId: string;
   readonly groupName: string;
@@ -87,6 +91,7 @@ export interface AddItemCommand extends TemplateFields {
   readonly actor: Actor;
   readonly groupId: string;
   readonly name: string;
+  readonly isBill?: boolean;
 }
 
 export interface UpdateItemCommand {
@@ -94,6 +99,8 @@ export interface UpdateItemCommand {
   readonly itemId: string;
   readonly name?: string;
   readonly template?: TemplateFields;
+  /** Left out keeps the current value. */
+  readonly isBill?: boolean;
 }
 
 export interface ArchiveItemCommand {
@@ -115,6 +122,12 @@ export function checkName(input: string, what: string): string {
   const length = [...name].length;
   if (length < 1 || length > MAX_NAME) throw new InvalidPlanCommandError(`The ${what} name must be 1–${MAX_NAME} characters`);
   return name;
+}
+
+/** Only a monthly item can be a bill: savings are not bills, and yearly bills show on Home in their month anyway. */
+export function checkBill(kind: ItemKind, isBill: boolean | undefined): boolean {
+  if (isBill === true && kind !== 'monthly') throw new InvalidPlanCommandError('Only monthly items can be marked as bills');
+  return isBill === true;
 }
 
 const isAmount = (value: number | null | undefined) => value == null || (Number.isSafeInteger(value) && value >= 0);
@@ -165,7 +178,7 @@ export function assembleTemplates(groups: readonly Group[], items: readonly Item
       hintMaxMinor: null,
     };
     rows.push({
-      entry: { ...line, seedKey: item.seedKey, name: item.name, groupId: group.id, groupName: group.name },
+      entry: { ...line, seedKey: item.seedKey, isBill: item.isBill, name: item.name, groupId: group.id, groupName: group.name },
       kind: item.kind,
       groupSort: group.sort,
       itemSort: item.sort,

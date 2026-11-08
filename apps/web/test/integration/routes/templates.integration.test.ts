@@ -28,7 +28,7 @@ async function signUp(email: string) {
   return /nw_session=([^;]*)/.exec(response.headers.get('set-cookie') ?? '')?.[1] ?? '';
 }
 
-type TemplatesBody = { monthly: { itemId: string; seedKey: string | null; groupId: string }[]; yearly: { itemId: string; seedKey: string | null }[]; totals: Record<string, number> };
+type TemplatesBody = { monthly: { itemId: string; seedKey: string | null; groupId: string; isBill: boolean }[]; yearly: { itemId: string; seedKey: string | null }[]; totals: Record<string, number> };
 
 async function adminWithPlan() {
   process.env.ALLOWED_SIGNUP_EMAILS = 'priya@example.com';
@@ -67,7 +67,15 @@ describe('/api/v1/templates', () => {
     const bad = await updateItem(request('PATCH', `/api/v1/templates/items/${groceries.itemId}`, token, { template: { amountMinor: 1, dueMonth: 3 } }), params({ id: groceries.itemId }));
     expect(bad.status).toBe(422);
 
+    // The bill mark: on for groceries; refused (422) on a yearly item.
+    expect(templates.monthly.find((m) => m.seedKey === 'rent')!.isBill).toBe(true);
+    expect(groceries.isBill).toBe(false);
+    const marked = await updateItem(request('PATCH', `/api/v1/templates/items/${groceries.itemId}`, token, { isBill: true }), params({ id: groceries.itemId }));
+    expect(((await marked.json()) as { item: { isBill: boolean } }).item.isBill).toBe(true);
+
     const tour = templates.yearly.find((y) => y.seedKey === 'tour')!;
+    const yearlyBill = await updateItem(request('PATCH', `/api/v1/templates/items/${tour.itemId}`, token, { isBill: true }), params({ id: tour.itemId }));
+    expect(yearlyBill.status).toBe(422);
     const edited = await updateItem(request('PATCH', `/api/v1/templates/items/${tour.itemId}`, token, { template: { amountMinor: 5_000_000, dueMonth: 5 } }), params({ id: tour.itemId }));
     expect(edited.status).toBe(200);
 

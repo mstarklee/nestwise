@@ -1,5 +1,5 @@
 import type { Checklist } from '../pot';
-import type { Actor, Period } from '../shared';
+import type { Actor, IsoDate, Period } from '../shared';
 import type { YearLineStatus } from '../year-plan';
 import type { BiggestMonth } from './biggest-month';
 
@@ -86,7 +86,13 @@ export interface ForecastCommand {
 /** A yearly bill in a forecast month. yearLineId is null when the month's year has no plan yet (a template estimate). */
 export interface ForecastBillLine {
   readonly yearLineId: string | null;
+  readonly itemId: string;
+  /** The year whose plan a payment goes to (the allocation's planYear). */
+  readonly planYear: number;
   readonly name: string;
+  readonly plannedMinor: number;
+  /** Paid on the line so far; 0 for an estimate. */
+  readonly paidMinor: number;
   readonly remainingMinor: number;
   readonly status: YearLineStatus;
 }
@@ -122,6 +128,39 @@ export interface HomeMonth extends ForecastBills {
   readonly endMinor: number;
 }
 
+/** Paid (something is recorded on it this month), still to pay, or planned at ₹0 this month (a monthly bill only). */
+export type HomeBillState = 'to_pay' | 'paid' | 'not_this_month';
+
+/** One bill on Home this month: a monthly item marked as a bill, or a yearly bill due now or overdue. */
+export interface HomeBill {
+  readonly kind: 'monthly' | 'yearly';
+  readonly itemId: string;
+  /** Yearly bills only: the year line, or null when its year has no plan yet. */
+  readonly yearLineId: string | null;
+  /** Yearly bills only: the year whose plan a payment goes to. */
+  readonly planYear: number | null;
+  readonly name: string;
+  readonly plannedMinor: number;
+  /** Monthly: spent on it this month. Yearly: paid on the line so far. */
+  readonly paidMinor: number;
+  /** What paying it now takes: the plan for a monthly bill, what is still owed on a yearly one; 0 once paid. */
+  readonly toPayMinor: number;
+  /** The latest expense on it this month, if any. */
+  readonly paidOn: IsoDate | null;
+  readonly state: HomeBillState;
+  /** A yearly bill due in an earlier month and still owed. */
+  readonly overdue: boolean;
+}
+
+export interface HomeBills {
+  /** Still to pay first (yearly bills, then monthly in plan order), then paid, then "not this month". */
+  readonly lines: readonly HomeBill[];
+  /** Every bill except "not this month" ones. */
+  readonly count: number;
+  readonly paidCount: number;
+  readonly toPayMinor: number;
+}
+
 export interface HomeSummary {
   readonly pot: {
     readonly balanceMinor: number;
@@ -135,12 +174,19 @@ export interface HomeSummary {
     /** A one-off top-up for short months no deposit can reach. */
     readonly topUpNowMinor: number | null;
   };
-  readonly next3Months: readonly HomeMonth[];
+  /** The three months after this one; this month's yearly bills are in thisMonth.bills. */
+  readonly comingMonths: readonly HomeMonth[];
   /** The biggest month among months 4–12, or null when none has a dated bill. */
   readonly biggestAhead: BiggestMonth | null;
   readonly thisMonth: {
+    /** The whole month: every monthly line (everyday spending too) plus the yearly bills in `bills`. */
     readonly plannedMinor: number;
-    readonly actualMinor: number;
+    /** Spent on monthly items this month, plus what is paid on those yearly bills. */
+    readonly paidMinor: number;
+    /** Monthly lines only, as Budgets shows them. */
+    readonly monthlyPlannedMinor: number;
+    readonly monthlyActualMinor: number;
+    readonly bills: HomeBills;
     readonly groupsOver: readonly string[];
     readonly groups: readonly { readonly groupName: string; readonly plannedMinor: number; readonly actualMinor: number }[];
   };

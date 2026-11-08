@@ -1,4 +1,4 @@
-import type { ActivityGateway, Period } from '../shared';
+import type { ActivityGateway, IsoDate, Period } from '../shared';
 import type { MonthBudget, MonthCreatedFrom, MonthLine, MonthStatus } from './models';
 
 export interface MonthBudgetGateway {
@@ -22,6 +22,8 @@ export interface MonthStatusGateway {
 export interface ActualsGateway {
   /** Confirmed, not deleted, not merged allocations per item in the period; refunds subtracted. */
   sumByItem(familyId: string, period: Period): Promise<ReadonlyMap<string, number>>;
+  /** The latest date of a counted expense (not a refund) per item in the period: when a bill was paid. */
+  lastDateByItem(familyId: string, period: Period): Promise<ReadonlyMap<string, IsoDate>>;
   hasExpenses(familyId: string, period: Period): Promise<boolean>;
 }
 

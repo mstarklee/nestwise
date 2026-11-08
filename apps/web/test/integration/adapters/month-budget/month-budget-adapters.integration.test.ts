@@ -48,6 +48,21 @@ describe('DrizzleActualsGateway', () => {
     expect(await actuals.hasExpenses(f.familyId, OCT)).toBe(true);
     expect(await actuals.hasExpenses(f.familyId, { year: 2026, month: 9 })).toBe(false);
   });
+
+  it('gives the latest counted expense date per item in the month (a paid bill’s date), never a refund or another family’s', async () => {
+    const f = await familyWithPlan(db());
+    const rent = f.itemId('rent');
+    await insertTxn(f.familyId, f.userId, { amount: 1_000_000, itemId: rent, date: '2026-11-02' });
+    await insertTxn(f.familyId, f.userId, { amount: 1_000_000, itemId: rent, date: '2026-11-05' });
+    await insertTxn(f.familyId, f.userId, { amount: 5_000, itemId: rent, date: '2026-11-20', kind: 'refund' });
+    await insertTxn(f.familyId, f.userId, { amount: 5_000, itemId: rent, date: '2026-11-25', status: 'pending' });
+    await insertTxn(f.familyId, f.userId, { amount: 300_000, itemId: f.itemId('electricity'), date: '2026-10-30' });
+    const other = await familyWithPlan(db());
+    await insertTxn(other.familyId, other.userId, { amount: 1_000, itemId: other.itemId('rent'), date: '2026-11-28' });
+
+    const actuals = new DrizzleActualsGateway(db());
+    expect(Object.fromEntries(await actuals.lastDateByItem(f.familyId, NOV))).toEqual({ [rent]: '2026-11-05' });
+  });
 });
 
 describe('DrizzleMonthBudgetGateway', () => {

@@ -130,9 +130,9 @@ async function setUp(h: Harness) {
   await h.memberships.save({ userId: SPEAKER, familyId: FAMILY, role: 'admin', joinedAt: new Date(NOW) });
   await h.memberships.save({ userId: SPOUSE, familyId: FAMILY, role: 'admin', joinedAt: new Date(NOW) });
   await h.planUow.plan.saveGroup({ id: 'g-food', familyId: FAMILY, kind: 'monthly', name: 'Food', sort: 0, archived: false });
-  await h.planUow.plan.saveItem({ id: GROCERIES, familyId: FAMILY, groupId: 'g-food', kind: 'monthly', name: 'Groceries', sort: 0, archived: false, seedKey: 'groceries' });
+  await h.planUow.plan.saveItem({ id: GROCERIES, familyId: FAMILY, groupId: 'g-food', kind: 'monthly', name: 'Groceries', sort: 0, archived: false, seedKey: 'groceries', isBill: false });
   await h.planUow.plan.saveGroup({ id: 'g-ins', familyId: FAMILY, kind: 'yearly', name: 'Insurance', sort: 1, archived: false });
-  await h.planUow.plan.saveItem({ id: BIKE_ITEM, familyId: FAMILY, groupId: 'g-ins', kind: 'yearly', name: 'Bike Insurance', sort: 0, archived: false, seedKey: 'bike_ins' });
+  await h.planUow.plan.saveItem({ id: BIKE_ITEM, familyId: FAMILY, groupId: 'g-ins', kind: 'yearly', name: 'Bike Insurance', sort: 0, archived: false, seedKey: 'bike_ins', isBill: false });
   return h;
 }
 
