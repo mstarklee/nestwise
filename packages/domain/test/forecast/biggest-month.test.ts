@@ -2,7 +2,16 @@ import { describe, expect, test } from 'vitest';
 import { biggestMonthAhead } from '../../src/forecast';
 import type { ForecastBillLine, ForecastBills, ForecastMonth } from '../../src/forecast';
 
-const line = (name: string, remainingMinor: number): ForecastBillLine => ({ yearLineId: name, name, remainingMinor, status: 'planned' });
+const line = (name: string, remainingMinor: number): ForecastBillLine => ({
+  yearLineId: name,
+  itemId: name,
+  planYear: 2026,
+  name,
+  plannedMinor: remainingMinor,
+  paidMinor: 0,
+  remainingMinor,
+  status: 'planned',
+});
 
 /** 12 months from Nov 2026 with a flat 10,000 in and the given bills; end balances follow from the money. */
 function build(bills: Record<number, ForecastBillLine[]>, startMinor = 100_000) {

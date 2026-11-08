@@ -1,6 +1,6 @@
 import { assertCan, type Clock, type IdGenerator } from '../../shared';
 import { InvalidPlanCommandError, PlanAlreadyImportedError } from '../errors';
-import { checkName, type Group, ITEM_KINDS, type ImportPlanCommand, type Item, type TemplateLine, toTemplateLine } from '../models';
+import { checkBill, checkName, type Group, ITEM_KINDS, type ImportPlanCommand, type Item, type TemplateLine, toTemplateLine } from '../models';
 import type { PlanGateway, PlanUnitOfWork } from '../ports';
 
 /** Loads a whole plan (groups, items, template amounts) into a family that has none yet. */
@@ -37,6 +37,7 @@ export class ImportPlanUseCase {
           sort: itemIndex,
           archived: false,
           seedKey: i.key,
+          isBill: checkBill(g.kind, i.isBill),
         };
         items.push(item);
         lines.push(toTemplateLine(item.id, g.kind, i));

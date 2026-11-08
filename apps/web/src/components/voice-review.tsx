@@ -241,7 +241,7 @@ export function VoiceReview({ batchId, transcript, rows, items, bills, potBalanc
       {keeping.length === 0 && <Card className="text-[15px]">{t('allRemoved')}</Card>}
 
       {mine && (
-        <div className="sticky bottom-[calc(96px+env(safe-area-inset-bottom))] z-10 space-y-2 lg:bottom-4">
+        <div className="sticky bottom-[calc(76px+env(safe-area-inset-bottom))] z-10 space-y-2 lg:bottom-4">
           <Button
             type="submit"
             size="lg"

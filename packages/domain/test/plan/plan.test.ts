@@ -83,6 +83,21 @@ describe('ImportPlanUseCase and GetTemplatesUseCase', () => {
     expect(uow.activity.count()).toBe(0);
   });
 
+  it('marks the family’s nine monthly bills (₹42,500) and nothing else', async () => {
+    await importPlan.execute({ actor: admin, plan: samplePlanImport });
+    const t = await getTemplates.execute({ actor: admin });
+    const bills = t.monthly.filter((e) => e.isBill);
+    expect(bills.map((e) => e.seedKey)).toEqual(['rent', 'electricity', 'internet', 'gas', 'housekeeping', 'football', 'books_cloud', 'ott', 'spouse']);
+    expect(bills.reduce((sum, e) => sum + e.amountMinor, 0)).toBe(4_250_000);
+    expect([...t.savings, ...t.yearly].some((e) => e.isBill)).toBe(false);
+  });
+
+  it('refuses a savings or yearly item marked as a bill in an import, and saves nothing', async () => {
+    const bad = { groups: [{ key: 's', kind: 'savings' as const, name: 'Savings', items: [{ key: 'rd', name: 'RD', amountMinor: 1, isBill: true }] }] };
+    await expect(importPlan.execute({ actor: admin, plan: bad })).rejects.toBeInstanceOf(InvalidPlanCommandError);
+    expect(uow.plan.counts()).toEqual({ groups: 0, items: 0, lines: 0 });
+  });
+
   it('templates are per family', async () => {
     await importPlan.execute({ actor: admin, plan: samplePlanImport });
     expect((await getTemplates.execute({ actor: otherFamilyAdmin })).totals).toEqual({ monthly: 0, savings: 0, yearly: 0 });
@@ -100,8 +115,34 @@ describe('editing items', () => {
   it('adds an item at the end of its group, of the group kind, with its template line', async () => {
     const food = [...(await uow.plan.listGroups('f1'))].find((g) => g.name === 'Food & Dining')!;
     const item = await addItem.execute({ actor: admin, groupId: food.id, name: ' Snacks ', amountMinor: 200_000 });
-    expect(item).toMatchObject({ familyId: 'f1', groupId: food.id, kind: 'monthly', name: 'Snacks', sort: 5, archived: false, seedKey: null });
+    expect(item).toMatchObject({ familyId: 'f1', groupId: food.id, kind: 'monthly', name: 'Snacks', sort: 5, archived: false, seedKey: null, isBill: false });
     expect(await uow.plan.findTemplateLine('f1', item.id)).toMatchObject({ amountMinor: 200_000, dueMonth: null });
+  });
+
+  it('adds a monthly item as a bill, and refuses a bill in a yearly group', async () => {
+    const groups = [...(await uow.plan.listGroups('f1'))];
+    const kids = groups.find((g) => g.name === 'Kids & Childcare')!;
+    expect(await addItem.execute({ actor: admin, groupId: kids.id, name: 'Swimming Fees', amountMinor: 150_000, isBill: true })).toMatchObject({ isBill: true });
+    expect(await addItem.execute({ actor: admin, groupId: kids.id, name: 'Toys', amountMinor: 50_000 })).toMatchObject({ isBill: false });
+    const before = uow.plan.counts();
+    const insurance = groups.find((g) => g.kind === 'yearly')!;
+    await expect(addItem.execute({ actor: admin, groupId: insurance.id, name: 'X', amountMinor: 1, isBill: true })).rejects.toBeInstanceOf(InvalidPlanCommandError);
+    expect(uow.plan.counts()).toEqual(before);
+  });
+
+  it('switches the bill mark on and off; leaving it out keeps it; a yearly item cannot be a bill', async () => {
+    const groceries = await itemOf('groceries');
+    await updateItem.execute({ actor: admin, itemId: groceries.id, isBill: true });
+    expect((await itemOf('groceries')).isBill).toBe(true);
+    await updateItem.execute({ actor: admin, itemId: groceries.id, template: { amountMinor: 900_000 } });
+    expect((await itemOf('groceries')).isBill).toBe(true);
+    await updateItem.execute({ actor: admin, itemId: groceries.id, isBill: false });
+    expect((await itemOf('groceries')).isBill).toBe(false);
+    expect(uow.activity.all().at(-1)).toMatchObject({ action: 'item.updated', after: { item: { isBill: false } } });
+
+    const tour = await itemOf('tour');
+    await expect(updateItem.execute({ actor: admin, itemId: tour.id, isBill: true })).rejects.toBeInstanceOf(InvalidPlanCommandError);
+    expect((await itemOf('tour')).isBill).toBe(false);
   });
 
   it('refuses a due month on a monthly item and saves nothing', async () => {

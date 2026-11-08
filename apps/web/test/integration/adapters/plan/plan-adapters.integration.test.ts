@@ -33,6 +33,7 @@ describe('plan adapters and import script', () => {
     expect(t.totals).toEqual({ monthly: 8_150_000, savings: 1_700_000, yearly: 44_300_000 });
     expect(t.savings.find((s) => s.seedKey === 'gold')).toMatchObject({ hintMinMinor: 1_000_000, hintMaxMinor: 2_000_000 });
     expect(t.yearly.find((y) => y.seedKey === 'school_t1')).toMatchObject({ dueMonth: 5, dueDay: null });
+    expect(t.monthly.filter((m) => m.isBill).map((m) => m.seedKey)).toEqual(['rent', 'electricity', 'internet', 'gas', 'housekeeping', 'football', 'books_cloud', 'ott', 'spouse']);
   });
 
   it('refuses to import twice', async () => {
@@ -67,5 +68,19 @@ describe('plan adapters and import script', () => {
     expect(await plan.findItem(familyId, item.id)).toMatchObject({ name: 'Family tour', archived: true });
     expect(await plan.findTemplateLine(familyId, item.id)).toMatchObject({ amountMinor: 6_000_000, dueMonth: 5, dueDay: 10 });
     expect((await plan.listItems(familyId, { includeArchived: false })).some((i) => i.id === item.id)).toBe(false);
+  });
+
+  it('saves and reads the bill mark; the database refuses it on a yearly item', async () => {
+    const familyId = await familyFor(A, 'priya@example.com');
+    await importPlan({ db: db(), familyId });
+    const plan = new DrizzlePlanGateway(db());
+    const items = await plan.listItems(familyId, { includeArchived: false });
+    const groceries = items.find((i) => i.seedKey === 'groceries')!;
+    expect(groceries.isBill).toBe(false);
+    await plan.saveItem({ ...groceries, isBill: true });
+    expect(await plan.findItem(familyId, groceries.id)).toMatchObject({ isBill: true });
+    const tour = items.find((i) => i.seedKey === 'tour')!;
+    await expect(plan.saveItem({ ...tour, isBill: true })).rejects.toThrow();
+    expect(await plan.findItem(familyId, tour.id)).toMatchObject({ isBill: false });
   });
 });

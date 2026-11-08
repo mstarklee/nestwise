@@ -10,12 +10,13 @@ export const TemplateFieldsRequest = z.object({
   hintMaxMinor: z.number().int().nullish(),
 });
 
-export const AddItemRequest = TemplateFieldsRequest.extend({ groupId: z.uuid(), name: z.string().max(400) });
+export const AddItemRequest = TemplateFieldsRequest.extend({ groupId: z.uuid(), name: z.string().max(400), isBill: z.boolean().optional() });
 export type AddItemRequest = z.infer<typeof AddItemRequest>;
 
 export const UpdateItemRequest = z.object({
   name: z.string().max(400).optional(),
   template: TemplateFieldsRequest.optional(),
+  isBill: z.boolean().optional(),
   /** Months after this one that also take the new amount (PRD §6.2), as "YYYY-MM". */
   applyToMonths: z.array(MonthParam).max(24).optional(),
 });
@@ -38,6 +39,7 @@ export const ItemResponse = z.object({
     sort: z.number().int(),
     archived: z.boolean(),
     seedKey: z.string().nullable(),
+    isBill: z.boolean(),
   }),
 });
 export type ItemResponse = z.infer<typeof ItemResponse>;
@@ -45,6 +47,7 @@ export type ItemResponse = z.infer<typeof ItemResponse>;
 const TemplateEntry = z.object({
   itemId: z.string(),
   seedKey: z.string().nullable(),
+  isBill: z.boolean(),
   name: z.string(),
   groupId: z.string(),
   groupName: z.string(),

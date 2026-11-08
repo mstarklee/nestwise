@@ -265,7 +265,7 @@ describe('CaptureVoiceUseCase — the parse context', () => {
   it('names each item with the group it sits in', async () => {
     const h = await withFamily(build());
     await h.planUow.plan.saveGroup({ id: 'g-food', familyId: FAMILY, kind: 'monthly', name: 'Food & Dining', sort: 0, archived: false });
-    await h.planUow.plan.saveItem({ id: 'i-groc', familyId: FAMILY, groupId: 'g-food', kind: 'monthly', name: 'Groceries', sort: 0, archived: false, seedKey: 'groceries' });
+    await h.planUow.plan.saveItem({ id: 'i-groc', familyId: FAMILY, groupId: 'g-food', kind: 'monthly', name: 'Groceries', sort: 0, archived: false, seedKey: 'groceries', isBill: false });
 
     await h.useCase.execute({ actor: admin, audio: AUDIO, mimeType: MIME });
 
@@ -276,8 +276,8 @@ describe('CaptureVoiceUseCase — the parse context', () => {
     const h = await withFamily(build());
     await h.planUow.plan.saveGroup({ id: 'g-food', familyId: FAMILY, kind: 'monthly', name: 'Food & Dining', sort: 0, archived: false });
     await h.planUow.plan.saveGroup({ id: 'g-sav', familyId: FAMILY, kind: 'savings', name: 'Savings', sort: 1, archived: false });
-    await h.planUow.plan.saveItem({ id: 'i-old', familyId: FAMILY, groupId: 'g-food', kind: 'monthly', name: 'Old', sort: 1, archived: true, seedKey: null });
-    await h.planUow.plan.saveItem({ id: 'i-gold', familyId: FAMILY, groupId: 'g-sav', kind: 'savings', name: 'Gold', sort: 0, archived: false, seedKey: 'gold' });
+    await h.planUow.plan.saveItem({ id: 'i-old', familyId: FAMILY, groupId: 'g-food', kind: 'monthly', name: 'Old', sort: 1, archived: true, seedKey: null, isBill: false });
+    await h.planUow.plan.saveItem({ id: 'i-gold', familyId: FAMILY, groupId: 'g-sav', kind: 'savings', name: 'Gold', sort: 0, archived: false, seedKey: 'gold', isBill: false });
 
     await h.useCase.execute({ actor: admin, audio: AUDIO, mimeType: MIME });
 

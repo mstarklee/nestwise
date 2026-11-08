@@ -7,7 +7,7 @@ import type {
   MonthLine,
   MonthStatusGateway,
 } from '../../src/month-budget';
-import type { ActivityGateway, Period } from '../../src/shared';
+import type { ActivityGateway, IsoDate, Period } from '../../src/shared';
 import { InMemoryActivityGateway } from './in-memory-activity-gateway';
 
 const key = (familyId: string, p: Period) => `${familyId}:${p.year}-${p.month}`;
@@ -62,12 +62,18 @@ export class InMemoryMonthBudgetGateway implements MonthBudgetGateway, MonthStat
 
 export class InMemoryActualsGateway implements ActualsGateway {
   sums = new Map<string, Map<string, number>>();
+  dates = new Map<string, Map<string, IsoDate>>();
 
-  set(familyId: string, period: Period, sums: ReadonlyMap<string, number>) {
+  /** Spending per item; `dates` gives the latest expense date per item (a paid bill's date). */
+  set(familyId: string, period: Period, sums: ReadonlyMap<string, number>, dates: ReadonlyMap<string, IsoDate> = new Map()) {
     this.sums.set(key(familyId, period), new Map(sums));
+    this.dates.set(key(familyId, period), new Map(dates));
   }
   async sumByItem(familyId: string, period: Period) {
     return this.sums.get(key(familyId, period)) ?? new Map<string, number>();
+  }
+  async lastDateByItem(familyId: string, period: Period) {
+    return this.dates.get(key(familyId, period)) ?? new Map<string, IsoDate>();
   }
   async hasExpenses(familyId: string, period: Period) {
     return (this.sums.get(key(familyId, period))?.size ?? 0) > 0;

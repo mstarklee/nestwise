@@ -1,6 +1,6 @@
 import { assertCan, type Clock } from '../../shared';
 import { ItemArchivedError, ItemNotFoundError } from '../errors';
-import { checkName, type Item, toTemplateLine, type UpdateItemCommand } from '../models';
+import { checkBill, checkName, type Item, toTemplateLine, type UpdateItemCommand } from '../models';
 import type { PlanGateway, PlanUnitOfWork } from '../ports';
 
 /** Renames an item and/or changes its template line. Existing month budgets and year plans are not touched. */
@@ -18,7 +18,8 @@ export class UpdateItemUseCase {
     if (!item) throw new ItemNotFoundError('That item does not exist');
     if (item.archived) throw new ItemArchivedError('An archived item cannot be edited');
 
-    const updated: Item = command.name === undefined ? item : { ...item, name: checkName(command.name, 'item') };
+    const renamed: Item = command.name === undefined ? item : { ...item, name: checkName(command.name, 'item') };
+    const updated: Item = command.isBill === undefined ? renamed : { ...renamed, isBill: checkBill(item.kind, command.isBill) };
     const before = { item, line: await this.plan.findTemplateLine(familyId, item.id) };
     // A field left out keeps its current value; null clears it. (Changing only the amount must not erase a hint range.)
     const t = command.template;

@@ -59,6 +59,7 @@ export class EnsureMiscellaneousItemUseCase {
       sort: siblings.reduce((max, i) => Math.max(max, i.sort + 1), 0),
       archived: false,
       seedKey: MISCELLANEOUS_SEED_KEY,
+      isBill: false,
     };
 
     return this.uow.run(async ({ plan, activity }) => {

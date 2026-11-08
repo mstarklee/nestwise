@@ -51,8 +51,9 @@ async function Templates() {
                 {group.entries.map((entry) => (
                   <li key={entry.itemId} className="py-2">
                     <TemplateItemEditor
-                      entry={{ itemId: entry.itemId, name: entry.name, amountMinor: entry.amountMinor, dueMonth: entry.dueMonth }}
+                      entry={{ itemId: entry.itemId, name: entry.name, amountMinor: entry.amountMinor, dueMonth: entry.dueMonth, isBill: entry.isBill }}
                       yearly={section.kind === 'yearly'}
+                      canBeBill={section.kind === 'monthly'}
                       canEdit={canEdit}
                       money={money}
                       futureMonths={section.kind === 'yearly' ? [] : future.months.map((m) => ({ ym: toYm(m), label: formatPeriod(m, money.locale) }))}

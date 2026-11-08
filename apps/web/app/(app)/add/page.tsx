@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import { Suspense } from 'react';
 import { YearPlanNotFoundError } from '@nestwise/domain/year-plan';
+import { maxClipSeconds, readProvider } from '@/capture/clip-limits';
 import { makeGetTemplatesUseCase } from '@/composition/plan';
 import { makeGetYearPlanUseCase } from '@/composition/year-plan';
 import { PageLoading } from '@/components/page-loading';
@@ -53,7 +54,7 @@ async function Add() {
     <>
       <TabHeader title={t('title')} border={false} />
       <div className="mx-auto max-w-xl space-y-4">
-        <QuickActions withType={false} />
+        <QuickActions withType={false} maxSeconds={maxClipSeconds(readProvider(process.env.STT_PROVIDER))} />
         <AddExpenseForm today={today} money={money} monthly={groups('monthly')} yearly={yearly} userId={actor.userId} />
         <OutboxFailures money={money} userId={actor.userId} />
       </div>

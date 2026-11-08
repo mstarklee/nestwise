@@ -97,25 +97,45 @@ test('sign up, set up the family, confirm the deposit, add an expense, see it in
   await page.getByRole('checkbox', { name: /Deepavali Celebration/ }).check();
   await page.getByRole('button', { name: 'Done', exact: true }).click();
 
-  // 3. Home: the pot is ₹0, the checklist is waiting, November's bike insurance is ₹1,500.
+  // 3. Home, bills first: nothing paid yet of ₹83,000 (₹81,500 monthly + ₹1,500 bike insurance); ten bills to pay,
+  // November's bike insurance among them; the set-aside list is waiting; the pot is ₹0.
   await expect(page).toHaveURL(/\/home/);
+  await expect(page.getByTestId('month-paid')).toHaveText('₹0');
+  await expect(page.getByTestId('month-planned')).toContainText('₹83,000');
+  await expect(page.getByTestId('bills-strip')).toContainText('0 of 10');
+  await expect(page.getByTestId('bills-strip')).toContainText('₹44,000 still to pay');
+  await expect(page.getByTestId('bill-row').filter({ hasText: 'Bike Insurance' })).toContainText('₹1,500');
+  await expect(page.getByTestId('bill-row').filter({ hasText: 'Groceries' })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Set aside this month' })).toBeVisible();
   await expect(page.getByTestId('pot-balance')).toHaveText('₹0');
-  await expect(page.getByRole('heading', { name: 'This month’s checklist' })).toBeVisible();
-  await expect(page.getByText(/Bike Insurance/).locator('..')).toContainText('₹1,500');
-  // Home's frame: the pot label, the next 3 months, Speak / Scan / Type, and the header buttons.
+  // Home's frame: Coming up with the pot and the next 3 months, Speak / Scan / Type, and the header buttons.
   await expect(page.getByText('In the yearly bills pot')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Coming up' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Next 3 months' })).toBeVisible();
-  await expect(page.getByTestId('home-voice')).toHaveAttribute('href', '/capture');
+  await expect(page.getByTestId('home-voice')).toBeVisible();
   await expect(page.getByRole('link', { name: 'Inbox', exact: true })).toHaveAttribute('href', '/inbox');
   await expect(page.getByRole('link', { name: 'Settings', exact: true })).toHaveAttribute('href', '/settings/account');
   await page.getByTestId('home-scan').click();
   await expect(page.getByRole('dialog')).toContainText('Scanning bills is coming soon. For now, Speak or Type it.');
-  await page.getByRole('button', { name: 'OK' }).click();
+  await page.getByRole('button', { name: 'OK', exact: true }).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
 
-  // 4. Confirm the deposit: the pot shows ₹36,917.
+  // 4. Confirm the deposit: the pot shows ₹36,917, and the line stays in the list, ticked.
   await page.getByRole('button', { name: 'Done: Pot deposit' }).click();
   await expect(page.getByTestId('pot-balance')).toHaveText('₹36,917');
+  await expect(page.getByTestId('set-aside-row').filter({ hasText: 'Pot deposit' })).toHaveAttribute('data-state', 'done');
+
+  // 4b. Mark the rent paid from Home: it moves to Paid, dated today, and the strip counts it.
+  await page.getByRole('button', { name: 'Mark House Rent paid' }).click();
+  const markPaid = page.getByRole('dialog', { name: 'Mark paid: House Rent' });
+  await expect(markPaid.getByLabel('Amount')).toHaveValue('20000.00');
+  await markPaid.getByRole('button', { name: 'Save as paid' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  const rent = page.getByTestId('bill-row').filter({ hasText: 'House Rent' });
+  await expect(rent).toHaveAttribute('data-state', 'paid');
+  await expect(rent).toContainText('Paid 1 Nov');
+  await expect(page.getByTestId('bills-strip')).toContainText('1 of 10');
+  await expect(page.getByTestId('month-paid')).toHaveText('₹20,000');
 
   // 5. Add an expense: ₹945, Groceries.
   await page.getByRole('link', { name: 'Add' }).click();
@@ -196,11 +216,19 @@ test('sign up, set up the family, confirm the deposit, add an expense, see it in
   await page.getByRole('link', { name: 'Home' }).click();
   await expect(page.getByRole('heading', { name: 'Kumar Family' })).toBeVisible();
 
-  // 13. Voice: the recording screen, then a staged note checked and added.
+  // 13. Voice: Speak opens the pop-up and starts listening at once; then a staged note checked and added.
   // The speech services are never called here — the note is seeded straight into the browser-test database, so
   // this covers the review screen and the confirm path. Actual microphone capture is only provable on a real phone.
   await page.getByTestId('home-voice').click();
-  await expect(page).toHaveURL(/\/capture$/);
+  const voiceSheet = page.getByRole('dialog', { name: 'Add by voice' });
+  await expect(voiceSheet).toBeVisible();
+  // The test browser has no microphone: the pop-up is opening it, listening, or says it could not reach one.
+  await expect(voiceSheet).toContainText(/Opening the microphone|Listening…|couldn't reach your microphone/);
+  await voiceSheet.getByRole('button', { name: 'Cancel' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page).toHaveURL(/\/home$/);
+  // The old page stays for direct links.
+  await page.goto('/capture');
   await expect(page.getByTestId('voice-start')).toBeVisible();
   await expect(page.getByText(/Up to 30 seconds/)).toBeVisible();
 

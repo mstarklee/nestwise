@@ -65,6 +65,14 @@ export class InMemoryTransactionGateway implements TransactionGateway {
         }
         return sums;
       },
+      lastDateByItem: async (familyId, period) => {
+        const last = new Map<string, IsoDate>();
+        for (const t of rows()) {
+          if (t.familyId !== familyId || t.kind !== 'expense' || !samePeriod(t.period, period)) continue;
+          for (const a of t.allocations) if ((last.get(a.itemId) ?? '') < t.txnDate) last.set(a.itemId, t.txnDate);
+        }
+        return last;
+      },
       hasExpenses: async (familyId, period) => rows().some((t) => t.familyId === familyId && t.kind === 'expense' && samePeriod(t.period, period)),
     };
   }

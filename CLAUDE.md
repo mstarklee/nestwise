@@ -73,4 +73,11 @@ The full picture is in `docs/PROGRESS.md`.
   - iPhone setup, the spouse invite and the airplane-mode check (`docs/RUNBOOK.md` §4–5)
   - the first daily cron run
 - Design stage built, not deployed: every screen is in the "Silk and gold" look (spec `docs/superpowers/specs/2026-11-05-nestwise-design-look-and-feel-design.md`, plan `docs/superpowers/plans/2026-11-05-nestwise-design-look-and-feel.md`). The owner approved Home and Add; the rest waits on their look, then a deploy and an iPhone check.
+- Home bills first (owner, 2026-11-07), built on branch `feat/home-bills-first`, not merged or deployed:
+  - this month's plan and paid on top, then this month's bills (monthly items marked `isBill`, plus yearly bills due now) with done or not done and "Mark paid";
+  - no everyday spending on Home;
+  - the bottom bar docked flat on the bottom edge;
+  - Speak opens a listening pop-up.
+
+  Spec `docs/superpowers/specs/2026-11-08-nestwise-home-bills-first-design.md`, plan `docs/superpowers/plans/2026-11-08-nestwise-home-bills-first.md`.
 - Next, in order: finish the design approval and deploy, then Photo receipts

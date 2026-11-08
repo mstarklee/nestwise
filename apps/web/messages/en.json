@@ -208,7 +208,57 @@
     "yearEnd": "Some {year} bills are still open.",
     "openYearEnd": "Answer them",
     "openReview": "See how it went",
-    "openInbox": "Open the Inbox"
+    "openInbox": "Open the Inbox",
+    "comingUp": "Coming up",
+    "month": {
+      "soFar": "{month} so far",
+      "ofPlanned": "paid of <m>{amount}</m> planned",
+      "billsPaid": "Bills: <m>{paid} of {count}</m> paid",
+      "stillToPay": "<m>{amount}</m> still to pay",
+      "allPaid": "All bills paid"
+    },
+    "bills": {
+      "title": "Bills this month",
+      "count": "{paid} of {count} paid",
+      "toPay": "Still to pay · <m>{amount}</m>",
+      "paid": "Paid · <m>{amount}</m>",
+      "notThisMonthGroup": "Not this month",
+      "everyMonth": "Every month",
+      "yearly": "Yearly bill",
+      "overdue": "Overdue",
+      "paidSoFar": "<m>{amount}</m> paid so far",
+      "paidOn": "Paid {day}",
+      "paidNoDate": "Paid",
+      "under": "<m>{amount}</m> under plan",
+      "over": "<m>{amount}</m> over plan",
+      "notThisMonth": "Not this month",
+      "markPaid": "Mark paid",
+      "markPaidFor": "Mark {item} paid",
+      "empty": "No bills are marked yet. On the plan page, mark rent, fees and subscriptions as bills, and they will show here each month.",
+      "openPlan": "Open the plan",
+      "sheet": {
+        "title": "Mark paid: {item}",
+        "explain": "This adds the payment as an expense for this month.",
+        "fromPot": "This is paid from the yearly bills pot.",
+        "amount": "Amount",
+        "date": "Paid on",
+        "save": "Save as paid",
+        "notThisMonth": "Not this month",
+        "cancel": "Cancel",
+        "ok": "OK",
+        "badAmount": "Please enter an amount like 5000 or 5,000.50.",
+        "inInbox": "Saved. It looks like an expense that was already added, so it waits in the Inbox for an answer.",
+        "onPhone": "Saved on this phone. It will send when the signal is back."
+      }
+    },
+    "setAsideList": {
+      "title": "Set aside this month",
+      "count": "{done} of {count} done",
+      "potNote": "Into the yearly bills pot",
+      "savingsNote": "Savings",
+      "done": "Done",
+      "allDone": "Everything for this month is set aside."
+    }
   },
   "checklist": {
     "title": "This month’s checklist",
@@ -319,7 +369,9 @@
     "archive": "Archive",
     "addItem": "Add item",
     "add": "Add",
-    "badAmount": "Please enter an amount like 5000 or 5,000.50."
+    "badAmount": "Please enter an amount like 5000 or 5,000.50.",
+    "isBill": "This is a bill (show it on Home)",
+    "billTag": "Bill"
   },
   "forecast": {
     "title": "12-month forecast",
@@ -547,6 +599,9 @@
     "blocked": "{count, plural, one {# row needs an amount and an item} other {# rows need an amount and an item}}",
     "date": "Date",
     "discard": "Discard this voice note",
-    "viewerCannot": "A Viewer can look at the family’s money but not add to it, so voice is not available."
+    "viewerCannot": "A Viewer can look at the family’s money but not add to it, so voice is not available.",
+    "cancel": "Cancel",
+    "tryAgain": "Try again",
+    "opening": "Opening the microphone…"
   }
 }

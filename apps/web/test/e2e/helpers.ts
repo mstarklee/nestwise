@@ -38,10 +38,13 @@ export async function openVerifyLink(page: Page, email = E2E_EMAIL): Promise<voi
  */
 export async function signInOrSetUp(page: Page): Promise<void> {
   await page.goto('/home');
-  // The redirect for a signed-out person happens as the page streams in, so let the page settle first.
-  await page.waitForLoadState('networkidle');
-  if (new URL(page.url()).pathname === '/home') return;
-  await expect(page).toHaveURL(/\/sign-in/);
+  // The redirect for a signed-out person happens as the page streams in, so the address alone can still say /home
+  // for a moment: wait for Home's own content or the sign-in page, whichever comes.
+  const start = await Promise.race([
+    page.getByTestId('month-paid').waitFor().then(() => 'home'),
+    page.waitForURL((u) => u.pathname === '/sign-in').then(() => 'sign-in'),
+  ]);
+  if (start === 'home') return;
   await page.getByLabel('Email').fill(E2E_EMAIL);
   await page.getByLabel('Password').fill(E2E_PASSWORD);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();

@@ -4,7 +4,7 @@ import { GetForecastUseCase, GetHomeSummaryUseCase } from '../../src/forecast';
 import { EnsureMonthBudgetUseCase, GetMonthSummaryUseCase } from '../../src/month-budget';
 import { ImportPlanUseCase } from '../../src/plan';
 import { ConfirmPotDepositUseCase, ConfirmSavingsUseCase, GetChecklistUseCase, RecordPotMovementUseCase, SkipChecklistItemUseCase } from '../../src/pot';
-import type { Actor } from '../../src/shared';
+import { type Actor, toIsoDate } from '../../src/shared';
 import { ApplyFirstYearCheckUseCase, ConfirmNextYearReviewUseCase, EnsureYearPlanUseCase, GetYearEndReviewUseCase } from '../../src/year-plan';
 import { familyRecord } from '../fakes/family-record';
 import { FixedClock } from '../fakes/fixed-clock';
@@ -76,6 +76,8 @@ beforeEach(async () => {
     yearPlans,
     new GetYearEndReviewUseCase(yearPlans, paid),
     captures,
+    planUow.plan,
+    actuals,
   );
   ensureOctober = () => ensureMonth.execute({ familyId: 'f1', period: { year: 2026, month: 10 } });
 });
@@ -117,7 +119,18 @@ describe('GetForecastUseCase', () => {
     expect(dec.months[0]).toMatchObject({ period: { year: 2026, month: 12 }, outMinor: 50_000 });
     // November 2027 carries only its own bike insurance, not the 2026 one again.
     expect(dec.months[11]).toMatchObject({ period: { year: 2027, month: 11 }, outMinor: 150_000 });
-    expect(dec.bills[0]!.lines).toEqual([{ yearLineId: bike.id, name: 'Bike Insurance', remainingMinor: 50_000, status: 'overdue' }]);
+    expect(dec.bills[0]!.lines).toEqual([
+      {
+        yearLineId: bike.id,
+        itemId: itemId('bike_ins'),
+        planYear: 2026,
+        name: 'Bike Insurance',
+        plannedMinor: 150_000,
+        paidMinor: 100_000,
+        remainingMinor: 50_000,
+        status: 'overdue',
+      },
+    ]);
   });
 
   it('a viewer can read it', async () => {
@@ -126,12 +139,12 @@ describe('GetForecastUseCase', () => {
 });
 
 describe('GetHomeSummaryUseCase', () => {
-  it('home shows the next 3 months of bills (Nov bike 1,500; Jan Pongal 15,000)', async () => {
+  it('home shows the three months after this one (Dec none; Jan Pongal 15,000; Feb none)', async () => {
     const h = await home.execute({ actor: admin });
-    expect(h.next3Months.map((m) => m.period)).toEqual([NOV, { year: 2026, month: 12 }, { year: 2027, month: 1 }]);
-    expect(h.next3Months[0]!.lines).toMatchObject([{ name: 'Bike Insurance', remainingMinor: 150_000, status: 'due_soon' }]);
-    expect(h.next3Months[1]!.lines).toEqual([]);
-    expect(h.next3Months[2]!.lines).toMatchObject([{ name: 'Pongal', remainingMinor: 1_500_000, yearLineId: null }]);
+    expect(h.comingMonths.map((m) => m.period)).toEqual([{ year: 2026, month: 12 }, { year: 2027, month: 1 }, { year: 2027, month: 2 }]);
+    expect(h.comingMonths[0]!.lines).toEqual([]);
+    expect(h.comingMonths[1]!.lines).toMatchObject([{ name: 'Pongal', remainingMinor: 1_500_000, yearLineId: null }]);
+    expect(h.comingMonths[2]!.lines).toEqual([]);
     expect(h.pot).toMatchObject({ balanceMinor: 0, safeToSpendNowMinor: 0, firstRed: null, fixPerMonthMinor: null });
   });
 
@@ -217,11 +230,11 @@ describe('GetHomeSummaryUseCase', () => {
     // Food & Dining plans ₹24,000; groceries alone reach ₹25,000. Rent is exactly on plan.
     actuals.set('f1', NOV, new Map([[itemId('groceries'), 2_500_000], [itemId('rent'), 2_000_000]]));
     const h = await home.execute({ actor: admin });
-    expect(h.thisMonth).toMatchObject({ plannedMinor: 8_150_000, actualMinor: 4_500_000, groupsOver: ['Food & Dining'] });
+    expect(h.thisMonth).toMatchObject({ monthlyPlannedMinor: 8_150_000, monthlyActualMinor: 4_500_000, groupsOver: ['Food & Dining'] });
   });
 
-  it('home gives each of the next 3 months its end-of-month pot balance', async () => {
-    expect((await home.execute({ actor: admin })).next3Months.map((m) => m.endMinor)).toEqual(NOV_2026_END_BALANCES.slice(0, 3));
+  it('home gives each of the coming months its end-of-month pot balance', async () => {
+    expect((await home.execute({ actor: admin })).comingMonths.map((m) => m.endMinor)).toEqual(NOV_2026_END_BALANCES.slice(1, 4));
   });
 
   it('home gives the monthly set-aside and says every month is covered', async () => {
@@ -249,5 +262,93 @@ describe('GetHomeSummaryUseCase', () => {
 
   it('home lists this month’s groups with planned and actual', async () => {
     expect((await home.execute({ actor: admin })).thisMonth.groups).toContainEqual({ groupName: 'Food & Dining', plannedMinor: 2_400_000, actualMinor: 0 });
+  });
+
+  describe('this month’s bills', () => {
+    type Home = Awaited<ReturnType<GetHomeSummaryUseCase['execute']>>;
+    const names = (h: Home, state: string) => h.thisMonth.bills.lines.filter((b) => b.state === state).map((b) => b.name);
+    const day = (value: string) => toIsoDate(value);
+
+    it('lists the nine monthly bills and November’s bike insurance, all still to pay, yearly first', async () => {
+      const h = await home.execute({ actor: admin });
+      expect(h.thisMonth.bills).toMatchObject({ count: 10, paidCount: 0, toPayMinor: 4_400_000 });
+      expect(h.thisMonth.bills.lines[0]).toEqual({
+        kind: 'yearly',
+        itemId: itemId('bike_ins'),
+        yearLineId: (await yearPlans.findByYear('f1', 2026))!.lines.find((l) => l.itemId === itemId('bike_ins'))!.id,
+        planYear: 2026,
+        name: 'Bike Insurance',
+        plannedMinor: 150_000,
+        paidMinor: 0,
+        toPayMinor: 150_000,
+        paidOn: null,
+        state: 'to_pay',
+        overdue: false,
+      });
+      expect(names(h, 'to_pay').slice(1, 3)).toEqual(['House Rent', 'Electricity Bill']);
+      expect(names(h, 'to_pay')).not.toContain('Groceries');
+    });
+
+    it('a bill with spending this month is paid, with its date; under-plan spend still counts as paid', async () => {
+      actuals.set(
+        'f1',
+        NOV,
+        new Map([
+          [itemId('rent'), 2_000_000],
+          [itemId('electricity'), 285_000],
+          [itemId('groceries'), 94_500],
+        ]),
+        new Map([
+          [itemId('rent'), day('2026-11-02')],
+          [itemId('electricity'), day('2026-11-05')],
+        ]),
+      );
+      const h = await home.execute({ actor: admin });
+      expect(names(h, 'paid')).toEqual(['House Rent', 'Electricity Bill']);
+      expect(h.thisMonth.bills.lines.find((b) => b.name === 'Electricity Bill')).toMatchObject({
+        paidMinor: 285_000,
+        plannedMinor: 300_000,
+        toPayMinor: 0,
+        paidOn: '2026-11-05',
+      });
+      expect(h.thisMonth.bills).toMatchObject({ count: 10, paidCount: 2, toPayMinor: 4_400_000 - 2_000_000 - 300_000 });
+      // The whole month: ₹81,500 monthly plan + ₹1,500 bike insurance; paid ₹20,000 + ₹2,850 + ₹945.
+      expect(h.thisMonth).toMatchObject({ plannedMinor: 8_300_000, paidMinor: 2_000_000 + 285_000 + 94_500 });
+    });
+
+    it('a bill planned at ₹0 this month is “not this month” and does not count', async () => {
+      const ensure = new EnsureMonthBudgetUseCase(monthBudgets, planUow.plan, ids);
+      const nov = await ensure.execute({ familyId: 'f1', period: NOV });
+      const ott = nov.lines.find((l) => l.itemId === itemId('ott'))!;
+      await monthBudgets.saveLine('f1', nov.id, { ...ott, plannedMinor: 0 });
+      const h = await home.execute({ actor: admin });
+      expect(names(h, 'not_this_month')).toEqual(['OTT Subscriptions (Netflix, Amazon)']);
+      expect(h.thisMonth.bills.lines.at(-1)!.name).toBe('OTT Subscriptions (Netflix, Amazon)');
+      expect(h.thisMonth.bills).toMatchObject({ count: 9, paidCount: 0, toPayMinor: 4_400_000 - 100_000 });
+    });
+
+    it('a yearly bill paid in part is still to pay with what is owed; fully paid it is paid', async () => {
+      const bike = (await yearPlans.findByYear('f1', 2026))!.lines.find((l) => l.itemId === itemId('bike_ins'))!;
+      paid.set('f1', 2026, bike.id, 100_000);
+      let h = await home.execute({ actor: admin });
+      expect(h.thisMonth.bills.lines[0]).toMatchObject({ name: 'Bike Insurance', state: 'to_pay', paidMinor: 100_000, toPayMinor: 50_000 });
+      paid.set('f1', 2026, bike.id, 150_000);
+      actuals.set('f1', NOV, new Map([[itemId('bike_ins'), 150_000]]), new Map([[itemId('bike_ins'), day('2026-11-03')]]));
+      h = await home.execute({ actor: admin });
+      expect(h.thisMonth.bills.lines.find((b) => b.name === 'Bike Insurance')).toMatchObject({ state: 'paid', toPayMinor: 0, paidOn: '2026-11-03' });
+      expect(h.thisMonth.bills).toMatchObject({ paidCount: 1, toPayMinor: 4_250_000 });
+    });
+
+    it('a yearly bill from an earlier month that is still owed shows as overdue', async () => {
+      clock.set('2026-12-05T04:00:00Z');
+      const h = await home.execute({ actor: admin });
+      expect(h.thisMonth.bills.lines[0]).toMatchObject({ name: 'Bike Insurance', overdue: true, state: 'to_pay', toPayMinor: 150_000 });
+    });
+
+    it('only monthly items marked as bills are listed', async () => {
+      const groceries = (await planUow.plan.listItems('f1', { includeArchived: false })).find((i) => i.seedKey === 'groceries')!;
+      await planUow.plan.saveItem({ ...groceries, isBill: true });
+      expect(names(await home.execute({ actor: admin }), 'to_pay')).toContain('Groceries');
+    });
   });
 });
